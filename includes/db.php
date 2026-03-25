@@ -1,9 +1,9 @@
 <?php
 session_start();
-if (!file_exists('../config.php')) {
+if (!file_exists('/config.php')) {
     die("Please run <a href='../db_setup.php'>DB Setup</a> first.");
 }
-require_once '../config.php';
+require_once '/config.php';
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
