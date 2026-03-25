@@ -9,7 +9,7 @@ if ($_POST) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT id, password_hash, name FROM staff WHERE username = ? AND status='active'");
+    $stmt = $conn->prepare("SELECT id, password_hash, name FROM admins WHERE username = ? AND status='active'");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
