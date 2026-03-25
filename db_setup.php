@@ -195,7 +195,7 @@ a.btn{
 <?php if ($step == 3): ?>
 <div class="msg success">
 🎉 Installation Complete!<br>
-<a class="btn" href="login.php">Go to Login →</a>
+<a class="btn" href="/login.php">Go to Login →</a>
 </div>
 <?php endif; ?>
 
