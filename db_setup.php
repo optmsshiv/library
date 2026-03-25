@@ -149,21 +149,190 @@ define('DB_NAME','{$db['dbname']}');
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
-body{background:linear-gradient(135deg,#667eea,#764ba2);height:100vh;display:flex;align-items:center;justify-content:center;}
-.card{background:#fff;padding:40px;width:100%;max-width:450px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
-h1{text-align:center;margin-bottom:10px;}
-.sub{text-align:center;color:#777;margin-bottom:20px;}
-.form-group{margin-bottom:15px;}
-input{width:100%;padding:12px;border-radius:8px;border:1px solid #ddd;}
-button{width:100%;padding:12px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer;}
-button:hover{background:#5a67d8;}
-.msg{padding:10px;margin-bottom:15px;border-radius:8px;}
-.error{background:#ffe0e0;color:#d8000c;}
-.success{background:#e0ffe5;color:#0a7d2c;text-align:center;}
-.glow{box-shadow:0 0 15px #28a745;}
-a.btn{display:inline-block;margin-top:10px;padding:10px 20px;background:#28a745;color:#fff;border-radius:6px;text-decoration:none;}
-.footer{text-align:center;margin-top:15px;font-size:13px;color:#aaa;}
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* Glass Card */
+.card{
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    padding:40px;
+    width:100%;
+    max-width:460px;
+    border-radius:20px;
+    box-shadow:0 25px 80px rgba(0,0,0,0.25);
+    animation: fadeIn 0.6s ease;
+}
+
+/* Header */
+h1{
+    text-align:center;
+    font-size:26px;
+    font-weight:700;
+}
+
+.sub{
+    text-align:center;
+    color:#666;
+    margin-bottom:25px;
+}
+
+/* Steps Indicator */
+.steps{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:25px;
+}
+
+.step{
+    flex:1;
+    text-align:center;
+    font-size:12px;
+    position:relative;
+    color:#aaa;
+}
+
+.step.active{
+    color:#667eea;
+    font-weight:600;
+}
+
+.step::after{
+    content:'';
+    position:absolute;
+    top:10px;
+    right:-50%;
+    width:100%;
+    height:2px;
+    background:#ddd;
+}
+
+.step:last-child::after{
+    display:none;
+}
+
+.step.active::after{
+    background:#667eea;
+}
+
+/* Inputs */
+.form-group{
+    margin-bottom:15px;
+}
+
+input{
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    outline:none;
+    transition:0.3s;
+}
+
+input:focus{
+    border-color:#667eea;
+    box-shadow:0 0 8px rgba(102,126,234,0.3);
+}
+
+/* Button */
+button{
+    width:100%;
+    padding:13px;
+    background:linear-gradient(135deg,#667eea,#5a67d8);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:15px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Loader */
+button.loading{
+    opacity:0.7;
+    pointer-events:none;
+}
+
+button.loading::after{
+    content:'⏳ Processing...';
+}
+
+/* Messages */
+.msg{
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:10px;
+    font-size:14px;
+    animation:fadeIn 0.4s ease;
+}
+
+.success{
+    background:linear-gradient(135deg,#d4f8e8,#e0ffe5);
+    color:#0a7d2c;
+    border-left:5px solid #28a745;
+}
+
+.error{
+    background:#ffe0e0;
+    color:#d8000c;
+    border-left:5px solid #ff4d4d;
+}
+
+/* Success Box */
+.success-box{
+    text-align:center;
+    padding:25px;
+    border-radius:15px;
+    background:linear-gradient(135deg,#e0ffe5,#d4f8e8);
+    box-shadow:0 0 20px rgba(40,167,69,0.3);
+}
+
+a.btn{
+    display:inline-block;
+    margin-top:15px;
+    padding:12px 25px;
+    background:linear-gradient(135deg,#28a745,#218838);
+    color:#fff;
+    border-radius:8px;
+    text-decoration:none;
+    transition:0.3s;
+}
+
+a.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Footer */
+.footer{
+    text-align:center;
+    margin-top:20px;
+    font-size:12px;
+    color:#888;
+}
+
+/* Animation */
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(15px);}
+    to{opacity:1;transform:translateY(0);}
+}
 </style>
 </head>
 
@@ -171,6 +340,11 @@ a.btn{display:inline-block;margin-top:10px;padding:10px 20px;background:#28a745;
 
 <div class="card">
 <h1>🚀 OPTMS ERP</h1>
+<div class="steps">
+    <div class="step <?= $step==1?'active':'' ?>">Database</div>
+    <div class="step <?= $step==2?'active':'' ?>">Admin</div>
+    <div class="step <?= $step==3?'active':'' ?>">Finish</div>
+</div>
 <p class="sub">Secure Installer</p>
 
 <?php if ($installed): ?>
@@ -209,14 +383,26 @@ a.btn{display:inline-block;margin-top:10px;padding:10px 20px;background:#28a745;
 
 <!-- STEP 3 -->
 <?php if ($step == 3): ?>
-<div class="msg success">
-🎉 Installation Complete!<br>
-<a class="btn" href="login.php">Go to Login →</a>
+<div class="success-box">
+    <h2>🎉 Installation Complete</h2>
+    <p>Your ERP is ready to use</p>
+    <a class="btn" href="login.php">Go to Dashboard →</a>
 </div>
 <?php endif; ?>
 
 <div class="footer">OPTMS Tech © <?= date('Y') ?></div>
 </div>
+
+
+<script>
+document.querySelectorAll("form").forEach(form=>{
+    form.addEventListener("submit",()=>{
+        let btn = form.querySelector("button");
+        btn.classList.add("loading");
+        btn.innerText = "Processing...";
+    });
+});
+</script>
 
 </body>
 </html>
