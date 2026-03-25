@@ -45,11 +45,11 @@ if ($_POST) {
     <p style="text-align:center;color:#666">ERP v6.0</p>
     <?php if(isset($error)) echo "<p style='color:red;text-align:center'>$error</p>"; ?>
     <form method="post">
-        <input type="text" name="username" placeholder="Email" value="admin" required>
-        <input type="password" name="password" placeholder="Password" value="admin123" required>
+        <input type="text" name="username" placeholder="Email" value="sumati@domain.com" required>
+        <input type="password" name="password" placeholder="Password" value="123@Sumati" required>
         <button type="submit">Login</button>
     </form>
-    <p style="text-align:center;margin-top:20px;font-size:13px;color:#888">Default: admin / admin123</p>
+    <p style="text-align:center;margin-top:20px;font-size:13px;color:#888">Default: sumati@domain.com / 123@Sumati</p>
 </div>
 </body>
 </html>

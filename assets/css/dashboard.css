@@ -1,0 +1,10 @@
+/* assets/css/dashboard.css */
+.stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.qa-gr {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 9px;
+}
