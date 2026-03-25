@@ -1,7 +1,7 @@
 <?php 
-require_once __DIR__ . '../includes/db.php';
-require_once __DIR__ . '../includes/header.php';
-require_once __DIR__ . '../includes/sidebar.php';
+require_once '../includes/db.php';
+require_once '../includes/header.php';
+require_once '../includes/sidebar.php';
 
 // Fetch dashboard data
 $totalStudents = $conn->query("SELECT COUNT(*) FROM students")->fetch_row()[0];
