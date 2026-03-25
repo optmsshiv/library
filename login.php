@@ -1,7 +1,7 @@
 <?php
 require_once 'includes/db.php';
 if (isset($_SESSION['user_id'])) {
-    header("Location: pages/dashboard.php");
+    header("Location: /pages/dashboard.php");
     exit;
 }
 
@@ -45,7 +45,7 @@ if ($_POST) {
     <p style="text-align:center;color:#666">ERP v6.0</p>
     <?php if(isset($error)) echo "<p style='color:red;text-align:center'>$error</p>"; ?>
     <form method="post">
-        <input type="text" name="username" placeholder="Username" value="admin" required>
+        <input type="text" name="username" placeholder="Email" value="admin" required>
         <input type="password" name="password" placeholder="Password" value="admin123" required>
         <button type="submit">Login</button>
     </form>
