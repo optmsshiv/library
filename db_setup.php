@@ -1,43 +1,64 @@
 <?php
-
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
 
 $error = "";
+$info = "";
 $step = 1;
 
-// 🔐 INSTALL LOCK
 $lockFile = __DIR__ . '/install.lock';
-$installed = file_exists($lockFile);
 
-// Allow only with key (security)
-$INSTALL_KEY = "OPTMS@2026";
+// 🚫 Stop if installed
+if (file_exists($lockFile)) {
+    die("⚠️ Installer locked. Delete install.lock to reinstall.");
+}
+
+// 🔐 Secure install key
+$INSTALL_KEY = getenv('INSTALL_KEY') ?: "CHANGE_THIS_KEY";
 
 if (!isset($_GET['key']) || $_GET['key'] !== $INSTALL_KEY) {
     die("⛔ Unauthorized Access");
 }
 
-// STEP 1: Test DB
+// 🔐 CSRF
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+function clean($data){
+    return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+}
+
+// STEP 1
 if (isset($_POST['test_db'])) {
-    $host = trim($_POST['host']);
-    $user = trim($_POST['user']);
+
+    if ($_POST['csrf'] !== $_SESSION['csrf']) {
+        die("Invalid CSRF token");
+    }
+
+    $host = clean($_POST['host']);
+    $user = clean($_POST['user']);
     $pass = $_POST['pass'];
-    $dbname = trim($_POST['dbname']);
+    $dbname = clean($_POST['dbname']);
 
     $conn = @new mysqli($host, $user, $pass, $dbname);
 
     if ($conn->connect_error) {
         $error = "❌ Connection failed: " . $conn->connect_error;
     } else {
-        $_SESSION['db'] = $_POST;
+        $_SESSION['db'] = compact('host','user','pass','dbname');
         $step = 2;
     }
 }
 
-// STEP 2: Setup
+// STEP 2
 if (isset($_POST['create_admin'])) {
+
+    if ($_POST['csrf'] !== $_SESSION['csrf']) {
+        die("Invalid CSRF token");
+    }
 
     if (!isset($_SESSION['db'])) {
         $error = "Session expired.";
@@ -52,55 +73,44 @@ if (isset($_POST['create_admin'])) {
             $step = 1;
         } else {
 
-            // ✅ CHECK TABLE EXISTENCE
+            // Run schema if needed
             $tableCheck = $conn->query("SHOW TABLES LIKE 'admins'");
 
-            if ($tableCheck && $tableCheck->num_rows == 0) {
-
+            if ($tableCheck->num_rows == 0) {
                 $sqlPath = __DIR__ . '/sql/schema.sql';
 
                 if (file_exists($sqlPath)) {
-
                     $sql = file_get_contents($sqlPath);
 
-                    if ($sql && trim($sql) !== '') {
-
+                    if (!empty($sql)) {
                         if (!$conn->multi_query($sql)) {
                             die("❌ Schema error: " . $conn->error);
                         }
 
-                        while ($conn->more_results() && $conn->next_result()) {}
-
-                    } else {
-                        echo "<div class='msg success'>⚠️ schema.sql empty — skipped</div>";
+                        do {
+                            if ($result = $conn->store_result()) {
+                                $result->free();
+                            }
+                        } while ($conn->more_results() && $conn->next_result());
                     }
-
-                } else {
-                    echo "<div class='msg success'>⚠️ schema.sql not found — skipped</div>";
                 }
-
-            } else {
-                echo "<div class='msg success'>✅ Existing DB detected — schema skipped</div>";
             }
 
-            // 👤 ADMIN
-            $name = trim($_POST['admin_name']);
-            $email = trim($_POST['admin_email']);
+            $name = clean($_POST['admin_name']);
+            $email = clean($_POST['admin_email']);
             $password = $_POST['admin_password'];
 
             if (!$name || !$email || !$password) {
-                $error = "All admin fields required.";
+                $error = "All fields required.";
                 $step = 2;
             } elseif (strlen($password) < 6) {
-                $error = "Password must be at least 6 characters.";
+                $error = "Password must be 6+ characters.";
                 $step = 2;
             } else {
 
                 $hashed = password_hash($password, PASSWORD_BCRYPT);
 
                 $check = $conn->prepare("SELECT id FROM admins WHERE email=?");
-                if (!$check) die("❌ Prepare failed: " . $conn->error);
-
                 $check->bind_param("s", $email);
                 $check->execute();
                 $check->store_result();
@@ -111,29 +121,27 @@ if (isset($_POST['create_admin'])) {
                 } else {
 
                     $stmt = $conn->prepare("INSERT INTO admins (name,email,password) VALUES (?,?,?)");
-                    if (!$stmt) die("❌ Insert prepare failed: " . $conn->error);
-
                     $stmt->bind_param("sss", $name, $email, $hashed);
 
-                    if (!$stmt->execute()) {
-                        die("❌ Insert failed: " . $stmt->error);
-                    }
+                    if ($stmt->execute()) {
 
-                    // ⚙️ CONFIG
-                    $config = "<?php
-define('DB_HOST','{$db['host']}');
-define('DB_USER','{$db['user']}');
-define('DB_PASS','{$db['pass']}');
-define('DB_NAME','{$db['dbname']}');
-?>";
+                        $config = "<?php
+                                    define('DB_HOST','{$db['host']}');
+                                    define('DB_USER','{$db['user']}');
+                                    define('DB_PASS','{$db['pass']}');
+                                    define('DB_NAME','{$db['dbname']}');
+                                    ?>";
 
-                    if (!file_put_contents('config.php', $config)) {
-                        $error = "Failed to write config.php";
-                        $step = 2;
-                    } else {
+                        file_put_contents(__DIR__.'/config.php', $config);
+                        chmod(__DIR__.'/config.php', 0640);
+
                         file_put_contents($lockFile, 'installed');
+
                         session_destroy();
                         $step = 3;
+
+                    } else {
+                        $error = "Insert failed: " . $stmt->error;
                     }
                 }
             }
@@ -275,24 +283,24 @@ button.loading::after{
 }
 
 /* Messages */
-.msg{
-    padding:12px;
-    margin-bottom:15px;
-    border-radius:10px;
-    font-size:14px;
-    animation:fadeIn 0.4s ease;
+.msg {
+    padding: 12px 14px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    animation: fadeIn 0.4s ease;
 }
 
-.success{
-    background:linear-gradient(135deg,#d4f8e8,#e0ffe5);
-    color:#0a7d2c;
-    border-left:5px solid #28a745;
+.success {
+    background: linear-gradient(135deg, #d4f8e8, #e0ffe5);
+    color: #0a7d2c;
+    border-left: 5px solid #28a745;
 }
 
-.error{
-    background:#ffe0e0;
-    color:#d8000c;
-    border-left:5px solid #ff4d4d;
+.error {
+    background: #ffe0e0;
+    color: #d8000c;
+    border-left: 5px solid #ff4d4d;
 }
 
 /* Success Box */
@@ -348,11 +356,15 @@ a.btn:hover{
 <p class="sub">Secure Installer</p>
 
 <?php if ($installed): ?>
-<div class="msg success">⚠️ Already Installed</div>
+<div class="msg success glow" style="padding:20px;">⚠️ Already Installed</div>
 <?php endif; ?>
 
 <?php if ($error): ?>
 <div class="msg error"><?= $error ?></div>
+<?php endif; ?>
+
+<?php if (!empty($info)): ?>
+<div class="msg success glow" style="padding:20px;"><?= $info ?></div>
 <?php endif; ?>
 
 <!-- STEP 1 -->
