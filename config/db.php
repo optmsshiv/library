@@ -6,7 +6,7 @@
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
 define('DB_USER', 'edrppymy_library_erp');
-define('DB_PASS', '1234@ibraryerp');
+define('DB_PASS', '1234@Libraryerp');
 define('DB_NAME', 'edrppymy_library_erp');
 
 function getDB(): PDO {
