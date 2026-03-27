@@ -1,0 +1,62 @@
+/* ═══ LOGIN PAGE CSS ═══ */
+:root {
+  --bg:#f0ede8; --sf:#faf8f5; --sf2:#ede9e3; --br:#d8d3cc; --br2:#c8c2ba;
+  --ac:#4a7c6f; --ac2:#5a9186; --em:#3a7d5e; --ro:#c0444f; --vi:#7c5cbf;
+  --tx:#2c2825; --tx2:#5a534c; --tx3:#8a8078;
+  --fd:'DM Serif Display',serif; --fb:'DM Sans',sans-serif; --fm:'JetBrains Mono',monospace;
+  --r:12px; --r2:8px; --sh2:0 8px 32px rgba(60,50,40,.18);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--fb); background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+
+.login-bg { width:100%; min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; padding:24px; }
+
+.login-card {
+  background:var(--sf);
+  border:1px solid var(--br);
+  border-radius:20px;
+  padding:40px 36px;
+  width:100%;
+  max-width:420px;
+  box-shadow:0 24px 64px rgba(60,50,40,.14);
+  position:relative;
+  z-index:10;
+  animation:cardIn .4s ease;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+.login-brand { text-align:center; margin-bottom:28px; }
+.brand-icon  { width:56px; height:56px; background:linear-gradient(135deg,var(--ac),var(--vi)); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 14px; }
+.login-brand h1 { font-family:var(--fd); font-size:24px; color:var(--tx); margin-bottom:4px; }
+.login-brand p  { font-size:12px; color:var(--tx3); font-family:var(--fm); letter-spacing:.5px; }
+
+.alert         { padding:10px 14px; border-radius:var(--r2); font-size:12.5px; margin-bottom:16px; }
+.alert-error   { background:rgba(192,68,79,.08); border:1px solid rgba(192,68,79,.25); color:var(--ro); }
+.alert-success { background:rgba(58,125,94,.08); border:1px solid rgba(58,125,94,.25); color:var(--em); }
+
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:11px; font-weight:600; color:var(--tx2); margin-bottom:5px; letter-spacing:.3px; }
+.input-wrap  { position:relative; display:flex; align-items:center; }
+.input-icon  { position:absolute; left:11px; font-size:14px; pointer-events:none; }
+.input-wrap input { width:100%; padding:9px 12px 9px 34px; border:1px solid var(--br2); border-radius:var(--r2); background:var(--sf2); color:var(--tx); font-size:13px; font-family:var(--fb); outline:none; transition:border-color .2s; }
+.input-wrap input:focus { border-color:var(--ac); }
+.pw-toggle { position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:14px; color:var(--tx3); padding:2px; }
+
+.form-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.remember-label { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--tx2); cursor:pointer; }
+.remember-label input { width:14px; height:14px; accent-color:var(--ac); }
+.forgot-link { font-size:12px; color:var(--ac); text-decoration:none; }
+.forgot-link:hover { text-decoration:underline; }
+
+.login-btn { width:100%; padding:11px; background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff; border:none; border-radius:var(--r2); font-size:14px; font-weight:600; cursor:pointer; font-family:var(--fb); transition:all .2s; letter-spacing:.3px; }
+.login-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(74,124,111,.3); }
+
+.login-footer { text-align:center; margin-top:20px; font-size:11px; color:var(--tx3); }
+.login-footer code { background:var(--sf2); padding:2px 6px; border-radius:4px; font-family:var(--fm); color:var(--tx2); }
+
+/* Background decoration */
+.bg-decoration { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+.deco-circle   { position:absolute; border-radius:50%; opacity:.4; }
+.c1 { width:500px; height:500px; background:radial-gradient(circle,rgba(74,124,111,.15),transparent); top:-200px; right:-200px; }
+.c2 { width:400px; height:400px; background:radial-gradient(circle,rgba(196,125,43,.1),transparent); bottom:-150px; left:-150px; }
+.c3 { width:300px; height:300px; background:radial-gradient(circle,rgba(124,92,191,.08),transparent); top:40%; left:30%; }
