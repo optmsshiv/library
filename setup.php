@@ -3,9 +3,9 @@
 // Visit this file ONCE to create tables and seed data. Delete after use.
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', ' edrppymy_udaanlibrary');
-define('DB_USER', 'root');    // ← Change this
-define('DB_PASS', '');         // ← Change this
+define('DB_NAME', 'edrppymy_udaanlibrary');
+define('DB_USER', 'edrppymy_udaanlibrary');    // ← Change this
+define('DB_PASS', '1234@Libraryerp');         // ← Change this
 
 try {
     // Create DB first (without selecting it)
