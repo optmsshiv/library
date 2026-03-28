@@ -1092,7 +1092,7 @@ function renderDash(){
     </div>
     ${Object.entries(catTotals).map(([cat,amt])=>{const pct=Math.round(amt/totalExp*100);return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--tx2)">${cat}</span><span style="font-family:var(--fm);font-weight:700">₹${amt.toLocaleString()} (${pct}%)</span></div><div class="prg"><div class="prf" style="width:${pct}%;background:${catColors[cat]||'var(--ac)'}"></div></div></div>`;}).join('')}
     <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
-      ${DB.expenses.slice(0,4).map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${e.date}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div></div>`).join('')}
+      ${DB.expenses.slice(0,4).map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${fmtDate(e.date)}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div></div>`).join('')}
     </div>
   </div>`;
 
@@ -1382,7 +1382,7 @@ function renderTx(){
     const s=DB.students.find(x=>x.id===t.studentId);const b=DB.books.find(x=>x.id===t.bookId);if(!s||!b)return'';
     return `<tr><td><div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span style="font-size:12.5px;font-weight:600">${s.fname} ${s.lname}</span></div></td>
     <td>${b.emoji} ${b.title}</td>
-    <td><span style="font-family:var(--fm);font-size:10.5px">${t.issueDate}</span></td>
+    <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(t.issueDate)}</span></td>
     <td><span style="font-family:var(--fm);font-size:10.5px;color:${t.status==='overdue'?'var(--ro)':'inherit'}">${fmtDate(t.dueDate)}</span></td>
     <td><span style="font-family:var(--fm);font-size:10.5px">${t.returnDate||'—'}</span></td>
     <td><span style="font-family:var(--fm);font-weight:700;color:${t.fine>0?'var(--ro)':'inherit'}">₹${t.fine}</span></td>
@@ -1536,8 +1536,8 @@ function collectFee(){
   else{amt=+gv('cf-amt')||0;modeStr=mode;}
   if(!amt)return toast('Enter amount','er');
   const prevPaid=s.paidAmt;s.paidAmt=Math.min(s.netFee,prevPaid+amt);
-  if(s.paidAmt>=s.netFee){s.feeStatus='paid';s.paidOn=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
-  else{s.feeStatus='partial';s.paidOn=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+  if(s.paidAmt>=s.netFee){s.feeStatus='paid';s.paidOn=new Date().toISOString().slice(0,10);}
+  else{s.feeStatus='partial';s.paidOn=new Date().toISOString().slice(0,10);}
   const bal=s.netFee-s.paidAmt;
   const invId='INV-'+String(DB.invoices.length+1).padStart(4,'0');
   DB.invoices.push({id:invId,studentId:stuId,type:'Monthly Fee',amount:amt,baseFee:s.baseFee,discount:s.baseFee-s.netFee,netFee:s.netFee,paidAmt:s.paidAmt,balance:bal,date:s.paidOn,month:gv('cf-mo'),mode:modeStr,status:s.feeStatus==='paid'?'paid':'partial'});
@@ -1560,7 +1560,7 @@ function renderInv(){
     <td>${inv.discount>0?`<span class="tag tor" style="font-size:9px">🎁 -₹${inv.discount}</span>`:'<span style="color:var(--tx3)">—</span>'}</td>
     <td><span style="font-family:var(--fm);font-weight:700">₹${inv.amount}</span></td>
     <td>${inv.balance>0?`<span class="fee-bal-badge">₹${inv.balance}</span>`:`<span style="color:var(--em);font-size:11px">✓</span>`}</td>
-    <td><span style="font-family:var(--fm);font-size:10.5px">${inv.date}</span></td>
+    <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(inv.date)}</span></td>
     <td><span style="font-size:11px">${inv.mode}</span></td>
     <td><span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span></td>
     <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')">🖨 Print</button></td></tr>`;
@@ -1569,7 +1569,7 @@ function renderInv(){
 function genInvoice(){
   const stuId=gv('gi-stu'),amt=+gv('gi-am');if(!stuId||!amt)return toast('Fill required','er');
   const s=DB.students.find(x=>x.id===stuId);
-  DB.invoices.push({id:'INV-'+String(DB.invoices.length+1).padStart(4,'0'),studentId:stuId,type:gv('gi-tp')==='fee'?'Monthly Fee':gv('gi-tp')==='fine'?'Book Fine':'Other',amount:amt,baseFee:s?.baseFee||amt,discount:s?(s.baseFee-s.netFee):0,netFee:s?.netFee||amt,paidAmt:amt,balance:0,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),month:gv('gi-mo'),mode:'Manual',status:'paid'});
+  DB.invoices.push({id:'INV-'+String(DB.invoices.length+1).padStart(4,'0'),studentId:stuId,type:gv('gi-tp')==='fee'?'Monthly Fee':gv('gi-tp')==='fine'?'Book Fine':'Other',amount:amt,baseFee:s?.baseFee||amt,discount:s?(s.baseFee-s.netFee):0,netFee:s?.netFee||amt,paidAmt:amt,balance:0,date:new Date().toISOString().slice(0,10),month:gv('gi-mo'),mode:'Manual',status:'paid'});
   closeM('mGenInv');toast('Invoice generated!','ok');renderInv();
 }
 function autoFillInv(){const s=DB.students.find(x=>x.id===gv('gi-stu'));if(s)document.getElementById('gi-am').value=s.netFee;}
@@ -1578,7 +1578,7 @@ function printInv(invId){
   const w=window.open('','_blank');
   w.document.write(`<html><head><title>Invoice ${inv.id}</title><style>body{font-family:sans-serif;padding:40px;color:#2c2825;max-width:600px;margin:auto}.hd{border-bottom:2px solid #4a7c6f;padding-bottom:16px;margin-bottom:20px}.logo{font-size:22px;font-weight:700;color:#4a7c6f}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.tot{font-weight:700;font-size:18px;color:#4a7c6f}.ok{background:rgba(58,125,94,.1);color:#3a7d5e;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.partial{background:rgba(58,122,176,.1);color:#3a7ab0;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.disc{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.2);border-radius:8px;padding:10px;margin:10px 0}</style></head><body>
   <div class="hd"><div class="logo">📚 ${DB.settings.name}</div><div style="font-size:12px;color:#888;margin-top:4px">${DB.settings.addr} · ${DB.settings.phone}</div></div>
-  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div style="font-size:20px;font-weight:700">INVOICE</div><div style="font-size:13px;color:#888">${inv.id}</div></div><div style="text-align:right"><div style="font-size:13px">${inv.date}</div><div class="${inv.status==='paid'?'ok':'partial'}">${inv.status==='paid'?'✓ Paid':'◑ Partial'}</div></div></div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div style="font-size:20px;font-weight:700">INVOICE</div><div style="font-size:13px;color:#888">${inv.id}</div></div><div style="text-align:right"><div style="font-size:13px">${fmtDate(inv.date)}</div><div class="${inv.status==='paid'?'ok':'partial'}">${inv.status==='paid'?'✓ Paid':'◑ Partial'}</div></div></div>
   <div style="background:#f9f7f4;padding:14px;border-radius:8px;margin-bottom:16px"><div style="font-weight:600;margin-bottom:6px">Student</div><div style="font-size:13px">${s?.fname} ${s?.lname} · ${s?.id}</div><div style="font-size:12px;color:#888">${b?.name||''} · ${s?.seatType?.toUpperCase()} Seat ${s?.seat||''}</div></div>
   <div class="row"><span>Description</span><span>Amount</span></div>
   <div class="row"><span>${inv.type} – ${inv.month}</span><span>₹${inv.baseFee||inv.amount}</span></div>
@@ -1601,13 +1601,13 @@ function renderExp(){
   document.getElementById('ex-t').textContent=fmt(list.reduce((a,e)=>a+e.amount,0));
   document.getElementById('ex-r').textContent=fmt(rev);
   const p=rev-allExp;document.getElementById('ex-p').textContent=fmt(Math.abs(p));document.getElementById('ex-p').style.color=p>=0?'var(--em)':'var(--ro)';
-  document.getElementById('expList').innerHTML=list.map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${e.date} · ${e.category}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div><button class="btn bd" style="font-size:10px;padding:3px 6px;margin-left:7px" onclick="delExp('${e.id}')">✕</button></div>`).join('')||'<div class="empty"><div class="ei">💸</div><div class="et">No expenses</div></div>';
+  document.getElementById('expList').innerHTML=list.map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${fmtDate(e.date)} · ${e.category}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div><button class="btn bd" style="font-size:10px;padding:3px 6px;margin-left:7px" onclick="delExp('${e.id}')">✕</button></div>`).join('')||'<div class="empty"><div class="ei">💸</div><div class="et">No expenses</div></div>';
 }
 function delExp(id){DB.expenses=DB.expenses.filter(e=>e.id!==id);toast('Removed','wn');renderExp();}
 function addExp(){
   const nm=gv('ex-nm'),am=+gv('ex-am');if(!nm||!am)return toast('Fill required','er');
   const emjs={Utilities:'⚡',Staff:'👨‍💼',Maintenance:'🔧',Supplies:'📦',Books:'📚',Other:'💰'};
-  DB.expenses.push({id:'EX-'+Date.now(),name:nm,amount:am,category:gv('ex-ca'),date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),notes:gv('ex-nt'),emoji:emjs[gv('ex-ca')]||'💰'});
+  DB.expenses.push({id:'EX-'+Date.now(),name:nm,amount:am,category:gv('ex-ca'),date:new Date().toISOString().slice(0,10),notes:gv('ex-nt'),emoji:emjs[gv('ex-ca')]||'💰'});
   addActivity('💸','rgba(196,125,43,.14)',`Expense: <strong>${nm}</strong> ₹${am.toLocaleString()}`);
   closeM('mExpense');toast('Expense added!','ok');renderExp();
 }

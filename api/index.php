@@ -312,11 +312,19 @@ switch ($action) {
         $type = $typeMap[$d['type'] ?? 'fee'] ?? 'Monthly Fee';
         $amt = (int)$d['amount'];
         $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,0,?,?,?,?)")
-           ->execute([$invId,$d['student_id'],$type,$amt,$s['base_fee'] ?? $amt,$s['base_fee'] - $s['net_fee'] ?? 0,$s['net_fee'] ?? $amt,$amt,date('M j, Y'),$d['month'] ?? date('F Y'),'Manual','paid']);
+           ->execute([$invId,$d['student_id'],$type,$amt,$s['base_fee'] ?? $amt,$s['base_fee'] - $s['net_fee'] ?? 0,$s['net_fee'] ?? $amt,$amt,date('Y-m-d'),$d['month'] ?? date('F Y'),'Manual','paid']);
         jsonResponse(['success' => true, 'id' => $invId]);
 
     case 'get_invoices':
         $rows = $db->query("SELECT i.*, s.fname, s.lname, s.color FROM invoices i LEFT JOIN students s ON i.student_id=s.id ORDER BY i.created_at DESC")->fetchAll();
+        foreach ($rows as &$row) {
+            if (empty($row['invoice_date']) || $row['invoice_date'] === '0000-00-00') {
+                $fixed = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
+                $row['invoice_date'] = $fixed;
+                $db->prepare("UPDATE invoices SET invoice_date=? WHERE id=?")->execute([$fixed, $row['id']]);
+            }
+        }
+        unset($row);
         jsonResponse($rows);
 
     // ══════════════════════════════════
@@ -324,6 +332,14 @@ switch ($action) {
     // ══════════════════════════════════
     case 'get_expenses':
         $rows = $db->query("SELECT * FROM expenses ORDER BY created_at DESC")->fetchAll();
+        foreach ($rows as &$row) {
+            if (empty($row['expense_date']) || $row['expense_date'] === '0000-00-00') {
+                $fixed = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
+                $row['expense_date'] = $fixed;
+                $db->prepare("UPDATE expenses SET expense_date=? WHERE id=?")->execute([$fixed, $row['id']]);
+            }
+        }
+        unset($row);
         jsonResponse($rows);
 
     case 'add_expense':
@@ -335,7 +351,7 @@ switch ($action) {
         $cat = $d['category'] ?? 'Other';
         $emoji = $catEmojis[$cat] ?? '💸';
         $db->prepare("INSERT INTO expenses (id,name,amount,category,expense_date,notes,emoji) VALUES (?,?,?,?,?,?,?)")
-           ->execute([$newId,$d['name'],(int)$d['amount'],$cat,$d['date'] ?? date('M j, Y'),$d['notes'] ?? '',$emoji]);
+           ->execute([$newId,$d['name'],(int)$d['amount'],$cat, !empty($d['date']) ? date('Y-m-d', strtotime($d['date'])) : date('Y-m-d'), $d['notes'] ?? '',$emoji]);
         addActivity($db, '💸', 'rgba(212,144,47,.14)', "Expense: <strong>{$d['name']}</strong> ₹{$d['amount']}");
         jsonResponse(['success' => true, 'id' => $newId]);
 
