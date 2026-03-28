@@ -39,6 +39,25 @@ switch ($action) {
     // ══════════════════════════════════
     case 'get_dashboard':
         $students = $db->query("SELECT * FROM students")->fetchAll();
+        // Auto-heal bad date values
+        foreach ($students as &$row) {
+            if (empty($row['due_date']) || $row['due_date'] === '0000-00-00') {
+                $base = (!empty($row['join_date']) && $row['join_date'] !== '0000-00-00')
+                    ? $row['join_date']
+                    : date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
+                $row['due_date'] = date('Y-m-d', strtotime('+30 days', strtotime($base)));
+                $db->prepare("UPDATE students SET due_date=? WHERE id=?")->execute([$row['due_date'], $row['id']]);
+            }
+            if (empty($row['join_date']) || $row['join_date'] === '0000-00-00') {
+                $row['join_date'] = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
+                $db->prepare("UPDATE students SET join_date=? WHERE id=?")->execute([$row['join_date'], $row['id']]);
+            }
+            if (isset($row['paid_on']) && ($row['paid_on'] === '0000-00-00' || $row['paid_on'] === '-' || $row['paid_on'] === '')) {
+                $row['paid_on'] = null;
+                $db->prepare("UPDATE students SET paid_on=NULL WHERE id=?")->execute([$row['id']]);
+            }
+        }
+        unset($row);
         $batches  = $db->query("SELECT * FROM batches")->fetchAll();
         $books    = $db->query("SELECT * FROM books")->fetchAll();
         $transactions = $db->query("SELECT * FROM transactions")->fetchAll();
@@ -65,6 +84,29 @@ switch ($action) {
     // ══════════════════════════════════
     case 'get_students':
         $rows = $db->query("SELECT s.*, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id=b.id ORDER BY s.created_at DESC")->fetchAll();
+        // Auto-heal bad date values so frontend always gets valid data
+        foreach ($rows as &$row) {
+            // due_date: if NULL or 0000-00-00, calculate from join_date or created_at
+            if (empty($row['due_date']) || $row['due_date'] === '0000-00-00') {
+                $base = (!empty($row['join_date']) && $row['join_date'] !== '0000-00-00')
+                    ? $row['join_date']
+                    : date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
+                $row['due_date'] = date('Y-m-d', strtotime('+30 days', strtotime($base)));
+                // Persist the fix so it doesn't repeat every request
+                $db->prepare("UPDATE students SET due_date=? WHERE id=?")->execute([$row['due_date'], $row['id']]);
+            }
+            // join_date: heal 0000-00-00
+            if (empty($row['join_date']) || $row['join_date'] === '0000-00-00') {
+                $row['join_date'] = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
+                $db->prepare("UPDATE students SET join_date=? WHERE id=?")->execute([$row['join_date'], $row['id']]);
+            }
+            // paid_on: normalize bad values to null
+            if (isset($row['paid_on']) && ($row['paid_on'] === '0000-00-00' || $row['paid_on'] === '-' || $row['paid_on'] === '')) {
+                $row['paid_on'] = null;
+                $db->prepare("UPDATE students SET paid_on=NULL WHERE id=?")->execute([$row['id']]);
+            }
+        }
+        unset($row);
         jsonResponse($rows);
 
     case 'add_student':
