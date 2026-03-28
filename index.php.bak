@@ -253,43 +253,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
-
-/* STUDENT PROFILE */
-.sp-header{background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:var(--r) var(--r) 0 0;padding:22px 22px 54px;position:relative;overflow:hidden}
-.sp-header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07)}
-.sp-av-wrap{position:absolute;bottom:-34px;left:22px;z-index:2}
-.sp-av{width:68px;height:68px;border-radius:18px;border:3px solid var(--sf);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;box-shadow:var(--sh)}
-.sp-name{color:#fff;font-family:var(--fd);font-size:20px;margin-bottom:3px}
-.sp-id{color:rgba(255,255,255,.7);font-size:11px;font-family:var(--fm)}
-.sp-body{padding:46px 22px 14px}
-.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.sp-field{display:flex;flex-direction:column;gap:3px}
-.sp-field.full{grid-column:1/-1}
-.sp-label{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;font-family:var(--fm)}
-.sp-val{font-size:13px;font-weight:500;color:var(--tx);padding:6px 10px;background:var(--sf2);border-radius:var(--r2);border:1px solid transparent;transition:all .2s}
-.sp-val.editable{cursor:text;border-color:var(--br);background:var(--sf)}
-.sp-val.editable:hover{border-color:var(--br2)}
-.sp-val.editable:focus{border-color:var(--ac);outline:none;background:#fff}
-.sp-section{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--br)}
-.sp-fee-bar{height:8px;background:var(--sf2);border-radius:4px;overflow:hidden;margin:5px 0}
-.sp-fee-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--em),#4ead82)}
-.sp-stat{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--sf2);border-radius:var(--r2);font-size:12px}
-.sp-stat-ic{font-size:16px}
-.sp-edit-toggle{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid var(--br2);background:var(--sf2);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.sp-edit-toggle:hover,.sp-edit-toggle.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.sp-seat-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(74,124,111,.1);border:1px solid rgba(74,124,111,.3);border-radius:20px;font-size:12px;font-weight:700;color:var(--ac);font-family:var(--fm);cursor:pointer;transition:all .2s}
-.sp-seat-chip:hover{background:rgba(74,124,111,.2);transform:scale(1.05)}
-
-/* WHATSAPP QR */
-.wa-qr-box{display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px;background:rgba(37,211,102,.05);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);cursor:pointer;transition:all .2s}
-.wa-qr-box:hover{background:rgba(37,211,102,.1)}
-.wa-qr-img{width:160px;height:160px;border:3px solid var(--wa);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
-.wa-conn-badge{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--fm)}
-.wa-conn-ok{background:rgba(37,211,102,.15);color:var(--wa2);border:1px solid rgba(37,211,102,.3)}
-.wa-conn-no{background:rgba(192,68,79,.1);color:var(--ro);border:1px solid rgba(192,68,79,.25)}
-.wa-steps{display:flex;flex-direction:column;gap:8px}
-.wa-step{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--tx2)}
-.wa-step-n{width:22px;height:22px;border-radius:50%;background:var(--wa);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 @keyframes fuUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .page.active>*{animation:fuUp .28s ease both}
 @media(max-width:1100px){
@@ -351,7 +314,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div style="display:flex;align-items:center;gap:9px">
       <div class="chip chip-tl">📅 <span id="todayChip"></span></div>
       <button class="btn bwa" onclick="navTo('whatsapp')" style="gap:5px;font-size:11px">💬 WhatsApp</button>
-      <button class="btn bg" onclick="openM('mWaQR')" style="font-size:11px;padding:6px 9px" title="Connect WhatsApp QR">📱</button>
       <div class="nb-btn" onclick="navTo('notifications')">🔔<div class="nd" id="notifDot" style="display:none"></div></div>
       <button class="btn bp" onclick="openM('mEnroll')">+ Enroll</button>
     </div>
@@ -612,7 +574,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- WHATSAPP -->
 <div class="page" id="page-whatsapp">
-  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment & reminder messages</div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn bwa" style="font-size:11px;gap:6px" onclick="openM('mWaQR')"><div class="wa-status-dot" style="width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block;animation:waPulse 1.5s infinite"></div> Connect QR</button></div></div>
+  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment & reminder messages</div></div><div style="display:flex;align-items:center;gap:8px"><div class="wa-status-dot"></div><span style="font-size:11px;color:var(--wa2);font-weight:600">WhatsApp Ready</span></div></div>
   <div class="panel wa-panel" style="margin-bottom:14px">
     <div class="ph" style="border-color:rgba(37,211,102,.2)"><div class="pt" style="color:var(--wa2)">📋 Message Templates</div><span style="font-size:11px;color:var(--tx3)">Click any template to compose & send</span></div>
     <div class="pb"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="waTemplateGrid"></div></div>
@@ -868,174 +830,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <!-- WhatsApp Quick Send Modal -->
-<!-- STUDENT PROFILE MODAL -->
-<div class="mo" id="mStudentProfile"><div class="md lg">
-  <div class="mh" style="border-bottom:none;padding-bottom:0">
-    <div></div>
-    <div style="display:flex;align-items:center;gap:7px">
-      <button class="sp-edit-toggle" id="spEditToggle" onclick="toggleProfileEdit()">✏ Edit</button>
-      <button class="mc" onclick="closeM('mStudentProfile')">✕</button>
-    </div>
-  </div>
-  <div class="sp-header" id="spHeader">
-    <div class="sp-name" id="spHeaderName">Student Name</div>
-    <div class="sp-id" id="spHeaderId">#STU-001</div>
-    <div class="sp-av-wrap"><div class="sp-av" id="spAv" style="background:#4a7c6f">AB</div></div>
-  </div>
-  <div class="sp-body">
-    <!-- Fee status bar -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--sf2);border-radius:var(--r2)">
-      <span id="spFeeTag" class="tag tpn">⏳ Pending</span>
-      <div style="flex:1">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:3px"><span id="spPaidLbl">Paid ₹0</span><span id="spDueLbl">Due ₹0</span></div>
-        <div class="sp-fee-bar"><div class="sp-fee-fill" id="spFeeFill" style="width:0%"></div></div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:15px;font-weight:700;font-family:var(--fm);color:var(--em)" id="spNetFee">₹0</div>
-        <div style="font-size:9px;color:var(--tx3)">Net Fee</div>
-      </div>
-    </div>
-
-    <!-- Seat & Batch -->
-    <div class="sp-section">📍 Placement</div>
-    <div class="sp-grid" style="margin-bottom:14px">
-      <div class="sp-field">
-        <div class="sp-label">Batch</div>
-        <div id="spBatchDisp"></div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Seat Number</div>
-        <div id="spSeatDisp">
-          <span class="sp-seat-chip" id="spSeatChip" onclick="openAllocFromProfile()">🪑 <span id="spSeatNum">—</span></span>
-        </div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Seat Type</div>
-        <div id="spSeatTypeDisp"></div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Join Date</div>
-        <div id="spJoinDate" class="sp-val">—</div>
-      </div>
-    </div>
-
-    <!-- Personal Info -->
-    <div class="sp-section">👤 Personal Details</div>
-    <div class="sp-grid" style="margin-bottom:14px">
-      <div class="sp-field">
-        <div class="sp-label">First Name</div>
-        <div id="spFname" class="sp-val" contenteditable="false">—</div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Last Name</div>
-        <div id="spLname" class="sp-val" contenteditable="false">—</div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Phone / WhatsApp</div>
-        <div id="spPhone" class="sp-val" contenteditable="false">—</div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Email</div>
-        <div id="spEmail" class="sp-val" contenteditable="false">—</div>
-      </div>
-      <div class="sp-field full">
-        <div class="sp-label">Course / Subject</div>
-        <div id="spCourse" class="sp-val" contenteditable="false">—</div>
-      </div>
-      <div class="sp-field full">
-        <div class="sp-label">Address</div>
-        <div id="spAddr" class="sp-val" contenteditable="false">—</div>
-      </div>
-    </div>
-
-    <!-- Fee Details -->
-    <div class="sp-section">💰 Fee Details</div>
-    <div class="sp-grid" style="margin-bottom:14px">
-      <div class="sp-field">
-        <div class="sp-label">Base Fee</div>
-        <div id="spBaseFee" class="sp-val">—</div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Discount</div>
-        <div id="spDiscount" class="sp-val">—</div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Paid Amount</div>
-        <div id="spPaidAmt" class="sp-val">—</div>
-      </div>
-      <div class="sp-field">
-        <div class="sp-label">Due Date</div>
-        <div id="spDueDate" class="sp-val">—</div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="sp-section">⚡ Quick Actions</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn bp" style="font-size:11px" id="spCollectBtn" onclick="closeM('mStudentProfile')">💰 Collect Fee</button>
-      <button class="btn bwa" style="font-size:11px" id="spWaBtn">💬 Send WhatsApp</button>
-      <button class="btn bg" style="font-size:11px" onclick="openAllocFromProfile()">🪑 Change Seat</button>
-      <button class="btn bd" style="font-size:11px" id="spDelBtn">🗑 Remove</button>
-    </div>
-  </div>
-  <div class="mf" id="spSaveFooter" style="display:none">
-    <button class="btn bg" onclick="cancelProfileEdit()">Cancel</button>
-    <button class="btn bp" onclick="saveProfileEdit()">💾 Save Changes</button>
-  </div>
-</div></div>
-
-<!-- WHATSAPP QR CONNECT MODAL -->
-<div class="mo" id="mWaQR"><div class="md">
-  <div class="mh"><div class="mt">📱 Connect WhatsApp</div><button class="mc" onclick="closeM('mWaQR')">✕</button></div>
-  <div class="mb">
-    <div style="display:flex;gap:16px;align-items:flex-start">
-      <div style="flex-shrink:0">
-        <div class="wa-qr-box" onclick="refreshWaQR()" id="waQRBox">
-          <div class="wa-qr-img" id="waQRImg">
-            <canvas id="waQRCanvas" width="150" height="150"></canvas>
-          </div>
-          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm)" id="waQRStatus">Tap to refresh</div>
-        </div>
-        <div style="display:flex;justify-content:center;margin-top:8px">
-          <div class="wa-conn-badge wa-conn-no" id="waConnBadge">● Disconnected</div>
-        </div>
-      </div>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--tx)">Scan to Connect</div>
-        <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Link your WhatsApp to send messages directly from the ERP without switching apps.</div>
-        <div class="wa-steps">
-          <div class="wa-step"><div class="wa-step-n">1</div><span>Open <strong>WhatsApp</strong> on your phone</span></div>
-          <div class="wa-step"><div class="wa-step-n">2</div><span>Tap <strong>Menu (⋮)</strong> → <strong>Linked Devices</strong></span></div>
-          <div class="wa-step"><div class="wa-step-n">3</div><span>Tap <strong>Link a Device</strong></span></div>
-          <div class="wa-step"><div class="wa-step-n">4</div><span>Point your camera at the <strong>QR code</strong></span></div>
-        </div>
-        <div style="margin-top:14px;padding:10px 12px;background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:var(--r2)">
-          <div style="font-size:11px;font-weight:600;color:var(--wa2);margin-bottom:4px">📌 Note</div>
-          <div style="font-size:11px;color:var(--tx2)">WhatsApp Web QR requires a backend service. In standalone mode, messages open in WhatsApp Web automatically.</div>
-        </div>
-        <div style="margin-top:12px">
-          <div style="font-size:10px;color:var(--tx3);margin-bottom:6px;font-family:var(--fm)">WHATSAPP NUMBER</div>
-          <div style="display:flex;gap:7px">
-            <input id="waConnNum" placeholder="+91 XXXXXXXXXX" style="flex:1;font-size:12px" value="">
-            <button class="btn bwa" style="font-size:11px" onclick="saveWaNumber()">Save</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div style="margin-top:14px;border-top:1px solid var(--br);padding-top:12px">
-      <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:8px">CONNECTION STATUS</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <div class="sp-stat" style="flex:1"><span class="sp-stat-ic">📱</span><div><div style="font-size:11px;font-weight:600">WhatsApp Web</div><div style="font-size:10px;color:var(--wa2)">Opens automatically</div></div></div>
-        <div class="sp-stat" style="flex:1"><span class="sp-stat-ic">✅</span><div><div style="font-size:11px;font-weight:600">Messages Sent</div><div style="font-size:10px;color:var(--tx3)" id="waConnMsgCount">0 messages this session</div></div></div>
-      </div>
-    </div>
-  </div>
-  <div class="mf">
-    <button class="btn bg" onclick="closeM('mWaQR')">Close</button>
-    <button class="btn bwa" onclick="testWaConnection()">💬 Test Message</button>
-  </div>
-</div></div>
-
 <div class="mo" id="mWaSend"><div class="md">
   <div class="mh"><div class="mt">💬 Send WhatsApp</div><button class="mc" onclick="closeM('mWaSend')">✕</button></div>
   <div class="mb">
@@ -1319,7 +1113,7 @@ function renderDash(){
     const bal=x.netFee-x.paidAmt;
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
     return `<tr class="${rowClass}">
-      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">#${x.id}</div></div></div></td>
+      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">#${x.id}</div></div></div></td>
       <td>${bTag(x.batchId)}</td>
       <td>${x.seat?`<span style="font-family:var(--fm);font-size:11px;font-weight:600">${x.seat}</span>`:'<span style="color:var(--tx3)">—</span>'}${x.feeStatus==='overdue'?'<span style="font-size:9px;margin-left:3px">🔴</span>':x.feeStatus==='pending'||x.feeStatus==='partial'?'<span style="font-size:9px;margin-left:3px">🟠</span>':''}</td>
       <td><span style="font-family:var(--fm);font-weight:700">₹${x.netFee}</span>${x.baseFee>x.netFee?`<div style="font-size:9px;color:var(--or)">🎁-₹${x.baseFee-x.netFee}</div>`:''}</td>
@@ -1370,7 +1164,7 @@ function renderStudents(){
     const discTxt=x.baseFee>x.netFee?`<span class="tag tor" style="font-size:9px">🎁-₹${x.baseFee-x.netFee}</span>`:'<span style="color:var(--tx3);font-size:10px">—</span>';
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
     return `<tr class="${rowClass}">
-      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">#${x.id}</div></div></div></td>
+      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">#${x.id}</div></div></div></td>
       <td>${bTag(x.batchId)}</td>
       <td><span style="font-family:var(--fm);font-size:11px">${x.seat||'—'}</span>${x.feeStatus==='overdue'?'🔴':x.feeStatus!=='paid'?'🟠':''}</td>
       <td>${x.seatType==='ac'?'<span class="tag tac" style="font-size:9px">❄ AC</span>':'<span style="font-size:10px;color:var(--tx3)">Non-AC</span>'}</td>
@@ -1383,7 +1177,6 @@ function renderStudents(){
       <td><span style="font-size:10.5px;font-family:var(--fm);color:${x.feeStatus==='overdue'?'var(--ro)':x.feeStatus==='pending'?'var(--gd)':'var(--tx3)'}">${fmtDate(x.dueDate)}</span></td>
       <td><div style="display:flex;gap:4px">
         ${x.feeStatus!=='paid'?`<button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="qCollect('${x.id}')">Collect</button>`:''}
-        <button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="openStudentProfile('${x.id}')">👤</button>
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
         <button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delStu('${x.id}')">✕</button>
       </div></td>
@@ -1397,236 +1190,6 @@ function stuSrch(v){stuSearchVal=v;stuPage=1;renderStudents();}
 function stuFilt(f,el){stuFilterVal=f;stuPage=1;document.querySelectorAll('#stuTabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderStudents();}
 function qCollect(id){populateFeeModal(id);openM('mCollectFee');}
 function delStu(id){if(!confirm('Remove?'))return;DB.students=DB.students.filter(x=>x.id!==id);toast('Removed','wn');renderStudents();updateBadges();}
-// ═══ STUDENT PROFILE ═══
-let profileStudentId = null;
-let profileEditMode = false;
-
-function openStudentProfile(id) {
-  const s = DB.students.find(x => x.id === id);
-  if (!s) return;
-  profileStudentId = id;
-  profileEditMode = false;
-
-  // Header
-  document.getElementById('spHeaderName').textContent = s.fname + ' ' + s.lname;
-  document.getElementById('spHeaderId').textContent = '#' + s.id;
-  document.getElementById('spAv').textContent = (s.fname[0] + s.lname[0]).toUpperCase();
-  document.getElementById('spAv').style.background = s.color || '#4a7c6f';
-
-  // Fee bar
-  const pct = s.netFee > 0 ? Math.round(s.paidAmt / s.netFee * 100) : 0;
-  document.getElementById('spFeeFill').style.width = pct + '%';
-  document.getElementById('spPaidLbl').textContent = 'Paid ₹' + s.paidAmt.toLocaleString();
-  document.getElementById('spDueLbl').textContent = 'Due ₹' + Math.max(0, s.netFee - s.paidAmt).toLocaleString();
-  document.getElementById('spNetFee').textContent = '₹' + s.netFee.toLocaleString();
-  const feeTagEl = document.getElementById('spFeeTag');
-  const feeMap = { paid: ['tpd', '✓ Paid'], partial: ['tpart', '◑ Partial'], pending: ['tpn', '⏳ Pending'], overdue: ['tod', '🚨 Overdue'] };
-  feeTagEl.className = 'tag ' + (feeMap[s.feeStatus]?.[0] || 'tpn');
-  feeTagEl.textContent = feeMap[s.feeStatus]?.[1] || s.feeStatus;
-
-  // Batch & seat
-  const b = DB.batches.find(x => x.id === s.batchId);
-  document.getElementById('spBatchDisp').innerHTML = b ? `<span class="tag ${b.name.includes('Morning')||b.name.includes('Early')?'tpn':b.name.includes('Evening')?'tis':b.name.includes('Night')?'tac':'tav'}">${b.name}</span>` : '<span style="color:var(--tx3)">—</span>';
-  document.getElementById('spSeatNum').textContent = s.seat || '—';
-  document.getElementById('spSeatChip').title = s.seat ? 'Click to change seat' : 'Click to allocate seat';
-  document.getElementById('spSeatTypeDisp').innerHTML = s.seatType === 'ac' ? '<span class="tag tac" style="font-size:10px">❄ AC</span>' : '<span style="font-size:11px;color:var(--tx2)">Non-AC</span>';
-  document.getElementById('spJoinDate').textContent = s.joinDate || '—';
-
-  // Personal
-  document.getElementById('spFname').textContent = s.fname;
-  document.getElementById('spLname').textContent = s.lname;
-  document.getElementById('spPhone').textContent = s.phone || '—';
-  document.getElementById('spEmail').textContent = s.email || '—';
-  document.getElementById('spCourse').textContent = s.course || '—';
-  document.getElementById('spAddr').textContent = s.addr || '—';
-
-  // Fee details
-  document.getElementById('spBaseFee').textContent = '₹' + (s.baseFee || 0).toLocaleString();
-  document.getElementById('spDiscount').textContent = s.baseFee > s.netFee ? '₹' + (s.baseFee - s.netFee).toLocaleString() + (s.discount?.reason ? ' — ' + s.discount.reason : '') : '—';
-  document.getElementById('spPaidAmt').textContent = '₹' + (s.paidAmt || 0).toLocaleString();
-  document.getElementById('spDueDate').textContent = fmtDate(s.dueDate);
-
-  // Quick action buttons
-  document.getElementById('spCollectBtn').onclick = () => { closeM('mStudentProfile'); qCollect(id); };
-  document.getElementById('spWaBtn').onclick = () => { closeM('mStudentProfile'); setTimeout(() => waQuick(id, s.feeStatus === 'paid' ? 'fee_receipt' : s.feeStatus === 'overdue' ? 'fee_overdue' : 'fee_due'), 200); };
-  document.getElementById('spDelBtn').onclick = () => { closeM('mStudentProfile'); delStu(id); };
-
-  // Edit toggle reset
-  document.getElementById('spEditToggle').classList.remove('on');
-  document.getElementById('spEditToggle').textContent = '✏ Edit';
-  document.getElementById('spSaveFooter').style.display = 'none';
-  ['spFname','spLname','spPhone','spEmail','spCourse','spAddr'].forEach(id2 => {
-    const el = document.getElementById(id2);
-    el.contentEditable = 'false';
-    el.classList.remove('editable');
-  });
-
-  openM('mStudentProfile');
-}
-
-function toggleProfileEdit() {
-  profileEditMode = !profileEditMode;
-  const toggle = document.getElementById('spEditToggle');
-  const footer = document.getElementById('spSaveFooter');
-  const fields = ['spFname','spLname','spPhone','spEmail','spCourse','spAddr'];
-  if (profileEditMode) {
-    toggle.classList.add('on');
-    toggle.textContent = '✏ Editing…';
-    footer.style.display = 'flex';
-    fields.forEach(id2 => {
-      const el = document.getElementById(id2);
-      el.contentEditable = 'true';
-      el.classList.add('editable');
-    });
-    document.getElementById('spFname').focus();
-  } else {
-    cancelProfileEdit();
-  }
-}
-
-function cancelProfileEdit() {
-  profileEditMode = false;
-  const toggle = document.getElementById('spEditToggle');
-  toggle.classList.remove('on');
-  toggle.textContent = '✏ Edit';
-  document.getElementById('spSaveFooter').style.display = 'none';
-  ['spFname','spLname','spPhone','spEmail','spCourse','spAddr'].forEach(id2 => {
-    const el = document.getElementById(id2);
-    el.contentEditable = 'false';
-    el.classList.remove('editable');
-  });
-  // Re-render original values
-  openStudentProfile(profileStudentId);
-}
-
-function saveProfileEdit() {
-  const s = DB.students.find(x => x.id === profileStudentId);
-  if (!s) return;
-  const get = id2 => document.getElementById(id2).textContent.trim();
-  s.fname = get('spFname') || s.fname;
-  s.lname = get('spLname') || s.lname;
-  s.phone = get('spPhone');
-  s.email = get('spEmail');
-  s.course = get('spCourse');
-  s.addr = get('spAddr');
-  addActivity('✏', 'rgba(74,124,111,.14)', `Profile updated → <strong>${s.fname} ${s.lname}</strong>`);
-  toast('Profile saved!', 'ok');
-  renderStudents();
-  // Re-open in view mode
-  profileEditMode = false;
-  openStudentProfile(profileStudentId);
-}
-
-function openAllocFromProfile() {
-  const s = DB.students.find(x => x.id === profileStudentId);
-  closeM('mStudentProfile');
-  setTimeout(() => {
-    openM('mAllocSeat');
-    if (s) {
-      document.getElementById('as-stu').value = s.id;
-      if (s.batchId) document.getElementById('as-bt').value = s.batchId;
-      if (s.seat) document.getElementById('as-st').value = s.seat;
-    }
-  }, 200);
-}
-
-// ═══ SEAT CLICK — OPEN ALLOC WITH PREFILL ═══
-function openAllocSeatPrefilled(batchId, seatNum) {
-  openM('mAllocSeat');
-  setTimeout(() => {
-    document.getElementById('as-bt').value = batchId;
-    document.getElementById('as-st').value = seatNum;
-  }, 50);
-}
-
-// ═══ WHATSAPP QR CONNECT ═══
-let waSessionMsgCount = 0;
-
-function openM_waQR() { openM('mWaQR'); initWaQR(); }
-
-function initWaQR() {
-  const num = DB.settings?.waNumber || '';
-  document.getElementById('waConnNum').value = num ? '+' + num : '';
-  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
-  generateWaQR();
-}
-
-function generateWaQR() {
-  const canvas = document.getElementById('waQRCanvas');
-  const ctx = canvas.getContext('2d');
-  const size = 150;
-  // Draw a realistic-looking QR code pattern
-  ctx.clearRect(0, 0, size, size);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, size, size);
-  // Use a seeded random for consistent pattern
-  const seed = Date.now() % 10000;
-  const rng = (n) => { let x = Math.sin(n + seed) * 10000; return x - Math.floor(x); };
-  const cellSize = 5;
-  const cols = Math.floor(size / cellSize);
-  ctx.fillStyle = '#000';
-  // Draw QR-like finder patterns (corners)
-  const drawFinder = (ox, oy) => {
-    ctx.fillStyle = '#000';
-    ctx.fillRect(ox, oy, 35, 35);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(ox+5, oy+5, 25, 25);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(ox+10, oy+10, 15, 15);
-  };
-  drawFinder(5, 5);
-  drawFinder(size-40, 5);
-  drawFinder(5, size-40);
-  // Random data cells
-  for (let r = 0; r < cols; r++) {
-    for (let c = 0; c < cols; c++) {
-      const x = c * cellSize, y = r * cellSize;
-      // Skip finder pattern areas
-      if ((x < 40 && y < 40) || (x > size-45 && y < 40) || (x < 40 && y > size-45)) continue;
-      if (rng(r * cols + c) > 0.55) {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x, y, cellSize-0.5, cellSize-0.5);
-      }
-    }
-  }
-  // Add WA logo in center
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
-  ctx.beginPath();
-  ctx.arc(size/2, size/2, 14, 0, Math.PI*2);
-  ctx.fill();
-  ctx.font = '18px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('💬', size/2, size/2);
-
-  document.getElementById('waQRStatus').textContent = 'Scan with WhatsApp · ' + new Date().toLocaleTimeString();
-}
-
-function refreshWaQR() {
-  document.getElementById('waQRStatus').textContent = 'Refreshing…';
-  setTimeout(generateWaQR, 400);
-}
-
-function saveWaNumber() {
-  const val = document.getElementById('waConnNum').value.replace(/\D/g, '');
-  if (!val) return toast('Enter a phone number', 'er');
-  DB.settings.waNumber = val;
-  document.getElementById('s-wa').value = val;
-  toast('WhatsApp number saved!', 'ok');
-  document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-ok';
-  document.getElementById('waConnBadge').textContent = '● Connected';
-}
-
-function testWaConnection() {
-  const num = DB.settings?.waNumber || '';
-  if (!num) return toast('Save a WhatsApp number first', 'er');
-  const msg = encodeURIComponent(`Hello! This is a test message from ${DB.settings?.name || 'OPTMS Tech Library'} ERP. ✅`);
-  window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
-  waSessionMsgCount++;
-  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
-  toast('WhatsApp test opened!', 'wa');
-}
-
 
 // ═══ SEATS (with fee status highlight) ═══
 function renderSeats(){
@@ -1649,10 +1212,9 @@ function renderSeats(){
         if(stu.feeStatus==='overdue'){cls='seat-overdue';ttText=`🚨 ${stu.fname} — OVERDUE ₹${stu.netFee-stu.paidAmt}`;}
         else if(stu.feeStatus==='pending'){cls='seat-due';ttText=`⏳ ${stu.fname} — Pending ₹${stu.netFee}`;}
         else if(stu.feeStatus==='partial'){cls='seat-due';ttText=`🟠 ${stu.fname} — Partial, Due ₹${stu.netFee-stu.paidAmt}`;}
-        else{cls='seat-occ';ttText=`✓ ${stu.fname} — Paid · Click to view`;}
+        else{cls='seat-occ';ttText=`✓ ${stu.fname} — Fee Paid`;}
       }
-      const clickFn=stu?`openStudentProfile('${stu.id}')`:`openAllocSeatPrefilled('${b.id}','${sn}')`;
-      cells+=`<div class="seat-cell ${cls}" onclick="${clickFn}"><div class="seat-tooltip">${ttText}</div>${sn}</div>`;
+      cells+=`<div class="seat-cell ${cls}"><div class="seat-tooltip">${ttText}</div>${sn}</div>`;
     }
     const bDue=bStudents.filter(x=>x.feeStatus!=='paid').length;
     const bOD=bStudents.filter(x=>x.feeStatus==='overdue').length;
@@ -1886,7 +1448,7 @@ function renderFees(){
     const partialBar=x.feeStatus==='partial'?`<div class="fee-partial-wrap"><div class="fee-partial-bar"><div class="fee-partial-fill" style="width:${pctPaid}%"></div></div><div style="font-size:9px;color:var(--tx3);font-family:var(--fm)">${pctPaid}% paid</div></div>`:'';
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
     return `<tr class="${rowClass}">
-      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${x.id}</div></div></div></td>
+      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${x.id}</div></div></div></td>
       <td>${bTag(x.batchId)}</td>
       <td><span style="font-family:var(--fm)">₹${x.baseFee}</span></td>
       <td>${discTxt}</td>
@@ -2139,7 +1701,6 @@ function waLoadTemplate(){
 }
 function waUpdatePreview(){document.getElementById('waPreview').textContent=gv('wa-msg')||'Select a template…';}
 function waSend(){
-  waSessionMsgCount++;
   const stuId=gv('wa-stu');const msg=gv('wa-msg');
   if(!msg)return toast('Write a message first','er');if(!stuId)return toast('Select a recipient','er');
   if(['all','pending_all','overdue'].includes(stuId)){
@@ -2236,7 +1797,6 @@ function openM(id){
     mAddStaff:buildPermList,
     mGenInv:()=>{document.getElementById('gi-stu').innerHTML='<option value="">-- Select --</option>'+DB.students.map(s=>`<option value="${s.id}">${s.fname} ${s.lname}</option>`).join('');},
     mAllocSeat:()=>{document.getElementById('as-stu').innerHTML='<option value="">-- Select --</option>'+DB.students.map(s=>`<option value="${s.id}">${s.fname} ${s.lname}</option>`).join('');document.getElementById('as-bt').innerHTML='<option value="">-- Select --</option>'+DB.batches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');},
-    mWaQR:()=>{setTimeout(initWaQR,100);},
     mEnroll:()=>{document.getElementById('en-dt').value=new Date().toISOString().split('T')[0];populateBatchSelects();}
   };
   if(pre[id])pre[id]();
