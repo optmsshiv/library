@@ -2,9 +2,9 @@
 // ── Database Configuration ──
 // Update these values to match your server
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'library_erp');
-define('DB_USER', 'root');       // Change to your MySQL username
-define('DB_PASS', '');           // Change to your MySQL password
+define('DB_NAME', 'edrppymy_library_erp');
+define('DB_USER', 'edrppymy_library_erp');       // Change to your MySQL username
+define('DB_PASS', '1234@Libraryerp');           // Change to your MySQL password
 define('DB_CHARSET', 'utf8mb4');
 
 function getDB() {
