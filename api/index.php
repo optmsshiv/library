@@ -81,14 +81,20 @@ switch ($action) {
         $netFee = $baseFee - $disc;
         $colors = ['#4a7c6f','#c47d2b','#3a7ab0','#7c5cbf','#c0444f','#3a7d5e','#e67e22'];
         $color = $colors[array_rand($colors)];
-        $sql = "INSERT INTO students (id,fname,lname,phone,batch_id,seat_type,seat,base_fee,discount_type,discount_value,discount_reason,net_fee,paid_amt,fee_status,paid_on,due_date,course,color,join_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'pending','-',?,?,?,?)";
+        $sql = "INSERT INTO students (id,fname,lname,phone,batch_id,seat_type,seat,base_fee,discount_type,discount_value,discount_reason,net_fee,paid_amt,fee_status,paid_on,due_date,course,color,join_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'pending',NULL,?,?,?,?)";
         $stmt = $db->prepare($sql);
+        // Calculate due_date: 30 days from join date (or today)
+        $joinRaw = $d['join_date'] ?? '';
+        $joinTs  = $joinRaw ? strtotime($joinRaw) : time();
+        if (!$joinTs) $joinTs = time();
+        $joinDate = date('Y-m-d', $joinTs);
+        $dueDate  = date('Y-m-d', strtotime('+30 days', $joinTs));
         $stmt->execute([
             $newId, $d['fname'], $d['lname'] ?? '', $d['phone'] ?? '', $d['batch_id'],
             $d['seat_type'] ?? 'non-ac', $d['seat'] ?? '',
             $baseFee, $discType, $discVal, $d['discount_reason'] ?? '',
-            $netFee, $d['due_date'] ?? '', $d['course'] ?? '', $color,
-            $d['join_date'] ?? date('M j, Y')
+            $netFee, $dueDate, $d['course'] ?? '', $color,
+            $joinDate
         ]);
         addActivity($db, '👨‍🎓', 'rgba(74,124,111,.14)', "New student <strong>{$d['fname']} {$d['lname']}</strong> enrolled");
         addNotif($db, 'info', 'New Enrollment', "{$d['fname']} {$d['lname']} enrolled");
@@ -236,7 +242,7 @@ switch ($action) {
         $amt = (int)$d['amount'];
         $newPaid = min($s['net_fee'], $s['paid_amt'] + $amt);
         $feeStatus = $newPaid >= $s['net_fee'] ? 'paid' : 'partial';
-        $paidOn = date('M j');
+        $paidOn = date('Y-m-d');
         $db->prepare("UPDATE students SET paid_amt=?,fee_status=?,paid_on=? WHERE id=?")->execute([$newPaid,$feeStatus,$paidOn,$d['student_id']]);
         $balance = $s['net_fee'] - $newPaid;
         // Create invoice
@@ -244,7 +250,7 @@ switch ($action) {
         $mode = $d['mode'] ?? 'Cash';
         if (!empty($d['split_mode'])) $mode = $d['split_mode'];
         $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-           ->execute([$invId,$d['student_id'],'Monthly Fee',$amt,$s['base_fee'],$s['base_fee']-$s['net_fee'],$s['net_fee'],$newPaid,$balance,date('M j, Y'),$d['month'] ?? date('F Y'),$mode,$feeStatus]);
+           ->execute([$invId,$d['student_id'],'Monthly Fee',$amt,$s['base_fee'],$s['base_fee']-$s['net_fee'],$s['net_fee'],$newPaid,$balance,date('Y-m-d'),$d['month'] ?? date('F Y'),$mode,$feeStatus]);
         addActivity($db, '💳', 'rgba(58,125,94,.14)', "<strong>{$s['fname']}</strong> paid ₹{$amt} via {$mode}" . ($feeStatus==='partial' ? " (₹{$balance} pending)" : ' (full)'));
         addNotif($db, 'success', 'Fee Collected', "{$s['fname']} paid ₹{$amt}" . ($feeStatus==='partial' ? " — partial" : ''));
         jsonResponse(['success' => true, 'invoice_id' => $invId, 'fee_status' => $feeStatus, 'balance' => $balance]);

@@ -239,7 +239,7 @@ CREATE TABLE wa_send_log (
 -- DEFAULT ADMIN ACCOUNT
 -- ========================
 -- Default credentials: username = admin | password = Admin@1234
--- Change the password after first login via Staff & Users page.
+-- Change the password after first login via the Change Password button (⚙ in sidebar).
 -- To generate a new bcrypt hash in PHP:
 --   echo password_hash('YourNewPassword', PASSWORD_BCRYPT);
 
@@ -256,10 +256,13 @@ INSERT INTO staff (
     'admin@optms.co.in',
     '+91 72820 71620',
     'admin',
-    '$2y$12$eImiTXuWVxfM37uY4JANjQ9a6WXMfQ0VJl/XrT9mMH8hGc7lC0vW2',
+    '$2b$12$8vXLjNiJkI4JR4qYMeujG.bkgF9O7zo2iZtgzgH1R6hjgUse5Ka6G',
     1, 1, 1, 1, 1, 1, 1,
     'active'
-) ON DUPLICATE KEY UPDATE id = id;
+) ON DUPLICATE KEY UPDATE
+    username       = 'admin',
+    password_hash  = '$2b$12$8vXLjNiJkI4JR4qYMeujG.bkgF9O7zo2iZtgzgH1R6hjgUse5Ka6G',
+    status         = 'active';
 
 -- ========================
 -- MIGRATION (if upgrading from older schema without password_hash / status)
@@ -267,3 +270,10 @@ INSERT INTO staff (
 -- ========================
 -- ALTER TABLE staff ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) AFTER username;
 -- ALTER TABLE staff ADD COLUMN IF NOT EXISTS status ENUM('active','inactive') DEFAULT 'active' AFTER perm_settings;
+-- ========================
+-- MIGRATION: Fix existing 0000-00-00 date records
+-- Run once if you have existing students with bad dates
+-- ========================
+UPDATE students SET due_date  = DATE_ADD(COALESCE(join_date, CURDATE()), INTERVAL 30 DAY) WHERE due_date  IS NULL OR due_date  = '0000-00-00';
+UPDATE students SET join_date = CURDATE() WHERE join_date IS NULL OR join_date = '0000-00-00';
+UPDATE students SET paid_on   = NULL WHERE paid_on = '0000-00-00' OR paid_on = '-';

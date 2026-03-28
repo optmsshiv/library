@@ -1174,7 +1174,7 @@ function renderStudents(){
       <td><span style="font-family:var(--fm);font-weight:700;color:var(--em)">₹${x.paidAmt}</span></td>
       <td>${bal>0?`<span class="fee-bal-badge">₹${bal}</span>`:''}</td>
       <td><span class="tag ${x.feeStatus==='paid'?'tpd':x.feeStatus==='partial'?'tpart':x.feeStatus==='pending'?'tpn':'tod'}">${x.feeStatus==='paid'?'✓ Paid':x.feeStatus==='partial'?'◑ Partial':x.feeStatus==='pending'?'⏳ Pending':'🚨 Overdue'}</span></td>
-      <td><span style="font-size:10.5px;font-family:var(--fm);color:${x.feeStatus==='overdue'?'var(--ro)':x.feeStatus==='pending'?'var(--gd)':'var(--tx3)'}">${x.dueDate}</span></td>
+      <td><span style="font-size:10.5px;font-family:var(--fm);color:${x.feeStatus==='overdue'?'var(--ro)':x.feeStatus==='pending'?'var(--gd)':'var(--tx3)'}">${fmtDate(x.dueDate)}</span></td>
       <td><div style="display:flex;gap:4px">
         ${x.feeStatus!=='paid'?`<button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="qCollect('${x.id}')">Collect</button>`:''}
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
@@ -1383,7 +1383,7 @@ function renderTx(){
     return `<tr><td><div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span style="font-size:12.5px;font-weight:600">${s.fname} ${s.lname}</span></div></td>
     <td>${b.emoji} ${b.title}</td>
     <td><span style="font-family:var(--fm);font-size:10.5px">${t.issueDate}</span></td>
-    <td><span style="font-family:var(--fm);font-size:10.5px;color:${t.status==='overdue'?'var(--ro)':'inherit'}">${t.dueDate}</span></td>
+    <td><span style="font-family:var(--fm);font-size:10.5px;color:${t.status==='overdue'?'var(--ro)':'inherit'}">${fmtDate(t.dueDate)}</span></td>
     <td><span style="font-family:var(--fm);font-size:10.5px">${t.returnDate||'—'}</span></td>
     <td><span style="font-family:var(--fm);font-weight:700;color:${t.fine>0?'var(--ro)':'inherit'}">₹${t.fine}</span></td>
     <td><span class="tag ${t.status==='returned'?'trt':t.status==='overdue'?'tod':'tis'}">${t.status==='returned'?'✓ Returned':t.status==='overdue'?'⚠ Overdue':'📤 Issued'}</span></td>
@@ -1409,7 +1409,7 @@ function issueBook(){
 }
 function populateReturnModal(){
   const active=DB.transactions.filter(t=>t.status!=='returned');
-  document.getElementById('rb-tx').innerHTML='<option value="">-- Select --</option>'+active.map(t=>{const s=DB.students.find(x=>x.id===t.studentId);const b=DB.books.find(x=>x.id===t.bookId);return`<option value="${t.id}">${b?.emoji} ${b?.title} → ${s?.fname} (Due:${t.dueDate})</option>`;}).join('');
+  document.getElementById('rb-tx').innerHTML='<option value="">-- Select --</option>'+active.map(t=>{const s=DB.students.find(x=>x.id===t.studentId);const b=DB.books.find(x=>x.id===t.bookId);return`<option value="${t.id}">${b?.emoji} ${b?.title} → ${s?.fname} (Due:${fmtDate(t.dueDate)})</option>`;}).join('');
   document.getElementById('rb-dt').value=new Date().toISOString().split('T')[0];
 }
 function calcFine(){
@@ -1455,9 +1455,9 @@ function renderFees(){
       <td><span style="font-family:var(--fm);font-weight:700;color:var(--em)">₹${x.netFee}</span></td>
       <td><div><span style="font-family:var(--fm);font-weight:700;color:var(--em)">₹${x.paidAmt}</span>${partialBar}</div></td>
       <td>${bal>0?`<div style="display:flex;align-items:center;gap:4px"><span class="fee-bal-badge">₹${bal} DUE</span></div>`:`<span style="color:var(--em);font-size:12px">✓ Clear</span>`}</td>
-      <td><span style="font-family:var(--fm);font-size:10.5px">${x.paidOn}</span></td>
+      <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(x.paidOn)}</span></td>
       <td><span class="tag ${x.feeStatus==='paid'?'tpd':x.feeStatus==='partial'?'tpart':x.feeStatus==='pending'?'tpn':'tod'}">${x.feeStatus==='paid'?'✓ Paid':x.feeStatus==='partial'?'◑ Partial':x.feeStatus==='pending'?'⏳ Pending':'🚨 Overdue'}</span></td>
-      <td><span style="font-size:10.5px;font-family:var(--fm);color:${x.feeStatus==='overdue'?'var(--ro)':x.feeStatus==='pending'?'var(--gd)':'var(--tx3)'}">${x.dueDate}</span></td>
+      <td><span style="font-size:10.5px;font-family:var(--fm);color:${x.feeStatus==='overdue'?'var(--ro)':x.feeStatus==='pending'?'var(--gd)':'var(--tx3)'}">${fmtDate(x.dueDate)}</span></td>
       <td><div style="display:flex;gap:4px">
         ${x.feeStatus!=='paid'?`<button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="qCollect('${x.id}')">Collect</button>`:'<span style="color:var(--em);font-size:11px">✓</span>'}
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
@@ -1497,7 +1497,7 @@ function cfLoadStudent(){
     document.getElementById('cf-amt').value=bal;
   } else if(s.feeStatus==='overdue'){
     info.style.display='block';
-    info.innerHTML=`<div style="padding:8px 12px;border-radius:var(--r2);border:1px solid rgba(192,68,79,.3);background:rgba(192,68,79,.06)"><div style="font-size:12px;font-weight:600;color:var(--ro)">🚨 Fee Overdue since ${s.dueDate}</div><div style="font-size:11px;color:var(--tx2)">Amount due: ₹${s.netFee}</div></div>`;
+    info.innerHTML=`<div style="padding:8px 12px;border-radius:var(--r2);border:1px solid rgba(192,68,79,.3);background:rgba(192,68,79,.06)"><div style="font-size:12px;font-weight:600;color:var(--ro)">🚨 Fee Overdue since ${fmtDate(s.dueDate)}</div><div style="font-size:11px;color:var(--tx2)">Amount due: ₹${s.netFee}</div></div>`;
     document.getElementById('cf-amt').value=s.netFee;
   } else if(s.baseFee>s.netFee){
     info.style.display='block';
@@ -1648,10 +1648,10 @@ function genReport(type){
 // ═══ WHATSAPP ═══
 const WA_TEMPLATES={
   welcome:(s,b)=>`🎉 *Welcome to ${DB.settings.name}!*\n\nDear *${s.fname} ${s.lname}*,\n\nWe're delighted to have you! 🎓\n\n📋 *Your Details:*\n• Student ID: ${s.id}\n• Batch: ${b?.name||'—'} (${b?fmtT(b.startTime)+' – '+fmtT(b.endTime):''})\n• Seat: ${s.seat||'To be assigned'} (${s.seatType.toUpperCase()})\n• Net Monthly Fee: ₹${s.netFee}${s.baseFee>s.netFee?`\n• 🎁 Discount Applied: ₹${s.baseFee-s.netFee} (${s.discount?.reason||''})`:''}\n\n🏫 ${DB.settings.name}\n📍 ${DB.settings.addr}\n📞 ${DB.settings.phone}\n\nBest wishes for your studies! 📚`,
-  fee_due:(s,b)=>`⏰ *Fee Payment Reminder*\n\nDear *${s.fname} ${s.lname}*,\n\nYour monthly fee is due.\n\n💰 *Fee Details:*\n• Net Fee: ₹${s.netFee}${s.baseFee>s.netFee?`\n• 🎁 Discount: ₹${s.baseFee-s.netFee} (${s.discount?.reason||''})`:''}\n• Amount Due: ₹${s.netFee-s.paidAmt}\n• Due Date: ${s.dueDate}\n• Batch: ${b?.name||'—'}\n\nPlease pay to avoid late charges.\n\n📞 ${DB.settings.phone}`,
-  fee_overdue:(s,b)=>`🚨 *URGENT: Fee Overdue*\n\nDear *${s.fname} ${s.lname}*,\n\nYour fee is *OVERDUE* since ${s.dueDate}. Your seat may be de-allocated.\n\n⚠️ *Details:*\n• Net Fee: ₹${s.netFee}\n• Overdue Amount: ₹${s.netFee-s.paidAmt}\n• Late Fine: ₹${DB.settings.fine}/day (accumulating)\n• Batch: ${b?.name||'—'} · Seat: ${s.seat||'—'}\n\n❗ Clear *immediately* to retain your seat.\n\n📞 ${DB.settings.phone}\n🏫 ${DB.settings.name}`,
-  partial_payment:(s,b)=>`💳 *Partial Payment Received*\n\nDear *${s.fname} ${s.lname}*,\n\nThank you for your partial payment!\n\n📊 *Payment Summary:*\n• Net Fee: ₹${s.netFee}\n• Amount Paid: ₹${s.paidAmt}\n• *Balance Due: ₹${s.netFee-s.paidAmt}*\n• Due Date: ${s.dueDate}\n\nPlease pay ₹${s.netFee-s.paidAmt} at the earliest.\n\n📞 ${DB.settings.phone}`,
-  fee_receipt:(s,b,inv)=>`✅ *Payment Receipt*\n\nDear *${s.fname} ${s.lname}*,\n\nFee payment confirmed! 🙏\n\n🧾 *Receipt:*\n• Receipt No: ${inv?.id||'—'}\n• Amount Paid: ₹${s.paidAmt}\n• Net Fee: ₹${s.netFee}${s.baseFee>s.netFee?`\n• 🎁 Discount: ₹${s.baseFee-s.netFee}`:''}\n• Date: ${s.paidOn}\n• Batch: ${b?.name||'—'}\n\n✅ *Fee FULLY PAID*\n\n📞 ${DB.settings.phone}`,
+  fee_due:(s,b)=>`⏰ *Fee Payment Reminder*\n\nDear *${s.fname} ${s.lname}*,\n\nYour monthly fee is due.\n\n💰 *Fee Details:*\n• Net Fee: ₹${s.netFee}${s.baseFee>s.netFee?`\n• 🎁 Discount: ₹${s.baseFee-s.netFee} (${s.discount?.reason||''})`:''}\n• Amount Due: ₹${s.netFee-s.paidAmt}\n• Due Date: ${fmtDate(s.dueDate)}\n• Batch: ${b?.name||'—'}\n\nPlease pay to avoid late charges.\n\n📞 ${DB.settings.phone}`,
+  fee_overdue:(s,b)=>`🚨 *URGENT: Fee Overdue*\n\nDear *${s.fname} ${s.lname}*,\n\nYour fee is *OVERDUE* since ${fmtDate(s.dueDate)}. Your seat may be de-allocated.\n\n⚠️ *Details:*\n• Net Fee: ₹${s.netFee}\n• Overdue Amount: ₹${s.netFee-s.paidAmt}\n• Late Fine: ₹${DB.settings.fine}/day (accumulating)\n• Batch: ${b?.name||'—'} · Seat: ${s.seat||'—'}\n\n❗ Clear *immediately* to retain your seat.\n\n📞 ${DB.settings.phone}\n🏫 ${DB.settings.name}`,
+  partial_payment:(s,b)=>`💳 *Partial Payment Received*\n\nDear *${s.fname} ${s.lname}*,\n\nThank you for your partial payment!\n\n📊 *Payment Summary:*\n• Net Fee: ₹${s.netFee}\n• Amount Paid: ₹${s.paidAmt}\n• *Balance Due: ₹${s.netFee-s.paidAmt}*\n• Due Date: ${fmtDate(s.dueDate)}\n\nPlease pay ₹${s.netFee-s.paidAmt} at the earliest.\n\n📞 ${DB.settings.phone}`,
+  fee_receipt:(s,b,inv)=>`✅ *Payment Receipt*\n\nDear *${s.fname} ${s.lname}*,\n\nFee payment confirmed! 🙏\n\n🧾 *Receipt:*\n• Receipt No: ${inv?.id||'—'}\n• Amount Paid: ₹${s.paidAmt}\n• Net Fee: ₹${s.netFee}${s.baseFee>s.netFee?`\n• 🎁 Discount: ₹${s.baseFee-s.netFee}`:''}\n• Date: ${fmtDate(s.paidOn)}\n• Batch: ${b?.name||'—'}\n\n✅ *Fee FULLY PAID*\n\n📞 ${DB.settings.phone}`,
   discount_applied:(s,b)=>`🎁 *Discount Applied to Your Fee*\n\nDear *${s.fname} ${s.lname}*,\n\nA discount has been applied to your fee account.\n\n💰 *Updated Fee Structure:*\n• Original Fee: ₹${s.baseFee}\n• Discount: -₹${s.baseFee-s.netFee} (${s.discount?.reason||'Special Discount'})\n• *Net Fee: ₹${s.netFee}/month*\n• Batch: ${b?.name||'—'}\n\nThank you for being a valued student! 🌟\n\n📞 ${DB.settings.phone}`,
   book_due:(s,b,tx)=>`📚 *Book Return Reminder*\n\nDear *${s.fname} ${s.lname}*,\n\n• Book: ${tx?.bookTitle||'Borrowed book'}\n• Due: ${tx?.dueDate||'—'}\n• Fine: ₹${DB.settings.fine}/day if late\n\nPlease return on time!\n\n📞 ${DB.settings.phone}`,
   book_overdue:(s,b,tx)=>`⚠️ *Book Overdue – Fine Accruing*\n\nDear *${s.fname} ${s.lname}*,\n\n• Book: ${tx?.bookTitle||'—'}\n• Due: ${tx?.dueDate||'—'}\n• Fine: ₹${tx?.fine||0} (₹${DB.settings.fine}/day)\n\nReturn *immediately* to stop fines.\n\n📞 ${DB.settings.phone}`,
@@ -1808,6 +1808,8 @@ document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(
 // ═══ UTILITIES ═══
 function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function fmt(n){if(n>=100000)return'₹'+(n/100000).toFixed(1)+'L';if(n>=1000)return'₹'+n.toLocaleString();return'₹'+n;}
+// Format a date string (YYYY-MM-DD or any parseable) to "28 Mar 2026"; returns '—' for null/empty/0000
+function fmtDate(v){if(!v||v==='-'||v.startsWith('0000'))return'—';const d=new Date(v);if(isNaN(d))return v;return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
 function batchName(id){const b=DB.batches.find(x=>x.id===id);return b?b.name:'Unknown';}
 function bTag(bId){const b=DB.batches.find(x=>x.id===bId);if(!b)return'<span class="tag">—</span>';const cls=b.name.includes('Morning')||b.name.includes('Early')?'tpn':b.name.includes('Evening')?'tis':b.name.includes('Night')?'tac':'tav';return`<span class="tag ${cls}">${batchEmoji(b.name)} ${b.name}</span>`;}
 function batchEmoji(n){const m={'Early Morning':'🌅','Morning':'☀️','Afternoon':'🌤','Evening':'🌆','Night':'🌙','Late Night':'🌃'};return m[n]||'📚';}
@@ -1837,19 +1839,31 @@ function toast(msg,type='ok'){const c=document.getElementById('toastWrap');const
 async function enrollStudent() {
   const fn=gv('en-fn'), ln=gv('en-ln'), bt=gv('en-bt');
   if (!fn || !bt) return toast('First name and batch required', 'er');
+  // join_date: use selected date or today, formatted as YYYY-MM-DD for the API
+  const joinDateRaw = gv('en-dt') || new Date().toISOString().slice(0,10);
   const payload = {
     fname: fn, lname: ln, phone: gv('en-ph'), batch_id: bt,
     seat_type: gv('en-ac'), seat: gv('en-st'), course: gv('en-co'),
-    join_date: gv('en-dt') ? new Date(gv('en-dt')).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '',
+    join_date: joinDateRaw,
     base_fee: +gv('en-fe'), discount_type: gv('en-disc-type'),
     discount_value: +gv('en-disc-val') || 0,
-    discount_reason: gv('en-disc-reason'), due_date: 'Apr 1, 2026'
+    discount_reason: gv('en-disc-reason')
   };
   const res = await apiPost('add_student', payload);
   if (res.error) return toast(res.error, 'er');
   const waCheck = document.getElementById('en-wa');
   closeM('mEnroll');
   toast(`${fn} enrolled!`, 'ok');
+  // ── Reset form ──
+  ['en-fn','en-ln','en-ph','en-em','en-ad','en-co','en-dt','en-st',
+   'en-fe','en-net-fe','en-disc-val','en-disc-reason'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const btEl = document.getElementById('en-bt'); if (btEl) btEl.value = '';
+  const acEl = document.getElementById('en-ac'); if (acEl) acEl.value = 'non-ac';
+  const dtEl = document.getElementById('en-disc-type'); if (dtEl) dtEl.value = 'none';
+  const waEl = document.getElementById('en-wa'); if (waEl) waEl.checked = true;
+  const feeNote = document.getElementById('en-fee-note'); if (feeNote) feeNote.style.display = 'none';
   await reloadDB();
   if (waCheck && waCheck.checked) {
     const newStu = DB.students.find(x => x.id === res.id);
