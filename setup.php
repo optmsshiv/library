@@ -3,7 +3,7 @@
 // Visit this file ONCE to create tables and seed data. Delete after use.
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'library_erp');
+define('DB_NAME', ' edrppymy_udaanlibrary');
 define('DB_USER', 'root');    // ← Change this
 define('DB_PASS', '');         // ← Change this
 
