@@ -1,3 +1,13 @@
+<?php
+session_start();
+if (empty($_SESSION['staff_id'])) {
+    header('Location: login.php');
+    exit;
+}
+$staffName = htmlspecialchars($_SESSION['staff_name'] ?? 'Admin');
+$staffRole = htmlspecialchars(ucfirst($_SESSION['staff_role'] ?? 'staff'));
+$staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(explode(' ', $_SESSION['staff_name'] ?? 'A'), 0, 2))));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -288,9 +298,10 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   </nav>
   <div class="sb-foot">
     <div class="u-card">
-      <div class="u-av">AS</div>
-      <div style="flex:1"><div class="u-nm">Aryan Sharma</div><div class="u-rl">Admin</div></div>
-      <span style="color:var(--tx3);cursor:pointer" onclick="navTo('settings')">⚙</span>
+      <div class="u-av"><?= $staffInitials ?></div>
+      <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
+      <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')">⚙</span>
+      <a href="logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px">⏻</a>
     </div>
   </div>
 </div>
@@ -834,6 +845,17 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <button class="btn bg" onclick="waCopyModal()" style="font-size:11px">📋 Copy</button>
     <button class="btn bwa" onclick="waOpenLink()" id="waOpenBtn">💬 Open WhatsApp</button>
   </div>
+</div></div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="mo" id="mChangePw"><div class="md">
+  <div class="mh"><div class="mt">🔑 Change Password</div><button class="mc" onclick="closeM('mChangePw')">✕</button></div>
+  <div class="mb">
+    <div class="fgi" style="margin-bottom:12px"><label>Current Password</label><input type="password" id="cp-cur" placeholder="Enter current password"></div>
+    <div class="fgi" style="margin-bottom:12px"><label>New Password</label><input type="password" id="cp-new" placeholder="Min 6 characters"></div>
+    <div class="fgi"><label>Confirm New Password</label><input type="password" id="cp-cf" placeholder="Repeat new password"></div>
+  </div>
+  <div class="mf"><button class="btn bg" onclick="closeM('mChangePw')">Cancel</button><button class="btn bp" onclick="doChangePassword()">Update Password</button></div>
 </div></div>
 
 <div class="toast-wrap" id="toastWrap"></div>
@@ -2100,6 +2122,30 @@ function renderSettings() {
     if (el && val !== undefined) el.value = val;
   });
   _origRenderSettings();
+}
+
+// ═══ CHANGE PASSWORD ═══
+async function doChangePassword() {
+  const cur = document.getElementById('cp-cur').value;
+  const nw  = document.getElementById('cp-new').value;
+  const cf  = document.getElementById('cp-cf').value;
+  if (!cur || !nw || !cf) return toast('Fill all fields', 'er');
+  if (nw.length < 6) return toast('Password must be 6+ characters', 'er');
+  if (nw !== cf) return toast('Passwords do not match', 'er');
+  try {
+    const res = await apiPost('change_password', { current_password: cur, new_password: nw });
+    if (res.success) {
+      toast('Password updated!', 'ok');
+      closeM('mChangePw');
+      document.getElementById('cp-cur').value = '';
+      document.getElementById('cp-new').value = '';
+      document.getElementById('cp-cf').value = '';
+    } else {
+      toast(res.error || 'Failed to update', 'er');
+    }
+  } catch(e) {
+    toast('Error: ' + e.message, 'er');
+  }
 }
 
 // ═══ BOOT ═══

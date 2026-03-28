@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../includes/db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -6,6 +7,32 @@ $action = $_GET['action'] ?? '';
 $db = getDB();
 
 switch ($action) {
+
+    // ══════════════════════════════════
+    // AUTH
+    // ══════════════════════════════════
+    case 'login':
+        $d = getInput();
+        $username = trim($d['username'] ?? '');
+        $password = $d['password'] ?? '';
+        if (!$username || !$password) {
+            jsonError('Username and password are required.');
+        }
+        $stmt = $db->prepare("SELECT id, name, role, password_hash, status FROM staff WHERE username = ? LIMIT 1");
+        $stmt->execute([$username]);
+        $staff = $stmt->fetch();
+        if (!$staff || $staff['status'] !== 'active' || !password_verify($password, $staff['password_hash'])) {
+            jsonError('Invalid username or password.', 401);
+        }
+        $_SESSION['staff_id']   = $staff['id'];
+        $_SESSION['staff_name'] = $staff['name'];
+        $_SESSION['staff_role'] = $staff['role'];
+        jsonResponse(['ok' => true, 'name' => $staff['name'], 'role' => $staff['role']]);
+
+    case 'logout':
+        session_unset();
+        session_destroy();
+        jsonResponse(['ok' => true]);
 
     // ══════════════════════════════════
     // DASHBOARD
@@ -306,18 +333,33 @@ switch ($action) {
         $perms = $d['perms'] ?? [];
         $isEdit = !empty($d['id']);
         if ($isEdit) {
-            $db->prepare("UPDATE staff SET name=?,role=?,email=?,phone=?,username=?,perm_students=?,perm_fees=?,perm_books=?,perm_expenses=?,perm_reports=?,perm_staff=?,perm_settings=? WHERE id=?")
-               ->execute([$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'] ?? '',
+            // If a new password is provided, update it too; otherwise keep existing hash
+            if (!empty($d['password'])) {
+                $newHash = password_hash($d['password'], PASSWORD_BCRYPT);
+                $db->prepare("UPDATE staff SET name=?,role=?,email=?,phone=?,username=?,password_hash=?,perm_students=?,perm_fees=?,perm_books=?,perm_expenses=?,perm_reports=?,perm_staff=?,perm_settings=? WHERE id=?")
+                   ->execute([$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'] ?? '',
+                     $newHash,
+                     (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
+                     (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0),
+                     $d['id']]);
+            } else {
+                $db->prepare("UPDATE staff SET name=?,role=?,email=?,phone=?,username=?,perm_students=?,perm_fees=?,perm_books=?,perm_expenses=?,perm_reports=?,perm_staff=?,perm_settings=? WHERE id=?")
+                   ->execute([$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'] ?? '',
+                     (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
+                     (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0),
+                     $d['id']]);
+            }
+        } else {
+            // New staff: require username; default password is 'Pass@1234' if none given
+            if (empty($d['username'])) jsonError('Username is required for new staff.');
+            $rawPassword = !empty($d['password']) ? $d['password'] : 'Pass@1234';
+            $hash = password_hash($rawPassword, PASSWORD_BCRYPT);
+            $newId = 'SF-' . str_pad((int)$db->query("SELECT COUNT(*) FROM staff")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
+            $db->prepare("INSERT INTO staff (id,name,role,email,phone,username,password_hash,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+               ->execute([$newId,$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'],$hash,
                  (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
                  (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0),
-                 $d['id']]);
-        } else {
-            $newId = 'SF-' . str_pad((int)$db->query("SELECT COUNT(*) FROM staff")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
-            $hash = !empty($d['password']) ? md5($d['password']) : md5('pass123');
-            $db->prepare("INSERT INTO staff (id,name,role,email,phone,username,password_hash,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-               ->execute([$newId,$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'] ?? strtolower(explode(' ',$d['name'])[0]),$hash,
-                 (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
-                 (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0)]);
+                 'active']);
             addActivity($db, '👥', 'rgba(74,124,111,.14)', "Staff <strong>{$d['name']}</strong> added");
         }
         jsonResponse(['success' => true]);
@@ -326,6 +368,23 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
         $db->prepare("DELETE FROM staff WHERE id=?")->execute([$d['id'] ?? '']);
+        jsonResponse(['success' => true]);
+
+    case 'change_password':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
+        $d = getInput();
+        $current  = $d['current_password'] ?? '';
+        $newPass  = $d['new_password'] ?? '';
+        if (strlen($newPass) < 6) jsonError('New password must be at least 6 characters.');
+        $stmt = $db->prepare("SELECT password_hash FROM staff WHERE id=? LIMIT 1");
+        $stmt->execute([$_SESSION['staff_id']]);
+        $row = $stmt->fetch();
+        if (!$row || !password_verify($current, $row['password_hash'])) {
+            jsonError('Current password is incorrect.', 403);
+        }
+        $newHash = password_hash($newPass, PASSWORD_BCRYPT);
+        $db->prepare("UPDATE staff SET password_hash=? WHERE id=?")->execute([$newHash, $_SESSION['staff_id']]);
         jsonResponse(['success' => true]);
 
     // ══════════════════════════════════

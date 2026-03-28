@@ -234,3 +234,36 @@ CREATE TABLE wa_send_log (
     type ENUM('single', 'bulk') DEFAULT 'single',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ========================
+-- DEFAULT ADMIN ACCOUNT
+-- ========================
+-- Default credentials: username = admin | password = Admin@1234
+-- Change the password after first login via Staff & Users page.
+-- To generate a new bcrypt hash in PHP:
+--   echo password_hash('YourNewPassword', PASSWORD_BCRYPT);
+
+INSERT INTO staff (
+    id, name, role, email, phone,
+    username, password_hash,
+    perm_students, perm_fees, perm_books,
+    perm_expenses, perm_reports, perm_staff, perm_settings,
+    status
+) VALUES (
+    'SF-001',
+    'Admin',
+    'admin',
+    'admin@optms.co.in',
+    '+91 72820 71620',
+    'admin',
+    '$2y$12$eImiTXuWVxfM37uY4JANjQ9a6WXMfQ0VJl/XrT9mMH8hGc7lC0vW2',
+    1, 1, 1, 1, 1, 1, 1,
+    'active'
+) ON DUPLICATE KEY UPDATE id = id;
+
+-- ========================
+-- MIGRATION (if upgrading from older schema without password_hash / status)
+-- Run these manually if the columns don't exist yet:
+-- ========================
+-- ALTER TABLE staff ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) AFTER username;
+-- ALTER TABLE staff ADD COLUMN IF NOT EXISTS status ENUM('active','inactive') DEFAULT 'active' AFTER perm_settings;
