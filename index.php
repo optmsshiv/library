@@ -255,13 +255,13 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
 
 /* STUDENT PROFILE */
-.sp-header{background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:var(--r) var(--r) 0 0;padding:16px 22px 22px;position:relative;overflow:hidden;clip-path:none}
+.sp-header{background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:var(--r) var(--r) 0 0;padding:22px 22px 54px;position:relative;overflow:hidden}
 .sp-header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07)}
-.sp-av-wrap{position:absolute;top:-34px;left:22px;z-index:2;overflow:visible}
+.sp-av-wrap{position:absolute;bottom:-34px;left:22px;z-index:2}
 .sp-av{width:68px;height:68px;border-radius:18px;border:3px solid var(--sf);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;box-shadow:var(--sh)}
 .sp-name{color:#fff;font-family:var(--fd);font-size:20px;margin-bottom:3px}
 .sp-id{color:rgba(255,255,255,.7);font-size:11px;font-family:var(--fm)}
-.sp-body{padding:14px 22px 14px}
+.sp-body{padding:46px 22px 14px}
 .sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .sp-field{display:flex;flex-direction:column;gap:3px}
 .sp-field.full{grid-column:1/-1}
@@ -870,15 +870,16 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <!-- WhatsApp Quick Send Modal -->
 <!-- STUDENT PROFILE MODAL -->
 <div class="mo" id="mStudentProfile"><div class="md lg">
-  <div class="sp-header" id="spHeader">
-    <div style="display:flex;justify-content:flex-end;align-items:center;gap:7px;margin-bottom:10px">
+  <div class="mh" style="border-bottom:none;padding-bottom:0">
+    <div></div>
+    <div style="display:flex;align-items:center;gap:7px">
       <button class="sp-edit-toggle" id="spEditToggle" onclick="toggleProfileEdit()">✏ Edit</button>
-      <button class="mc" onclick="closeM('mStudentProfile')" style="background:rgba(255,255,255,.2);color:#fff;border:none">✕</button>
+      <button class="mc" onclick="closeM('mStudentProfile')">✕</button>
     </div>
+  </div>
+  <div class="sp-header" id="spHeader">
     <div class="sp-name" id="spHeaderName">Student Name</div>
     <div class="sp-id" id="spHeaderId">#STU-001</div>
-  </div>
-  <div style="position:relative;height:34px;background:var(--sf)">
     <div class="sp-av-wrap"><div class="sp-av" id="spAv" style="background:#4a7c6f">AB</div></div>
   </div>
   <div class="sp-body">
