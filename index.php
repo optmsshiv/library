@@ -424,7 +424,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         </div>
       </div>
     </div>
-  </div>
   <!-- Row 4: Expense Tracker + Calendar -->
   <div class="g2">
     <div>
@@ -439,8 +438,8 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
       </div>
     </div>
   </div>
-</div>
 
+</div>
 <!-- STUDENTS -->
 <div class="page" id="page-students">
   <div class="sec-hd">
