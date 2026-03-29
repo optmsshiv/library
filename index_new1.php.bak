@@ -164,13 +164,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 .seat-cell:hover .seat-tooltip{display:block}
 @keyframes pulseDue{0%,100%{opacity:1}50%{opacity:.55}}
 
-/* ── SEAT LEGEND ── */
-.seat-legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--sf2);border-top:1px solid var(--br)}
-.sl-item{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:500;color:var(--tx2)}
-.sl-dot{width:22px;height:14px;border-radius:4px;border:1px solid;flex-shrink:0}
-/* Sticky table header inside scrollable container */
-.tw table thead th{position:sticky;top:0;z-index:2;background:var(--sf2)}
-
 .dn-wrap{display:flex;align-items:center;gap:18px;padding:16px 18px}
 .dn-leg{flex:1;display:flex;flex-direction:column;gap:7px}
 .dli{display:flex;align-items:center;gap:7px;font-size:12px}
@@ -301,7 +294,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 @media(max-width:1100px){
 .stats-grid,.qa-gr{grid-template-columns:repeat(2,1fr)}
 .gm,.g2,.g3,.g4,.al-row{grid-template-columns:1fr}
-#dashBatchCards{grid-template-columns:repeat(2,1fr) !important}
+#dashBatchCards{grid-template-columns:1fr !important}
 }
 </style>
 </head>
@@ -377,31 +370,36 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div class="qa-b" onclick="openM('mExpense')"><div class="qa-ic" style="background:var(--c-orange)"><span class="mi lg" style="color:var(--or)">account_balance_wallet</span></div><div class="qa-lb">Add<br>Expense</div></div>
     <div class="qa-b" onclick="navTo('whatsapp')"><div class="qa-ic" style="background:var(--c-teal)"><span class="mi lg" style="color:var(--wa2)">chat</span></div><div class="qa-lb">WhatsApp</div></div>
   </div>
-  <!-- Row 1: Batch-wise Seat Availability — full width -->
-  <div style="margin-bottom:16px">
-    <div class="sec-hd"><div><div class="sec-t">Batch-wise Seat Availability</div><div class="sec-s">Live occupancy · <span style="color:var(--gd);font-weight:600">● Pending</span> · <span style="color:var(--ro);font-weight:600">● Overdue</span></div></div><button class="btn bg" onclick="navTo('seats')" style="font-size:11px"><span class="mi sm">event_seat</span>Manage</button></div>
-    <div id="dashBatchCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+  <!-- Row 1: Batch Seats (left) + Expense Tracker (right) -->
+  <div class="g2" style="margin-bottom:14px">
+    <div>
+      <div class="sec-hd"><div><div class="sec-t">Batch-wise Seat Availability</div><div class="sec-s">Live occupancy · 🟠 Fee Pending · 🔴 Fee Overdue</div></div><button class="btn bg" onclick="navTo('seats')" style="font-size:11px">Manage →</button></div>
+      <div id="dashBatchCards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+    </div>
+    <div>
+      <div class="sec-hd"><div><div class="sec-t">Expense Tracker</div><div class="sec-s">Monthly outflows by category</div></div><button class="btn bg" onclick="openM('mExpense')" style="font-size:11px">+ Add</button></div>
+      <div class="panel" id="dashExpTracker"></div>
+    </div>
   </div>
-  <!-- Row 2: Recent Students (full width, scrollable) + Expense Tracker -->
-  <div class="g2" style="margin-bottom:16px">
-    <div style="grid-column:1/-1">
+  <!-- Row 2: Recent Students + Fee Overview + Revenue + Calendar -->
+  <div class="g2">
+    <div>
       <div class="sec-hd"><div><div class="sec-t">Recent Students & Fee Status</div></div><button class="btn bg" onclick="navTo('students')" style="font-size:11px">All →</button></div>
-      <div class="panel" style="margin-bottom:0">
-        <div class="tw" style="max-height:420px;overflow-y:auto"><table>
-          <thead><tr style="position:sticky;top:0;z-index:2"><th>Student</th><th>Batch</th><th>Seat</th><th>Fee</th><th>Paid</th><th>Balance</th><th>Status</th><th>Msg</th></tr></thead>
+      <div class="panel">
+        <div class="tw"><table>
+          <thead><tr><th>Student</th><th>Batch</th><th>Seat</th><th>Fee</th><th>Paid</th><th>Balance</th><th>Status</th><th>Msg</th></tr></thead>
           <tbody id="dashStuTable"></tbody>
         </table></div>
       </div>
     </div>
-  </div>
-  <!-- Row 3: Fee Overview + Revenue Split (side by side) + Expense Tracker -->
-  <div class="g2" style="margin-bottom:16px">
-    <div style="display:flex;flex-direction:column;gap:0">
-      <div class="sec-hd"><div><div class="sec-t">Fee Overview</div></div><button class="btn bg" onclick="navTo('fees')" style="font-size:11px">Details →</button></div>
-      <div id="dashFeeOv" style="flex:1"></div>
-    </div>
-    <!-- Revenue split donut -->
-    <div class="panel" style="margin-bottom:0">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- Fee Overview -->
+      <div>
+        <div class="sec-hd"><div><div class="sec-t">Fee Overview</div></div><button class="btn bg" onclick="navTo('fees')" style="font-size:11px">Details →</button></div>
+        <div id="dashFeeOv"></div>
+      </div>
+      <!-- Revenue split donut -->
+      <div class="panel" style="margin-bottom:0">
         <div class="ph"><div class="pt">Revenue Split</div><span style="font-size:10px;color:var(--tx3);font-family:var(--fm)">This Month</span></div>
         <div class="dn-wrap">
           <svg width="84" height="84" viewBox="0 0 84 84">
@@ -423,19 +421,13 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
           <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx3);font-family:var(--fm);margin-top:4px"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>
         </div>
       </div>
-    </div>
-  </div>
-  <!-- Row 4: Expense Tracker + Calendar -->
-  <div class="g2">
-    <div>
-      <div class="sec-hd"><div><div class="sec-t">Expense Tracker</div><div class="sec-s">Monthly outflows by category</div></div><button class="btn bg" onclick="openM('mExpense')" style="font-size:11px">+ Add</button></div>
-      <div class="panel" id="dashExpTracker"></div>
-    </div>
-    <div class="panel" style="margin-bottom:0">
-      <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">calendar_month</span>Calendar</div><div style="display:flex;gap:5px"><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calPrev">‹</button><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calNext">›</button></div></div>
-      <div class="pb" style="padding-top:10px">
-        <div style="text-align:center;font-size:11.5px;font-weight:600;margin-bottom:8px;font-family:var(--fm)" id="calTitle"></div>
-        <div class="mcal" id="miniCal"></div>
+      <!-- Mini Calendar -->
+      <div class="panel" style="margin-bottom:0">
+        <div class="ph"><div class="pt">📅 Calendar</div><div style="display:flex;gap:5px"><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calPrev">‹</button><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calNext">›</button></div></div>
+        <div class="pb" style="padding-top:10px">
+          <div style="text-align:center;font-size:11.5px;font-weight:600;margin-bottom:8px;font-family:var(--fm)" id="calTitle"></div>
+          <div class="mcal" id="miniCal"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -472,10 +464,10 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   </div>
   <div style="margin-bottom:10px">
     <div class="seat-legend">
-      <div class="sl-item"><div class="sl-dot seat-vac"></div>Vacant</div>
-      <div class="sl-item"><div class="sl-dot seat-occ"></div>Occupied (Fee Paid)</div>
-      <div class="sl-item"><div class="sl-dot seat-due"></div>Fee Pending / Partial</div>
-      <div class="sl-item"><div class="sl-dot seat-overdue"></div>Fee Overdue</div>
+      <div class="sl-item"><div class="sl-dot" style="background:rgba(58,125,94,.15);border:1px solid rgba(58,125,94,.4)"></div>Vacant</div>
+      <div class="sl-item"><div class="sl-dot" style="background:rgba(192,68,79,.15);border:1px solid rgba(192,68,79,.4)"></div>Occupied (Fee Paid)</div>
+      <div class="sl-item"><div class="sl-dot" style="background:rgba(230,126,34,.25);border:1px solid rgba(230,126,34,.5)"></div>Fee Pending/Partial ⚠</div>
+      <div class="sl-item"><div class="sl-dot" style="background:rgba(192,68,79,.3);border:1px solid rgba(192,68,79,.7)"></div>Fee Overdue 🚨</div>
     </div>
   </div>
   <div class="g2" id="batchGrid"></div>
@@ -1294,10 +1286,6 @@ function renderDash(){
     </div>`;
   });
   document.getElementById('dashBatchCards').innerHTML=batchHTML;
-  // Dynamic columns: 1-2 batches=2col, 3=3col, 4+=4col
-  const batchCount = DB.batches.length;
-  const cols = batchCount <= 2 ? Math.max(batchCount,1) : batchCount === 3 ? 3 : 4;
-  document.getElementById('dashBatchCards').style.gridTemplateColumns = `repeat(${cols},1fr)`;
 
   // ── EXPENSE TRACKER ──
   const catTotals={};DB.expenses.forEach(e=>{catTotals[e.category]=(catTotals[e.category]||0)+e.amount;});
@@ -1325,7 +1313,7 @@ function renderDash(){
   </div></div>`;
 
   // ── RECENT STUDENTS TABLE ──
-  const recent=[...s].sort((a,b)=>b.id.localeCompare(a.id)).slice(0,15);
+  const recent=[...s].sort((a,b)=>b.id.localeCompare(a.id)).slice(0,7);
   document.getElementById('dashStuTable').innerHTML=recent.map(x=>{
     const bal=x.netFee-x.paidAmt;
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
