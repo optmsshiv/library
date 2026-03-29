@@ -713,6 +713,27 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}">🔄 Reset</button>
       </div>
     </div></div>
+
+    <!-- WhatsApp API Panel -->
+    <div class="panel" style="margin-top:14px"><div class="ph"><div class="pt">💬 WhatsApp API — Meta Cloud</div><span style="font-size:10px;color:var(--tx3)">Works on shared hosting (Bluehost, Hostinger, etc.)</span></div><div class="pb">
+      <div style="padding:10px 13px;background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:var(--r2);margin-bottom:14px;font-size:11px;line-height:1.7;color:var(--tx2)">
+        <strong style="color:var(--wa2)">How to get credentials (free):</strong><br>
+        1. Go to <a href="https://developers.facebook.com" target="_blank" style="color:var(--ac)">developers.facebook.com</a> → Create App → Business<br>
+        2. Add <strong>WhatsApp</strong> product → API Setup<br>
+        3. Copy <strong>Phone Number ID</strong> and <strong>Temporary Token</strong> below<br>
+        4. For permanent token: Meta App → System Users → Generate Token
+      </div>
+      <div class="fg">
+        <div class="fgi full"><label>Phone Number ID <span style="color:var(--tx3);font-weight:400">(from Meta WhatsApp API Setup)</span></label><input id="s-meta-pid" placeholder="e.g. 123456789012345"></div>
+        <div class="fgi full"><label>Access Token <span style="color:var(--tx3);font-weight:400">(starts with EAA...)</span></label><input id="s-meta-token" placeholder="EAAxxxxxxxxxxxx..." type="password"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn bp" onclick="saveWACredentials()" style="flex:1">💾 Save Credentials</button>
+        <button class="btn bwa" onclick="waFetch('test').then(r=>r.success?toast('✅ Test sent!','wa'):toast('❌ '+r.error,'er'))">📤 Test Send</button>
+        <button class="btn bg" onclick="loadWACredentials()" style="font-size:11px">↺ Load Saved</button>
+      </div>
+      <div id="waCredStatus" style="margin-top:10px;font-size:11px;color:var(--tx3)"></div>
+    </div></div>
     <div class="panel"><div class="ph"><div class="pt">System Stats</div></div><div class="pb" id="setStats"></div></div>
   </div>
 </div>
@@ -1021,8 +1042,8 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <div style="font-weight:700;font-size:13px;margin-bottom:3px" id="waServerTitle">Node server not running</div>
         <div style="font-size:11px;color:var(--tx2);line-height:1.6" id="waServerDesc">Start the local server on your PC to send messages directly from your WhatsApp number.</div>
         <div class="wa-cmd" id="waServerCmd">
-          <code>whatsapp-server/START-WINDOWS.bat</code>
-          <button class="wa-copy-btn" onclick="navigator.clipboard.writeText('cd whatsapp-server && node server.js');toast('Copied!','ok')">Copy</button>
+          <code>Settings → WhatsApp → Add Credentials</code>
+          <button class="wa-copy-btn" onclick="navTo('settings');closeM('mWaQR')">Go to Settings</button>
         </div>
       </div>
     </div>
@@ -1049,15 +1070,15 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
           <div class="wa-step" id="waStep1">
             <div class="wa-step-n" id="waStep1n">1</div>
             <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Start the Node server</div>
-              <div style="font-size:11px;color:var(--tx3)">Run <code style="font-size:10px;background:var(--sf2);padding:1px 5px;border-radius:3px">START-WINDOWS.bat</code> on your PC</div>
+              <div style="font-size:12px;font-weight:600;color:var(--tx)">Add Meta API credentials</div>
+              <div style="font-size:11px;color:var(--tx3)">Settings → WhatsApp → Phone ID &amp; Token</div>
             </div>
           </div>
           <div class="wa-step" id="waStep2">
             <div class="wa-step-n" id="waStep2n">2</div>
             <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Scan the QR code</div>
-              <div style="font-size:11px;color:var(--tx3)">WhatsApp → ⋮ Menu → Linked Devices → Link a Device</div>
+              <div style="font-size:12px;font-weight:600;color:var(--tx)">Verify with Test Message</div>
+              <div style="font-size:11px;color:var(--tx3)">Click Test Message below to confirm it works</div>
             </div>
           </div>
           <div class="wa-step" id="waStep3">
@@ -1608,9 +1629,9 @@ function startWaBgPoller() {
 async function checkWaStatusBg() {
   const r = await waFetch('status');
   const prev = waLastStatus;
-  if (!r || (r.error && (r.error.includes('offline') || r.error.includes('Cannot reach') || r.error.includes('Server offline') || r.error.includes('not running')))) {
+  if (!r || (r.error && (r.error.includes('offline') || r.error.includes('Cannot reach') || r.error.includes('Server offline') || r.error.includes('not running'))) || r.needs_setup) {
     waLastStatus = 'offline';
-    updateTopPill('offline', 'WA Offline');
+    updateTopPill('offline', r?.needs_setup ? 'WA Setup' : 'WA Offline');
     updateModalForStatus('offline', r || {});
   } else if (r.connected) {
     waLastStatus = 'connected';
@@ -1649,8 +1670,8 @@ function updateModalForStatus(state, r) {
 
   if (state === 'offline') {
     panel.className = 'wa-server-panel wa-server-off';
-    icon.textContent = '🖥️'; title.textContent = 'Node server not running';
-    desc.textContent = 'Start the local server on your PC to enable direct WhatsApp sending.';
+    icon.textContent = '⚙️'; title.textContent = 'WhatsApp API not configured';
+    desc.textContent = 'Add your Meta Phone Number ID and Token in Settings → WhatsApp to enable sending.';
     cmd.style.display = 'flex';
     setStepState(1,'active'); setStepState(2,'pending'); setStepState(3,'pending');
     document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:16px 8px"><div style="font-size:32px;margin-bottom:8px">🖥️</div><div style="font-size:11px;color:var(--ro);font-weight:600;margin-bottom:6px">Server Offline</div><div style="font-size:10px;color:var(--tx3);line-height:1.6">Run<br><code style="background:var(--sf2);padding:2px 5px;border-radius:3px">START-WINDOWS.bat</code><br>then click Refresh</div></div>';
@@ -2373,6 +2394,37 @@ function renderSettings(){
   document.getElementById('setStats').innerHTML=data.map(d=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)"><span style="font-size:12px;color:var(--tx2)">${d.l}</span><span style="font-weight:700;font-family:var(--fm)">${d.v}</span></div>`).join('');
 }
 function saveSettings(){DB.settings.fine=+gv('s-fine');DB.settings.days=+gv('s-days');DB.settings.waNum=gv('s-wa');DB.settings.name=gv('s-name');toast('Settings saved!','ok');}
+
+async function saveWACredentials() {
+  const pid   = document.getElementById('s-meta-pid')?.value?.trim();
+  const token = document.getElementById('s-meta-token')?.value?.trim();
+  if (!pid || !token) return toast('Enter both Phone Number ID and Token', 'er');
+  const statusEl = document.getElementById('waCredStatus');
+  statusEl.textContent = 'Saving…';
+  const r = await waFetch('save_gateway', { meta_phone_id: pid, meta_token: token });
+  if (r.success) {
+    toast('✅ WhatsApp credentials saved!', 'ok');
+    statusEl.textContent = '✅ Saved — click Test Send to verify';
+    statusEl.style.color = 'var(--em)';
+    checkWaStatusBg();
+  } else {
+    toast('❌ ' + r.error, 'er');
+    statusEl.textContent = '❌ ' + r.error;
+    statusEl.style.color = 'var(--ro)';
+  }
+}
+
+async function loadWACredentials() {
+  const r = await waFetch('get_gateway');
+  if (r.configured) {
+    document.getElementById('s-meta-pid').value   = r.meta_phone_id || '';
+    document.getElementById('s-meta-token').value = r.meta_token    || '';
+    document.getElementById('waCredStatus').textContent = '✅ Credentials loaded (token partially masked)';
+    document.getElementById('waCredStatus').style.color = 'var(--em)';
+  } else {
+    document.getElementById('waCredStatus').textContent = 'No credentials saved yet';
+  }
+}
 
 // ═══ MODALS ═══
 function openM(id){
