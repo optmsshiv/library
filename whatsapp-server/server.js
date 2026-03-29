@@ -206,7 +206,7 @@ app.get('/', (req, res) => {
 <head>
   <title>OPTMS WhatsApp Server</title>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="3">
+  <meta http-equiv="refresh" content="60">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',sans-serif;background:#0a0f1e;color:#e0e6f0;min-height:100vh;display:flex;align-items:center;justify-content:center}
