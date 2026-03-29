@@ -17,8 +17,16 @@ const path     = require('path');
 const app  = express();
 const PORT = 3001;
 
-app.use(cors());
+app.use(cors({ origin: '*', methods: ['GET','POST','OPTIONS'] }));
 app.use(express.json());
+// Explicit CORS for direct browser fetch calls
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 // ── State ──────────────────────────────────────────────
 let currentQR     = null;
@@ -206,7 +214,7 @@ app.get('/', (req, res) => {
 <head>
   <title>OPTMS WhatsApp Server</title>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="60">
+  <meta http-equiv="refresh" content="30">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',sans-serif;background:#0a0f1e;color:#e0e6f0;min-height:100vh;display:flex;align-items:center;justify-content:center}
