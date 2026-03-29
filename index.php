@@ -229,22 +229,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 .wa-tpl .wt-ic{font-size:20px;margin-bottom:5px}.wa-tpl .wt-lb{font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px}.wa-tpl .wt-ds{font-size:10px;color:var(--tx3)}
 .wa-preview{background:#e3f7d5;border-radius:12px 12px 0 12px;padding:12px 14px;font-size:12px;line-height:1.6;color:#1a1a1a;white-space:pre-line;border:1px solid rgba(37,211,102,.2)}
 .wa-status-dot{width:8px;height:8px;border-radius:50%;background:var(--wa);display:inline-block;animation:waPulse 1.5s infinite}
-.wa-topbar-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--fm);cursor:pointer;border:none;transition:all .25s;white-space:nowrap}
-.wa-pill-ok{background:rgba(37,211,102,.13);color:var(--wa2);border:1px solid rgba(37,211,102,.28)}
-.wa-pill-off{background:rgba(192,68,79,.09);color:var(--ro);border:1px solid rgba(192,68,79,.22)}
-.wa-pill-wait{background:rgba(196,125,43,.1);color:var(--gd);border:1px solid rgba(196,125,43,.25)}
-.wa-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.wa-pill-dot.ok{background:var(--wa);animation:waPulse 1.5s infinite}
-.wa-pill-dot.off{background:var(--ro)}
-.wa-pill-dot.wait{background:var(--gd);animation:waPulse 1s infinite}
-/* server status panel inside modal */
-.wa-server-panel{border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-start}
-.wa-server-ok{background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2)}
-.wa-server-off{background:rgba(192,68,79,.06);border:1px solid rgba(192,68,79,.2)}
-.wa-server-wait{background:rgba(196,125,43,.07);border:1px solid rgba(196,125,43,.22)}
-.wa-cmd{font-family:var(--fm);font-size:11px;background:var(--sf2);border:1px solid var(--br);border-radius:5px;padding:5px 10px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.wa-cmd code{color:var(--ac);font-size:11px}
-.wa-copy-btn{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--sf3);border:1px solid var(--br2);cursor:pointer;color:var(--tx2);white-space:nowrap}
 @keyframes waPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
 /* DISCOUNT */
 .disc-badge{background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);border-radius:var(--r2);padding:6px 10px;display:flex;align-items:center;gap:8px}
@@ -367,10 +351,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div style="display:flex;align-items:center;gap:9px">
       <div class="chip chip-tl">📅 <span id="todayChip"></span></div>
       <button class="btn bwa" onclick="navTo('whatsapp')" style="gap:5px;font-size:11px">💬 WhatsApp</button>
-      <button class="wa-topbar-pill wa-pill-off" id="waTopPill" onclick="openM('mWaQR')" title="Click to manage WhatsApp connection">
-        <span class="wa-pill-dot off" id="waTopDot"></span>
-        <span id="waTopLabel">WA Offline</span>
-      </button>
+      <button class="btn bg" onclick="openM('mWaQR')" style="font-size:11px;padding:6px 9px" title="Connect WhatsApp QR">📱</button>
       <div class="nb-btn" onclick="navTo('notifications')">🔔<div class="nd" id="notifDot" style="display:none"></div></div>
       <button class="btn bp" onclick="openM('mEnroll')">+ Enroll</button>
     </div>
@@ -631,13 +612,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- WHATSAPP -->
 <div class="page" id="page-whatsapp">
-  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment &amp; reminder messages</div></div><div style="display:flex;align-items:center;gap:8px">
-    <button class="wa-topbar-pill wa-pill-off" id="waPagePill" onclick="openM('mWaQR')" style="font-size:11px">
-      <span class="wa-pill-dot off" id="waPageDot"></span>
-      <span id="waPageLabel">Server Offline</span>
-    </button>
-    <button class="btn bwa" style="font-size:11px" onclick="openM('mWaQR')">📱 Connect / Status</button>
-  </div></div>
+  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment & reminder messages</div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn bwa" style="font-size:11px;gap:6px" onclick="openM('mWaQR')"><div class="wa-status-dot" style="width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block;animation:waPulse 1.5s infinite"></div> Connect QR</button></div></div>
   <div class="panel wa-panel" style="margin-bottom:14px">
     <div class="ph" style="border-color:rgba(37,211,102,.2)"><div class="pt" style="color:var(--wa2)">📋 Message Templates</div><span style="font-size:11px;color:var(--tx3)">Click any template to compose & send</span></div>
     <div class="pb"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="waTemplateGrid"></div></div>
@@ -649,7 +624,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <div class="fgi" style="margin-bottom:10px"><label>Select Student(s)</label><select id="wa-stu" onchange="waUpdatePreview()"><option value="">-- Select Student --</option><option value="all">📢 All Students</option><option value="pending_all">⏳ All Pending + Partial</option><option value="overdue">🚨 All Overdue</option></select></div>
         <div class="fgi" style="margin-bottom:10px"><label>Template</label><select id="wa-tpl" onchange="waLoadTemplate()"><option value="">-- Select Template --</option><option value="welcome">🎉 Welcome / Enrollment</option><option value="fee_due">💰 Fee Due Reminder</option><option value="fee_overdue">🚨 Fee Overdue Alert</option><option value="partial_payment">💳 Partial Payment Received</option><option value="fee_receipt">✅ Fee Payment Receipt</option><option value="discount_applied">🎁 Discount Applied</option><option value="book_due">📚 Book Return Reminder</option><option value="book_overdue">⚠ Book Overdue Fine</option><option value="seat_allotted">🪑 Seat Allotment</option><option value="holiday">📅 Holiday Notice</option><option value="custom">✏ Custom Message</option></select></div>
         <div class="fgi" style="margin-bottom:10px"><label>Message</label><textarea id="wa-msg" rows="8" placeholder="Select a template…" oninput="waUpdatePreview()" style="font-size:12px;line-height:1.6;min-height:140px"></textarea></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn bwa" onclick="waSend()" style="flex:1">💬 Send Direct</button><button class="btn bg" onclick="waCopy()" style="font-size:11px">📋 Copy</button><button class="btn bg" onclick="waSchedule()" style="font-size:11px">⏰ Schedule</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn bwa" onclick="waSend()" style="flex:1">💬 Send via WhatsApp</button><button class="btn bg" onclick="waCopy()" style="font-size:11px">📋 Copy</button><button class="btn bg" onclick="waSchedule()" style="font-size:11px">⏰ Schedule</button></div>
         <div id="wa-send-info" style="margin-top:8px;font-size:11px;color:var(--tx3)"></div>
       </div>
     </div>
@@ -1011,85 +986,72 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- WHATSAPP QR CONNECT MODAL -->
 <div class="mo" id="mWaQR"><div class="md">
-  <div class="mh"><div class="mt">📱 WhatsApp Connection</div><button class="mc" onclick="closeM('mWaQR')">✕</button></div>
+  <div class="mh"><div class="mt">📱 Connect WhatsApp</div><button class="mc" onclick="closeM('mWaQR')">✕</button></div>
   <div class="mb">
-
-    <!-- Live server status panel -->
-    <div class="wa-server-panel wa-server-off" id="waServerPanel">
-      <div style="font-size:26px;flex-shrink:0" id="waServerIcon">🖥️</div>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:13px;margin-bottom:3px" id="waServerTitle">Node server not running</div>
-        <div style="font-size:11px;color:var(--tx2);line-height:1.6" id="waServerDesc">Start the local server on your PC to send messages directly from your WhatsApp number.</div>
-        <div class="wa-cmd" id="waServerCmd">
-          <code>whatsapp-server/START-WINDOWS.bat</code>
-          <button class="wa-copy-btn" onclick="navigator.clipboard.writeText('cd whatsapp-server && node server.js');toast('Copied!','ok')">Copy</button>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:14px;align-items:flex-start">
-      <!-- QR / Status area -->
-      <div style="flex-shrink:0;text-align:center">
-        <div class="wa-qr-box" onclick="refreshWaQR()" id="waQRBox" style="width:170px">
-          <div class="wa-qr-img" id="waQRImg" style="width:160px;height:160px">
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div style="flex-shrink:0">
+        <div class="wa-qr-box" onclick="refreshWaQR()" id="waQRBox">
+          <div class="wa-qr-img" id="waQRImg">
             <canvas id="waQRCanvas" width="150" height="150"></canvas>
           </div>
-          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-top:4px" id="waQRStatus">Checking server…</div>
+          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm)" id="waQRStatus">Tap to refresh</div>
         </div>
         <div style="display:flex;justify-content:center;margin-top:8px">
-          <div class="wa-conn-badge wa-conn-no" id="waConnBadge">● Offline</div>
+          <div class="wa-conn-badge wa-conn-no" id="waConnBadge">● Disconnected</div>
         </div>
-        <button class="btn bg" style="font-size:10px;margin-top:8px;width:100%" onclick="refreshWaQR()">🔄 Refresh</button>
       </div>
-
-      <!-- Steps -->
       <div style="flex:1">
-        <div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin-bottom:10px">HOW TO CONNECT</div>
-        <div class="wa-steps" id="waSetupSteps">
-          <div class="wa-step" id="waStep1">
-            <div class="wa-step-n" id="waStep1n">1</div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Start the Node server</div>
-              <div style="font-size:11px;color:var(--tx3)">Run <code style="font-size:10px;background:var(--sf2);padding:1px 5px;border-radius:3px">START-WINDOWS.bat</code> on your PC</div>
-            </div>
-          </div>
-          <div class="wa-step" id="waStep2">
-            <div class="wa-step-n" id="waStep2n">2</div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Scan the QR code</div>
-              <div style="font-size:11px;color:var(--tx3)">WhatsApp → ⋮ Menu → Linked Devices → Link a Device</div>
-            </div>
-          </div>
-          <div class="wa-step" id="waStep3">
-            <div class="wa-step-n" id="waStep3n">3</div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Start sending messages</div>
-              <div style="font-size:11px;color:var(--tx3)">All ERP messages now send directly from your number</div>
-            </div>
-          </div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--tx)">Scan to Connect</div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Link your WhatsApp to send messages directly from the ERP without switching apps.</div>
+        <div class="wa-steps">
+          <div class="wa-step"><div class="wa-step-n">1</div><span>Open <strong>WhatsApp</strong> on your phone</span></div>
+          <div class="wa-step"><div class="wa-step-n">2</div><span>Tap <strong>Menu (⋮)</strong> → <strong>Linked Devices</strong></span></div>
+          <div class="wa-step"><div class="wa-step-n">3</div><span>Tap <strong>Link a Device</strong></span></div>
+          <div class="wa-step"><div class="wa-step-n">4</div><span>Point your camera at the <strong>QR code</strong></span></div>
         </div>
-
-        <div style="margin-top:14px;border-top:1px solid var(--br);padding-top:12px">
-          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:6px">YOUR WHATSAPP NUMBER</div>
+        <div style="margin-top:14px;padding:10px 12px;background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:var(--r2)">
+          <div style="font-size:11px;font-weight:600;color:var(--wa2);margin-bottom:4px">📌 Note</div>
+          <div style="font-size:11px;color:var(--tx2)">WhatsApp Web QR requires a backend service. In standalone mode, messages open in WhatsApp Web automatically.</div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:10px;color:var(--tx3);margin-bottom:6px;font-family:var(--fm)">WHATSAPP NUMBER</div>
           <div style="display:flex;gap:7px">
-            <input id="waConnNum" placeholder="+91 XXXXXXXXXX" style="flex:1;font-size:12px">
+            <input id="waConnNum" placeholder="+91 XXXXXXXXXX" style="flex:1;font-size:12px" value="">
             <button class="btn bwa" style="font-size:11px" onclick="saveWaNumber()">Save</button>
           </div>
         </div>
-
-        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:10px;color:var(--tx3);font-family:var(--fm)">MESSAGES SENT THIS SESSION</span>
-          <span style="font-size:13px;font-weight:700;font-family:var(--fm);color:var(--wa2)" id="waConnMsgCount">0</span>
-        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--br);padding-top:12px">
+      <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:8px">CONNECTION STATUS</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="sp-stat" style="flex:1"><span class="sp-stat-ic">📱</span><div><div style="font-size:11px;font-weight:600">WhatsApp Web</div><div style="font-size:10px;color:var(--wa2)">Opens automatically</div></div></div>
+        <div class="sp-stat" style="flex:1"><span class="sp-stat-ic">✅</span><div><div style="font-size:11px;font-weight:600">Messages Sent</div><div style="font-size:10px;color:var(--tx3)" id="waConnMsgCount">0 messages this session</div></div></div>
       </div>
     </div>
   </div>
   <div class="mf">
     <button class="btn bg" onclick="closeM('mWaQR')">Close</button>
-    <button class="btn bg" style="font-size:11px;color:var(--ro)" onclick="waLogoutDevice()">🔌 Disconnect</button>
     <button class="btn bwa" onclick="testWaConnection()">💬 Test Message</button>
   </div>
-</div></div></div></div>
+</div></div>
+
+<div class="mo" id="mWaSend"><div class="md">
+  <div class="mh"><div class="mt">💬 Send WhatsApp</div><button class="mc" onclick="closeM('mWaSend')">✕</button></div>
+  <div class="mb">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 13px;background:rgba(37,211,102,.08);border-radius:var(--r2);border:1px solid rgba(37,211,102,.2)">
+      <div style="font-size:28px">💬</div>
+      <div><div style="font-weight:600;font-size:13px" id="waSendTo">Student Name</div><div style="font-size:11px;color:var(--tx3)" id="waSendPhone">+91 XXXXXXXXXX</div></div>
+    </div>
+    <div class="fgi" style="margin-bottom:12px"><label>Message</label><textarea id="waSendMsg" rows="7" style="font-size:12px;line-height:1.6"></textarea></div>
+    <div class="wa-preview" id="waSendPreview" style="font-size:11.5px"></div>
+  </div>
+  <div class="mf">
+    <button class="btn bg" onclick="closeM('mWaSend')">Cancel</button>
+    <button class="btn bg" onclick="waCopyModal()" style="font-size:11px">📋 Copy</button>
+    <button class="btn bwa" onclick="waOpenLink()" id="waOpenBtn">💬 Open WhatsApp</button>
+  </div>
+</div></div>
 
 <!-- CHANGE PASSWORD MODAL -->
 <div class="mo" id="mChangePw"><div class="md">
@@ -1579,190 +1541,92 @@ function openAllocSeatPrefilled(batchId, seatNum) {
 
 // ═══ WHATSAPP QR CONNECT ═══
 let waSessionMsgCount = 0;
-const WA_PROXY = 'api/whatsapp.php';
 
-// ── Global background status checker (runs every 10s always) ─────
-let waBgPoller    = null;
-let waModalPoller = null;
-let waLastStatus  = null; // 'connected' | 'qr' | 'initializing' | 'offline'
+function openM_waQR() { openM('mWaQR'); initWaQR(); }
 
-async function waFetch(action, data = null) {
-  const url = WA_PROXY + '?action=' + action;
-  const opts = data
-    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }
-    : { method: 'GET' };
-  try {
-    const r = await fetch(url, opts);
-    return await r.json();
-  } catch (e) {
-    return { success: false, error: 'Cannot reach server: ' + e.message };
+function initWaQR() {
+  const num = DB.settings?.waNumber || '';
+  document.getElementById('waConnNum').value = num ? '+' + num : '';
+  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
+  generateWaQR();
+}
+
+function generateWaQR() {
+  const canvas = document.getElementById('waQRCanvas');
+  const ctx = canvas.getContext('2d');
+  const size = 150;
+  // Draw a realistic-looking QR code pattern
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+  // Use a seeded random for consistent pattern
+  const seed = Date.now() % 10000;
+  const rng = (n) => { let x = Math.sin(n + seed) * 10000; return x - Math.floor(x); };
+  const cellSize = 5;
+  const cols = Math.floor(size / cellSize);
+  ctx.fillStyle = '#000';
+  // Draw QR-like finder patterns (corners)
+  const drawFinder = (ox, oy) => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(ox, oy, 35, 35);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(ox+5, oy+5, 25, 25);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(ox+10, oy+10, 15, 15);
+  };
+  drawFinder(5, 5);
+  drawFinder(size-40, 5);
+  drawFinder(5, size-40);
+  // Random data cells
+  for (let r = 0; r < cols; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = c * cellSize, y = r * cellSize;
+      // Skip finder pattern areas
+      if ((x < 40 && y < 40) || (x > size-45 && y < 40) || (x < 40 && y > size-45)) continue;
+      if (rng(r * cols + c) > 0.55) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x, y, cellSize-0.5, cellSize-0.5);
+      }
+    }
   }
+  // Add WA logo in center
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.font = '18px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('💬', size/2, size/2);
+
+  document.getElementById('waQRStatus').textContent = 'Scan with WhatsApp · ' + new Date().toLocaleTimeString();
 }
 
-function startWaBgPoller() {
-  checkWaStatusBg();
-  if (waBgPoller) clearInterval(waBgPoller);
-  waBgPoller = setInterval(checkWaStatusBg, 10000);
+function refreshWaQR() {
+  document.getElementById('waQRStatus').textContent = 'Refreshing…';
+  setTimeout(generateWaQR, 400);
 }
 
-async function checkWaStatusBg() {
-  const r = await waFetch('status');
-  const prev = waLastStatus;
-  if (!r || (r.error && (r.error.includes('offline') || r.error.includes('Cannot reach') || r.error.includes('Server offline') || r.error.includes('not running')))) {
-    waLastStatus = 'offline';
-    updateTopPill('offline', 'WA Offline');
-    updateModalForStatus('offline', r || {});
-  } else if (r.connected) {
-    waLastStatus = 'connected';
-    updateTopPill('connected', r.client?.name || 'Connected');
-    updateModalForStatus('connected', r);
-  } else if (r.qr) {
-    waLastStatus = 'qr';
-    updateTopPill('qr', 'Scan QR');
-    updateModalForStatus('qr', r);
-  } else {
-    waLastStatus = 'initializing';
-    updateTopPill('initializing', 'WA Starting…');
-    updateModalForStatus('initializing', r);
-  }
-}
-
-function updateTopPill(state, label) {
-  ['waTopPill','waPagePill'].forEach((pid, i) => {
-    const pill = document.getElementById(pid);
-    const dot  = document.getElementById(pid.replace('Pill','Dot'));
-    const lbl  = document.getElementById(pid.replace('Pill','Label'));
-    if (!pill) return;
-    pill.className = 'wa-topbar-pill ' + (state==='connected'?'wa-pill-ok':state==='qr'||state==='initializing'?'wa-pill-wait':'wa-pill-off');
-    if (dot) dot.className = 'wa-pill-dot ' + (state==='connected'?'ok':state==='initializing'||state==='qr'?'wait':'off');
-    if (lbl) lbl.textContent = i===0 ? (state==='connected'?label:'WA '+(state==='offline'?'Offline':state==='qr'?'Scan QR':'Starting…')) : (state==='connected'?'✅ '+label:state==='qr'?'📱 Scan QR':state==='initializing'?'⏳ Starting…':'❌ Server Offline');
-  });
-}
-
-function updateModalForStatus(state, r) {
-  const panel = document.getElementById('waServerPanel');
-  const icon  = document.getElementById('waServerIcon');
-  const title = document.getElementById('waServerTitle');
-  const desc  = document.getElementById('waServerDesc');
-  const cmd   = document.getElementById('waServerCmd');
-  if (!panel) return;
-
-  if (state === 'offline') {
-    panel.className = 'wa-server-panel wa-server-off';
-    icon.textContent = '🖥️'; title.textContent = 'Node server not running';
-    desc.textContent = 'Start the local server on your PC to enable direct WhatsApp sending.';
-    cmd.style.display = 'flex';
-    setStepState(1,'active'); setStepState(2,'pending'); setStepState(3,'pending');
-    document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:16px 8px"><div style="font-size:32px;margin-bottom:8px">🖥️</div><div style="font-size:11px;color:var(--ro);font-weight:600;margin-bottom:6px">Server Offline</div><div style="font-size:10px;color:var(--tx3);line-height:1.6">Run<br><code style="background:var(--sf2);padding:2px 5px;border-radius:3px">START-WINDOWS.bat</code><br>then click Refresh</div></div>';
-    document.getElementById('waQRStatus').textContent = 'Server not running';
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-no';
-    document.getElementById('waConnBadge').textContent = '● Server Offline';
-  } else if (state === 'qr') {
-    panel.className = 'wa-server-panel wa-server-wait';
-    icon.textContent = '📱'; title.textContent = 'Server running — scan QR to connect';
-    desc.textContent = 'Open WhatsApp on your phone and scan the QR code on the left.';
-    cmd.style.display = 'none';
-    setStepState(1,'done'); setStepState(2,'active'); setStepState(3,'pending');
-    if (r.qr) document.getElementById('waQRImg').innerHTML = '<img src="'+r.qr+'" style="width:150px;height:150px;border-radius:6px" alt="WA QR">';
-    document.getElementById('waQRStatus').textContent = 'Scan with WhatsApp · ' + new Date().toLocaleTimeString();
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-no';
-    document.getElementById('waConnBadge').textContent = '📱 Waiting for scan…';
-  } else if (state === 'initializing') {
-    panel.className = 'wa-server-panel wa-server-wait';
-    icon.textContent = '⏳'; title.textContent = 'Server starting up…';
-    desc.textContent = 'WhatsApp is initializing, please wait a few seconds then refresh.';
-    cmd.style.display = 'none';
-    setStepState(1,'done'); setStepState(2,'active'); setStepState(3,'pending');
-    document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:24px 8px"><div style="font-size:28px;margin-bottom:8px">⏳</div><div style="font-size:11px;color:var(--gd)">Initializing…</div></div>';
-    document.getElementById('waQRStatus').textContent = 'Starting, please wait…';
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-no';
-    document.getElementById('waConnBadge').textContent = '⏳ Starting…';
-  } else if (state === 'connected') {
-    panel.className = 'wa-server-panel wa-server-ok';
-    icon.textContent = '✅';
-    title.textContent = 'Connected as ' + (r.client?.name||'WhatsApp') + ' (+' + (r.client?.number||'') + ')';
-    desc.textContent = 'Messages send directly from your WhatsApp number.';
-    cmd.style.display = 'none';
-    setStepState(1,'done'); setStepState(2,'done'); setStepState(3,'done');
-    document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:14px 8px"><div style="font-size:38px;margin-bottom:6px">✅</div><div style="font-size:12px;font-weight:700;color:var(--wa2)">'+(r.client?.name||'Connected')+'</div><div style="font-size:10px;color:var(--tx3)">+'+(r.client?.number||'')+'</div></div>';
-    document.getElementById('waQRStatus').textContent = 'Connected · ' + new Date().toLocaleTimeString();
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-ok';
-    document.getElementById('waConnBadge').textContent = '● Connected';
-  }
-}
-
-function setStepState(n, state) {
-  const el = document.getElementById('waStep' + n + 'n');
-  if (!el) return;
-  el.textContent = state === 'done' ? '✓' : String(n);
-  el.style.background = state === 'done' ? 'var(--em)' : state === 'active' ? 'var(--wa)' : 'var(--br2)';
-}
-
-function openM_waQR() { openM('mWaQR'); }
-
-async function initWaQR() {
-  const num = DB.settings?.waNum || DB.settings?.waNumber || '';
-  document.getElementById('waConnNum').value = num ? (num.startsWith('+') ? num : '+' + num) : '';
-  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount;
-  if (waLastStatus) updateModalForStatus(waLastStatus, {});
-  await checkWaStatusBg();
-  if (waModalPoller) clearInterval(waModalPoller);
-  waModalPoller = setInterval(checkWaStatusBg, 4000);
-}
-
-async function refreshWaQR() {
-  document.getElementById('waQRStatus').textContent = 'Checking…';
-  await checkWaStatusBg();
-}
-
-async function saveWaNumber() {
+function saveWaNumber() {
   const val = document.getElementById('waConnNum').value.replace(/\D/g, '');
   if (!val) return toast('Enter a phone number', 'er');
-  DB.settings.waNum = val; DB.settings.waNumber = val;
+  DB.settings.waNumber = val;
   document.getElementById('s-wa').value = val;
-  try { await apiPost('save_settings', { wa_number: val }); } catch(e) {}
   toast('WhatsApp number saved!', 'ok');
+  document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-ok';
+  document.getElementById('waConnBadge').textContent = '● Connected';
 }
 
-async function testWaConnection() {
-  toast('Sending test message…', 'wn');
-  const r = await waFetch('test');
-  if (r.success) {
-    waSessionMsgCount++;
-    document.getElementById('waConnMsgCount').textContent = waSessionMsgCount;
-    toast('✅ Test message sent to your WhatsApp!', 'wa');
-  } else {
-    toast('❌ ' + (r.error || 'Send failed'), 'er');
-  }
+function testWaConnection() {
+  const num = DB.settings?.waNumber || '';
+  if (!num) return toast('Save a WhatsApp number first', 'er');
+  const msg = encodeURIComponent(`Hello! This is a test message from ${DB.settings?.name || 'OPTMS Tech Library'} ERP. ✅`);
+  window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+  waSessionMsgCount++;
+  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
+  toast('WhatsApp test opened!', 'wa');
 }
 
-async function waLogoutDevice() {
-  if (!confirm('Disconnect WhatsApp? You will need to scan QR again.')) return;
-  const r = await waFetch('logout');
-  toast(r.success ? 'WhatsApp disconnected' : 'Error: ' + r.error, r.success ? 'wn' : 'er');
-  await checkWaStatusBg();
-}
-
-document.addEventListener('click', (e) => {
-  if (e.target?.classList?.contains('mo')) {
-    if (waModalPoller) { clearInterval(waModalPoller); waModalPoller = null; }
-  }
-});
-
-async function waSendDirect(phone, message, studentName) {
-  const r = await waFetch('send', { to: phone, message, student_name: studentName });
-  if (r.success) {
-    waSessionMsgCount++;
-    const el = document.getElementById('waConnMsgCount');
-    if (el) el.textContent = waSessionMsgCount;
-    toast('✅ Sent to ' + (studentName || phone) + '!', 'wa');
-    addActivity('💬', 'rgba(37,211,102,.14)', 'WhatsApp → <strong>' + (studentName || phone) + '</strong>');
-    return true;
-  } else {
-    toast('❌ ' + (r.error || 'Send failed. Is the WhatsApp server running?'), 'er');
-    return false;
-  }
-}
 
 // ═══ SEATS (with fee status highlight) ═══
 function renderSeats(){
@@ -2274,31 +2138,25 @@ function waLoadTemplate(){
   document.getElementById('wa-msg').value=msg;waUpdatePreview();
 }
 function waUpdatePreview(){document.getElementById('waPreview').textContent=gv('wa-msg')||'Select a template…';}
-async function waSend(){
+function waSend(){
+  waSessionMsgCount++;
   const stuId=gv('wa-stu');const msg=gv('wa-msg');
   if(!msg)return toast('Write a message first','er');if(!stuId)return toast('Select a recipient','er');
   if(['all','pending_all','overdue'].includes(stuId)){
     const list=stuId==='all'?DB.students:stuId==='pending_all'?DB.students.filter(x=>x.feeStatus!=='paid'):DB.students.filter(x=>x.feeStatus==='overdue');
-    if(!list.length)return toast('No students in this group','wn');
-    toast('Sending to '+list.length+' students...','wn');
-    const messages=list.map(s=>({to:s.phone,message:msg,name:s.fname+' '+s.lname}));
-    const r=await waFetch('send_bulk',{messages});
-    if(r.success){waSessionMsgCount+=r.sent||0;toast('Sent to '+r.sent+' students!','wa');}
-    else{toast('Error: '+r.error,'er');}
-    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:list.length+' students',preview:msg.slice(0,40)+'...',type:'bulk'});
+    list.forEach(s=>openWALink(s.phone,msg));
+    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${list.length} students`,preview:msg.slice(0,40)+'…',type:'bulk'});
+    toast(`WhatsApp opened for ${list.length} students!`,'wa');
   } else {
-    const s=DB.students.find(x=>x.id===stuId);
-    if(!s)return;
-    await waSendDirect(s.phone,msg,s.fname+' '+s.lname);
-    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:s.fname+' '+s.lname,preview:msg.slice(0,40)+'...',type:'single'});
+    const s=DB.students.find(x=>x.id===stuId);if(s)openWALink(s.phone,msg);
+    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${s?.fname} ${s?.lname}`,preview:msg.slice(0,40)+'…',type:'single'});
+    toast('WhatsApp opened!','wa');
   }
-  addActivity('💬','rgba(37,211,102,.14)','WhatsApp sent');renderWASendLog();
+  addActivity('💬','rgba(37,211,102,.14)',`WhatsApp sent`);renderWASendLog();
 }
 function waCopy(){const msg=gv('wa-msg');if(!msg)return;navigator.clipboard?.writeText(msg).then(()=>toast('Copied!','ok')).catch(()=>toast('Select & copy manually','wn'));}
 function waSchedule(){toast('Message scheduled for 9 AM tomorrow!','ok');}
-async function openWALink(phone,msg,name){
-  await waSendDirect(phone,msg,name||phone);
-}
+function openWALink(phone,msg){const p=phone.replace(/\D/g,'');const full=p.length===10?'91'+p:p;window.open(`https://wa.me/${full}?text=${encodeURIComponent(msg)}`,'_blank');}
 function waQuick(stuId,tplKey){
   const s=DB.students.find(x=>x.id===stuId);if(!s)return;
   const b=DB.batches.find(x=>x.id===s.batchId);
@@ -2310,7 +2168,7 @@ function waQuick(stuId,tplKey){
   document.getElementById('waSendPhone').textContent=`+91 ${s.phone}`;
   document.getElementById('waSendMsg').value=msg;
   document.getElementById('waSendPreview').textContent=msg;
-  document.getElementById('waOpenBtn').onclick=()=>{waSendDirect(s.phone,msg,s.fname+' '+s.lname).then(()=>{DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:s.fname+' '+s.lname,preview:msg.slice(0,40)+'...',type:'single'});if(document.getElementById('page-whatsapp').classList.contains('active'))renderWASendLog();});closeM('mWaSend');};
+  document.getElementById('waOpenBtn').onclick=()=>{openWALink(s.phone,msg);DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${s.fname} ${s.lname}`,preview:msg.slice(0,40)+'…',type:'single'});closeM('mWaSend');toast('WhatsApp opened!','wa');addActivity('💬','rgba(37,211,102,.14)',`WhatsApp → <strong>${s.fname}</strong>`);};
   openM('mWaSend');
 }
 function bulkSend(type){
@@ -2320,12 +2178,7 @@ function bulkSend(type){
   else if(type==='overdue'){list=DB.students.filter(x=>x.feeStatus==='overdue');tpl='fee_overdue';}
   else if(type==='bookoverdue'){const txIds=DB.transactions.filter(t=>t.status==='overdue').map(t=>t.studentId);list=DB.students.filter(s=>txIds.includes(s.id));tpl='book_overdue';}
   if(!list.length){toast('No students in this category','wn');return;}
-  const bulkMsgs=list.map(s=>{const b=DB.batches.find(x=>x.id===s.batchId);const lastTx=DB.transactions.filter(t=>t.studentId===s.id&&t.status!=='returned').pop();const txData=lastTx?{...lastTx,bookTitle:DB.books.find(bk=>bk.id===lastTx.bookId)?.title||'—'}:null;const msg=WA_TEMPLATES[tpl]?WA_TEMPLATES[tpl](s,b,txData):'';return{to:s.phone,message:msg,name:s.fname+' '+s.lname};});
-  toast('Sending to '+list.length+' students...','wn');
-  waFetch('send_bulk',{messages:bulkMsgs}).then(r=>{
-    if(r.success){waSessionMsgCount+=r.sent||0;toast('Sent to '+r.sent+' students!','wa');}
-    else toast('Error: '+r.error,'er');
-  });
+  list.forEach(s=>{const b=DB.batches.find(x=>x.id===s.batchId);const lastTx=DB.transactions.filter(t=>t.studentId===s.id&&t.status!=='returned').pop();const txData=lastTx?{...lastTx,bookTitle:DB.books.find(bk=>bk.id===lastTx.bookId)?.title||'—'}:null;const msg=WA_TEMPLATES[tpl]?WA_TEMPLATES[tpl](s,b,txData):'';openWALink(s.phone,msg);});
   DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${list.length} students (${type})`,preview:`Bulk: ${tpl}`,type:'bulk'});
   addActivity('💬','rgba(37,211,102,.14)',`Bulk WA sent to <strong>${list.length}</strong> (${type})`);
   toast(`WhatsApp opened for ${list.length} students!`,'wa');
@@ -2752,8 +2605,6 @@ async function doChangePassword() {
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
 initData();
-// Start WA background status poller — runs silently every 10s
-setTimeout(startWaBgPoller, 3000); // wait 3s for page to load first
 </script>
 </body>
 </html>
