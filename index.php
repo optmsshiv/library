@@ -567,6 +567,12 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     </table></div>
     <div class="pag"><span class="pag-i" id="feePagI"></span></div>
   </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+  <input type="checkbox" id="autoPdfCheck" checked onchange="autoGenPdf=this.checked">
+  <label for="autoPdfCheck" style="font-size:11px;color:var(--tx3)">
+    Auto-generate receipt PDF after saving
+  </label>
+</div>
 </div>
 
 <!-- INVOICES -->
@@ -576,6 +582,9 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <thead><tr><th>Invoice #</th><th>Student</th><th>Type</th><th>Total Fee</th><th>Discount</th><th>Paid</th><th>Balance</th><th>Date</th><th>Mode</th><th>Status</th><th>Action</th></tr></thead>
     <tbody id="invTable"></tbody>
   </table></div></div>
+  <button class="btn bg" onclick="downloadBulkZip()" style="font-size:11px">
+  <span class="mi sm">folder_zip</span> ZIP Month
+</button>
 </div>
 
 <!-- EXPENSES -->
@@ -988,6 +997,9 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <button class="btn bg" onclick="cancelProfileEdit()">Cancel</button>
     <button class="btn bp" onclick="saveProfileEdit()">💾 Save Changes</button>
   </div>
+  <button class="btn bg" style="font-size:11px" onclick="pdfFromProfile()">
+  <span class="mi sm">picture_as_pdf</span> Receipt
+</button>
 </div></div>
 
 <!-- WHATSAPP QR CONNECT MODAL -->
