@@ -2202,17 +2202,18 @@ function cfCalcBalance(){
 function toggleSplit(){
   const m=gv('cf-mode');
   const isSplit=m==='split'||m==='split2';
-  // Keep the payNormal row visible always; hide individual sub-fields when split is active
-  const amtRow=document.getElementById('cf-amt');
+  // Always keep the Amount Paying (cf-amt) field visible so partial-payment
+  // students can adjust the remaining balance before splitting
   const refRow=document.getElementById('cf-ref');
-  if(amtRow) amtRow.closest('.fgi').style.display=isSplit?'none':'flex';
   if(refRow) refRow.closest('.fgi').style.display=isSplit?'none':'flex';
   document.getElementById('payNormal').style.display='grid';
   document.getElementById('paySplit').style.display=isSplit?'block':'none';
   if(isSplit)calcSplitRem();
 }
 function calcSplitRem(){
-  const tot=+gv('cf-tot')||0;const a1=+gv('cf-a1')||0;const rem=Math.max(0,tot-a1);
+  // Use the "Amount Paying" field as the split total, not the full net fee.
+  // This correctly handles partial-payment students paying a custom amount.
+  const tot=+gv('cf-amt')||+gv('cf-tot')||0;const a1=+gv('cf-a1')||0;const rem=Math.max(0,tot-a1);
   document.getElementById('cf-a2').value=rem;
   document.getElementById('splitNote').textContent=`Total: ₹${tot} | Mode 1: ₹${a1} | Mode 2: ₹${rem}`;
 }
@@ -2761,15 +2762,10 @@ async function saveStaff() {
   // Then try to persist to server in background
   try {
     const res = await apiPost('save_staff', payload);
-    if (res && res.error) {
-      toast('Server error: ' + res.error, 'er');
-      // Roll back the optimistic push if it was a new staff add
-      if (editStaffIdx < 0) { DB.staff.pop(); renderStaff(); }
-    } else {
-      await reloadDB(); // refresh from server to get real DB id
-    }
+    if (res && res.error) { toast('Server: ' + res.error, 'wn'); }
+    else { await reloadDB(); } // refresh from server to get proper IDs
   } catch(e) {
-    toast('Could not save to server — check connection', 'wn');
+    // API not available — local data already shown above
   }
 }
 
