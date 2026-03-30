@@ -1337,6 +1337,7 @@ async function initData() {
 
     DB.students = (data.students || []).map(s => ({
       id: s.id, fname: s.fname, lname: s.lname, phone: s.phone,
+      email: s.email || '', addr: s.addr || '',
       batchId: s.batch_id, seatType: s.seat_type, seat: s.seat,
       baseFee: +s.base_fee,
       discount: { type: s.discount_type, value: +s.discount_value, reason: s.discount_reason },
@@ -2202,18 +2203,17 @@ function cfCalcBalance(){
 function toggleSplit(){
   const m=gv('cf-mode');
   const isSplit=m==='split'||m==='split2';
-  // Always keep the Amount Paying (cf-amt) field visible so partial-payment
-  // students can adjust the remaining balance before splitting
+  // Keep the payNormal row visible always; hide individual sub-fields when split is active
+  const amtRow=document.getElementById('cf-amt');
   const refRow=document.getElementById('cf-ref');
+  if(amtRow) amtRow.closest('.fgi').style.display=isSplit?'none':'flex';
   if(refRow) refRow.closest('.fgi').style.display=isSplit?'none':'flex';
   document.getElementById('payNormal').style.display='grid';
   document.getElementById('paySplit').style.display=isSplit?'block':'none';
   if(isSplit)calcSplitRem();
 }
 function calcSplitRem(){
-  // Use the "Amount Paying" field as the split total, not the full net fee.
-  // This correctly handles partial-payment students paying a custom amount.
-  const tot=+gv('cf-amt')||+gv('cf-tot')||0;const a1=+gv('cf-a1')||0;const rem=Math.max(0,tot-a1);
+  const tot=+gv('cf-tot')||0;const a1=+gv('cf-a1')||0;const rem=Math.max(0,tot-a1);
   document.getElementById('cf-a2').value=rem;
   document.getElementById('splitNote').textContent=`Total: ₹${tot} | Mode 1: ₹${a1} | Mode 2: ₹${rem}`;
 }
