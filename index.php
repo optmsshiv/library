@@ -13,6 +13,12 @@ $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(e
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3d6ff0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LibraryERP">
 <title>OPTMS Tech ERP v6</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -260,7 +266,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 .toggle-inp:checked+.toggle-sl::before{transform:translateX(16px)}
 
 .sp-header{background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:var(--r) var(--r) 0 0;padding:22px 22px 54px;position:relative}
-.sp-header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.08)}
+.sp-header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
 .sp-av-wrap{position:absolute;bottom:-34px;left:22px;z-index:2}
 .sp-av{width:68px;height:68px;border-radius:18px;border:3px solid var(--sf);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;box-shadow:var(--sh2)}
 .sp-name{color:#fff;font-family:var(--fd);font-size:20px;margin-bottom:3px}
@@ -282,6 +288,37 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 .sp-seat-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--c-blue);border:1px solid var(--cb);border-radius:20px;font-size:12px;font-weight:700;color:var(--ac);font-family:var(--fm);cursor:pointer;transition:all .18s}
 .sp-seat-chip:hover{background:rgba(61,111,240,.15);transform:scale(1.04)}
 
+/* ── WHATSAPP TEMPLATE GRID ── */
+.wa-tpl{
+  background:#fafcff;
+  border:1.5px solid #dde5f7;
+  border-radius:var(--r);
+  padding:14px 12px;
+  cursor:pointer;
+  transition:all .18s;
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  box-shadow:0 1px 3px rgba(61,111,240,.06);
+}
+.wa-tpl:hover{border-color:var(--ac);background:#eff4ff;box-shadow:0 4px 14px rgba(61,111,240,.12);transform:translateY(-2px);}
+.wa-tpl.selected{border-color:var(--ac);background:#eff4ff;box-shadow:0 0 0 2px rgba(61,111,240,.18);}
+.wt-ic{font-size:22px;line-height:1;margin-bottom:2px;}
+.wt-lb{font-size:11.5px;font-weight:700;color:var(--tx);line-height:1.3;}
+.wt-ds{font-size:9.5px;color:var(--tx3);line-height:1.3;font-family:var(--fm);}
+
+/* ── WHATSAPP PAGE SECTIONS ── */
+.wa-section{background:#fff;border:1.5px solid #e0e8f5;border-radius:var(--r);overflow:hidden;margin-bottom:14px;box-shadow:0 1px 4px rgba(61,111,240,.05);}
+.wa-section-hd{padding:12px 18px;border-bottom:1.5px solid #e8eef8;background:#f5f8ff;display:flex;align-items:center;justify-content:space-between;}
+.wa-section-hd .pt{font-family:var(--fd);font-size:14px;color:var(--tx);}
+.wa-compose-row{display:flex;flex-direction:column;gap:8px;padding:16px;}
+.wa-compose-field{display:flex;flex-direction:column;gap:5px;}
+.wa-compose-field label{font-size:11px;font-weight:600;color:var(--tx2);letter-spacing:.3px;}
+.wa-preview-box{background:#e5ddd5;border-radius:12px;padding:16px;min-height:200px;}
+.wa-preview-contact{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(0,0,0,.1);}
+.wa-bulk-card{background:#fafcff;border:1.5px solid #dde5f7;border-radius:var(--r2);padding:14px;text-align:center;}
+.wa-bulk-card:hover{border-color:var(--ac);background:#eff4ff;}
+
+/* ── WA QR BOX ── */
 .wa-qr-box{display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px;background:rgba(37,211,102,.04);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);cursor:pointer;transition:all .2s}
 .wa-qr-box:hover{background:rgba(37,211,102,.08)}
 .wa-qr-img{width:160px;height:160px;border:2px solid var(--wa);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
@@ -297,6 +334,47 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 .page.active>*{animation:fuUp .25s ease both}
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
+
+/* ── RENEWAL ────────────────────────────────────────── */
+.ren-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .2s}
+.ren-card:hover{border-color:var(--ac);box-shadow:var(--sh)}
+.ren-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.ren-info{flex:1;min-width:0}
+.ren-name{font-size:13px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ren-meta{font-size:10px;color:var(--tx3);font-family:var(--fm);margin-top:2px}
+.ren-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;font-family:var(--fm)}
+.ren-overdue{background:rgba(220,38,38,.1);color:var(--ro)}
+.ren-soon{background:rgba(217,119,6,.1);color:var(--gd)}
+.ren-ok{background:rgba(22,163,74,.1);color:var(--em)}
+/* ── STAFF ATTENDANCE & SALARY ──────────────────────── */
+.sa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.sa-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:14px;text-align:center;transition:all .2s}
+.sa-card:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.att-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--br)}
+.att-row:last-child{border-bottom:none}
+.att-av{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.att-name{font-size:13px;font-weight:600;color:var(--tx);flex:1}
+.att-role{font-size:10px;color:var(--tx3);font-family:var(--fm)}
+.att-toggle{display:flex;gap:4px}
+.att-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.att-p{background:rgba(22,163,74,.12);color:var(--em)}.att-p.active,.att-p:hover{background:var(--em);color:#fff}
+.att-a{background:rgba(220,38,38,.1);color:var(--ro)}.att-a.active,.att-a:hover{background:var(--ro);color:#fff}
+.att-h{background:rgba(217,119,6,.1);color:var(--gd)}.att-h.active,.att-h:hover{background:var(--gd);color:#fff}
+.sal-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)}
+.sal-row:last-child{border-bottom:none}
+.sal-days{font-size:11px;color:var(--tx3);font-family:var(--fm)}
+.sal-amt{font-size:14px;font-weight:700;font-family:var(--fm);color:var(--em)}
+/* ── AUDIT LOG ──────────────────────────────────────── */
+.audit-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--br);font-size:12px}
+.audit-row:last-child{border-bottom:none}
+.audit-ic{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.audit-who{font-weight:600;color:var(--tx)}
+.audit-what{color:var(--tx2);margin-top:1px}
+.audit-time{font-size:10px;color:var(--tx3);font-family:var(--fm);margin-top:2px}
+.audit-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:var(--fm);white-space:nowrap}
+/* ── PWA ─────────────────────────────────────────────── */
+.pwa-banner{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;gap:10px;align-items:center;box-shadow:0 4px 20px rgba(61,111,240,.35);z-index:9999;cursor:pointer;max-width:340px;width:90%}
+.pwa-banner.show{display:flex}
 
 @media(max-width:1100px){
 .stats-grid,.qa-gr{grid-template-columns:repeat(2,1fr)}
@@ -335,6 +413,9 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     </div>
     <div class="ns"><div class="nl">Admin</div>
       <div class="ni" data-page="staff"><span class="ni-ic mi">manage_accounts</span> Staff & Users</div>
+      <div class="ni" data-page="staff_attendance"><span class="ni-ic mi">co_present</span> Staff Attendance</div>
+      <div class="ni" data-page="renewal"><span class="ni-ic mi">autorenew</span> Renewals <span class="nbadge y" id="b-renewal">0</span></div>
+      <div class="ni" data-page="audit"><span class="ni-ic mi">history</span> Audit Log</div>
       <div class="ni" data-page="notifications"><span class="ni-ic mi">notifications</span> Notifications <span class="nbadge g" id="b-notif">0</span></div>
       <div class="ni" data-page="settings"><span class="ni-ic mi">settings</span> Settings</div>
     </div>
@@ -618,43 +699,52 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- WHATSAPP -->
 <div class="page" id="page-whatsapp">
-  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment & reminder messages</div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn bwa" style="font-size:11px;gap:6px" onclick="openM('mWaQR')"><span class="mi sm">qr_code_scanner</span>Connect QR</button></div></div>
-  <div class="panel wa-panel" style="margin-bottom:14px">
-    <div class="ph" style="border-color:rgba(37,211,102,.2)"><div class="pt" style="color:var(--wa2)">📋 Message Templates</div><span style="font-size:11px;color:var(--tx3)">Click any template to compose & send</span></div>
-    <div class="pb"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="waTemplateGrid"></div></div>
+  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment &amp; reminder messages</div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn bwa" style="font-size:11px;gap:6px" onclick="openM('mWaQR')"><span class="mi sm">qr_code_scanner</span>Connect QR</button></div></div>
+
+  <!-- Template Grid Section -->
+  <div class="wa-section" style="margin-bottom:14px">
+    <div class="wa-section-hd"><div class="pt" style="color:var(--wa2)">📋 Message Templates</div><span style="font-size:11px;color:var(--tx3)">Click any template to compose &amp; send</span></div>
+    <div style="padding:16px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="waTemplateGrid"></div></div>
   </div>
+
+  <!-- Compose + Preview Section -->
   <div class="g2" style="margin-bottom:14px">
-    <div class="panel">
-      <div class="ph"><div class="pt">✍ Compose</div></div>
-      <div class="pb">
-        <div class="fgi" style="margin-bottom:10px"><label>Select Student(s)</label><select id="wa-stu" onchange="waUpdatePreview()"><option value="">-- Select Student --</option><option value="all">📢 All Students</option><option value="pending_all">⏳ All Pending + Partial</option><option value="overdue">🚨 All Overdue</option></select></div>
-        <div class="fgi" style="margin-bottom:10px"><label>Template</label><select id="wa-tpl" onchange="waLoadTemplate()"><option value="">-- Select Template --</option><option value="welcome">🎉 Welcome / Enrollment</option><option value="fee_due">💰 Fee Due Reminder</option><option value="fee_overdue">🚨 Fee Overdue Alert</option><option value="partial_payment">💳 Partial Payment Received</option><option value="fee_receipt">✅ Fee Payment Receipt</option><option value="discount_applied">🎁 Discount Applied</option><option value="book_due">📚 Book Return Reminder</option><option value="book_overdue">⚠ Book Overdue Fine</option><option value="seat_allotted">🪑 Seat Allotment</option><option value="holiday">📅 Holiday Notice</option><option value="custom">✏ Custom Message</option></select></div>
-        <div class="fgi" style="margin-bottom:10px"><label>Message</label><textarea id="wa-msg" rows="8" placeholder="Select a template…" oninput="waUpdatePreview()" style="font-size:12px;line-height:1.6;min-height:140px"></textarea></div>
+    <div class="wa-section">
+      <div class="wa-section-hd"><div class="pt">✍ Compose Message</div></div>
+      <div class="wa-compose-row">
+        <div class="wa-compose-field"><label>Select Student(s)</label><select id="wa-stu" onchange="waUpdatePreview()"><option value="">-- Select Student --</option><option value="all">📢 All Students</option><option value="pending_all">⏳ All Pending + Partial</option><option value="overdue">🚨 All Overdue</option></select></div>
+        <div class="wa-compose-field"><label>Template</label><select id="wa-tpl" onchange="waLoadTemplate()"><option value="">-- Select Template --</option><option value="welcome">🎉 Welcome / Enrollment</option><option value="fee_due">💰 Fee Due Reminder</option><option value="fee_overdue">🚨 Fee Overdue Alert</option><option value="partial_payment">💳 Partial Payment Received</option><option value="fee_receipt">✅ Fee Payment Receipt</option><option value="discount_applied">🎁 Discount Applied</option><option value="book_due">📚 Book Return Reminder</option><option value="book_overdue">⚠ Book Overdue Fine</option><option value="seat_allotted">🪑 Seat Allotment</option><option value="holiday">📅 Holiday Notice</option><option value="custom">✏ Custom Message</option></select></div>
+        <div class="wa-compose-field"><label>Message</label><textarea id="wa-msg" rows="8" placeholder="Select a template…" oninput="waUpdatePreview()" style="font-size:12px;line-height:1.6;min-height:140px"></textarea></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn bwa" onclick="waSend()" style="flex:1">💬 Send via WhatsApp</button><button class="btn bg" onclick="waCopy()" style="font-size:11px"><span class="mi sm">content_copy</span>Copy</button><button class="btn bg" onclick="waSchedule()" style="font-size:11px">⏰ Schedule</button></div>
-        <div id="wa-send-info" style="margin-top:8px;font-size:11px;color:var(--tx3)"></div>
+        <div id="wa-send-info" style="margin-top:4px;font-size:11px;color:var(--tx3)"></div>
       </div>
     </div>
-    <div class="panel">
-      <div class="ph"><div class="pt">👁 Preview</div><span style="font-size:10px;color:var(--tx3)">WhatsApp appearance</span></div>
-      <div class="pb">
-        <div style="background:#e5ddd5;border-radius:12px;padding:16px;min-height:200px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(0,0,0,.1)">
+    <div class="wa-section">
+      <div class="wa-section-hd"><div class="pt">👁 Preview</div><span style="font-size:10px;color:var(--tx3)">WhatsApp appearance</span></div>
+      <div style="padding:16px">
+        <div class="wa-preview-box">
+          <div class="wa-preview-contact">
             <div style="width:32px;height:32px;border-radius:50%;background:var(--wa);display:flex;align-items:center;justify-content:center;font-size:16px">📚</div>
             <div><div style="font-size:13px;font-weight:700;color:#1a1a1a">OPTMS Tech Library</div><div style="font-size:10px;color:#666">Official Account</div></div>
           </div>
           <div class="wa-preview" id="waPreview">Select a template to preview…</div>
         </div>
-        <div style="margin-top:12px"><div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:6px">RECENT SENDS</div><div id="waSendLog" style="display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto"></div></div>
+        <div style="margin-top:12px">
+          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px">Recent Sends</div>
+          <div id="waSendLog" style="display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto"></div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="panel">
-    <div class="ph"><div class="pt">📢 Bulk Send</div></div>
-    <div class="pb"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-      <div style="background:var(--sf2);border-radius:var(--r2);padding:14px;text-align:center;border:1px solid var(--br)"><div style="font-size:22px;margin-bottom:6px">🎉</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Welcome New</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">This month's enrollments</div><button class="btn bwa" style="width:100%;font-size:11px" onclick="bulkSend('welcome')">Send (<span id="bk-welcome">0</span>)</button></div>
-      <div style="background:var(--sf2);border-radius:var(--r2);padding:14px;text-align:center;border:1px solid var(--br)"><div style="font-size:22px;margin-bottom:6px">⏳</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Fee Pending</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">Pending + partial</div><button class="btn bwa" style="width:100%;font-size:11px;background:#e67e22" onclick="bulkSend('pending')">Send (<span id="bk-pending">0</span>)</button></div>
-      <div style="background:var(--sf2);border-radius:var(--r2);padding:14px;text-align:center;border:1px solid var(--br)"><div style="font-size:22px;margin-bottom:6px">🚨</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Fee Overdue</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">Critical overdue</div><button class="btn bd" style="width:100%;font-size:11px" onclick="bulkSend('overdue')">Send (<span id="bk-overdue2">0</span>)</button></div>
-      <div style="background:var(--sf2);border-radius:var(--r2);padding:14px;text-align:center;border:1px solid var(--br)"><div style="font-size:22px;margin-bottom:6px">📚</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Book Overdue</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">Return reminders</div><button class="btn" style="width:100%;font-size:11px;background:var(--vi);color:#fff" onclick="bulkSend('bookoverdue')">Send (<span id="bk-bookod">0</span>)</button></div>
+
+  <!-- Bulk Send Section -->
+  <div class="wa-section">
+    <div class="wa-section-hd"><div class="pt">📢 Bulk Send</div></div>
+    <div style="padding:16px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <div class="wa-bulk-card"><div style="font-size:22px;margin-bottom:6px">🎉</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Welcome New</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">This month's enrollments</div><button class="btn bwa" style="width:100%;font-size:11px" onclick="bulkSend('welcome')">Send (<span id="bk-welcome">0</span>)</button></div>
+      <div class="wa-bulk-card"><div style="font-size:22px;margin-bottom:6px">⏳</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Fee Pending</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">Pending + partial</div><button class="btn bwa" style="width:100%;font-size:11px;background:#e67e22" onclick="bulkSend('pending')">Send (<span id="bk-pending">0</span>)</button></div>
+      <div class="wa-bulk-card"><div style="font-size:22px;margin-bottom:6px">🚨</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Fee Overdue</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">Critical overdue</div><button class="btn bd" style="width:100%;font-size:11px" onclick="bulkSend('overdue')">Send (<span id="bk-overdue2">0</span>)</button></div>
+      <div class="wa-bulk-card"><div style="font-size:22px;margin-bottom:6px">📚</div><div style="font-weight:600;font-size:12px;margin-bottom:3px">Book Overdue</div><div style="font-size:10px;color:var(--tx3);margin-bottom:10px">Return reminders</div><button class="btn" style="width:100%;font-size:11px;background:var(--vi);color:#fff" onclick="bulkSend('bookoverdue')">Send (<span id="bk-bookod">0</span>)</button></div>
     </div></div>
   </div>
 </div>
@@ -666,6 +756,82 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <thead><tr><th>Staff</th><th>Role</th><th>Email</th><th>Phone</th><th>Permissions</th><th>Status</th><th>Action</th></tr></thead>
     <tbody id="staffTable"></tbody>
   </table></div></div>
+</div>
+
+
+<!-- RENEWAL -->
+<div class="page" id="page-renewal">
+  <div class="sec-hd">
+    <div><div class="sec-t">🔄 Student Renewals</div><div class="sec-s">Extend due dates and collect next month fee in one click</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="renFilterSel" onchange="renderRenewal()" style="font-size:11px;padding:5px 9px">
+        <option value="all">All Students</option>
+        <option value="overdue">Overdue</option>
+        <option value="due7">Due in 7 days</option>
+        <option value="due30">Due in 30 days</option>
+      </select>
+      <button class="btn bp" onclick="bulkRenew()">🔄 Bulk Renew All Due</button>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="sc" style="--ca:var(--ro)"><div class="s-lb">Overdue</div><div class="s-vl" id="ren-overdue">0</div><div class="s-mt">Need immediate renewal</div></div>
+    <div class="sc" style="--ca:var(--gd)"><div class="s-lb">Due in 7 Days</div><div class="s-vl" id="ren-soon">0</div><div class="s-mt">Renew soon</div></div>
+  </div>
+  <div class="panel"><div class="ph"><div class="pt">Students</div><span id="renCount" style="font-size:11px;color:var(--tx3)"></span></div>
+  <div class="pb"><div id="renewalList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px"></div></div></div>
+</div>
+
+<!-- STAFF ATTENDANCE -->
+<div class="page" id="page-staff_attendance">
+  <div class="sec-hd">
+    <div><div class="sec-t">👥 Staff Attendance & Salary</div><div class="sec-s">Mark daily attendance and calculate monthly salary</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="date" id="staffAttDate" onchange="renderStaffAtt()" style="font-size:12px;padding:5px 9px">
+      <button class="btn bp" onclick="saveStaffAtt()">💾 Save Attendance</button>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="panel"><div class="ph"><div class="pt">📋 Today's Attendance</div></div>
+      <div class="pb"><div id="staffAttList"></div></div>
+    </div>
+    <div class="panel"><div class="ph">
+      <div class="pt">💰 Monthly Salary</div>
+      <select id="staffSalMonth" onchange="renderStaffSalary()" style="font-size:11px;padding:5px 9px"></select>
+    </div>
+      <div class="pb"><div id="staffSalList"></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--br);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:600">Total Payable</span>
+          <span style="font-size:16px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="staffSalTotal">₹0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:14px"><div class="ph"><div class="pt">📊 Attendance Summary</div></div>
+    <div class="pb"><div id="staffAttSummary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div></div>
+  </div>
+</div>
+
+<!-- AUDIT LOG -->
+<div class="page" id="page-audit">
+  <div class="sec-hd">
+    <div><div class="sec-t">🔍 Audit Log</div><div class="sec-s">Every action logged — who did what and when</div></div>
+    <div style="display:flex;gap:8px">
+      <select id="auditFilter" onchange="renderAudit()" style="font-size:11px;padding:5px 9px">
+        <option value="all">All Actions</option>
+        <option value="fee">Fee</option>
+        <option value="student">Student</option>
+        <option value="book">Book</option>
+        <option value="staff">Staff</option>
+        <option value="whatsapp">WhatsApp</option>
+        <option value="settings">Settings</option>
+      </select>
+      <button class="btn bg" style="font-size:11px" onclick="clearAudit()">🗑 Clear Log</button>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:14px" id="auditStats"></div>
+  <div class="panel"><div class="ph"><div class="pt">Activity History</div><span id="auditCount" style="font-size:11px;color:var(--tx3)"></span></div>
+    <div class="pb" id="auditList" style="max-height:600px;overflow-y:auto"></div>
+  </div>
 </div>
 
 <!-- NOTIFICATIONS -->
@@ -739,36 +905,44 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="mo" id="mCollectFee"><div class="md wide">
   <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">payments</span>Collect Fee</div><button class="mc" onclick="closeM('mCollectFee')"><span class="mi sm">close</span></button></div>
   <div class="mb">
-    <div class="fg">
-      <div class="fgi full"><label>Student *</label><select id="cf-stu" onchange="cfLoadStudent()"><option value="">-- Select --</option></select></div>
-      <div class="fgi"><label>Month</label><input id="cf-mo" value="March 2026"></div>
-      <div class="fgi"><label>Net Fee (₹)</label><input id="cf-tot" type="number" readonly style="background:var(--sf3);font-weight:700"></div>
-    </div>
-    <div id="cf-status-info" style="margin:10px 0;display:none"></div>
-    <div class="sdiv" style="margin-top:14px">Payment</div>
-    <div class="fg">
-      <div class="fgi full"><label>Payment Mode</label>
-        <select id="cf-mode" onchange="toggleSplit()">
-          <option value="cash">💵 Cash</option><option value="upi">📱 UPI</option><option value="neft">🏦 NEFT</option><option value="cheque">📄 Cheque</option><option value="split">✂ Split (UPI + Cash)</option><option value="split2">✂ Split (2 Custom)</option>
-        </select>
-      </div>
-    </div>
-    <div id="payNormal" class="fg" style="margin-top:10px">
-      <div class="fgi"><label>Amount Paying (₹)</label><input id="cf-amt" type="number" placeholder="0" oninput="cfCalcBalance()"></div>
-      <div class="fgi"><label>Transaction Ref</label><input id="cf-ref" placeholder="Auto-generated"></div>
-    </div>
-    <div id="paySplit" style="display:none;margin-top:10px">
+    <!-- Student & Month Section -->
+    <div style="background:#f5f8ff;border:1.5px solid #dde5f7;border-radius:var(--r2);padding:14px;margin-bottom:12px">
+      <div style="font-size:9.5px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin-bottom:10px">Student Details</div>
       <div class="fg">
-        <div class="fgi"><label>Mode 1</label><select id="cf-m1"><option>Cash</option><option>UPI</option><option>NEFT</option></select></div>
-        <div class="fgi"><label>Amount 1 (₹)</label><input id="cf-a1" type="number" placeholder="0" oninput="calcSplitRem()"></div>
-        <div class="fgi"><label>Mode 2</label><select id="cf-m2"><option>UPI</option><option>Cash</option><option>NEFT</option></select></div>
-        <div class="fgi"><label>Amount 2 (₹)</label><input id="cf-a2" type="number" placeholder="0" readonly style="background:var(--sf3)"></div>
+        <div class="fgi full"><label>Student *</label><select id="cf-stu" onchange="cfLoadStudent()"><option value="">-- Select --</option></select></div>
+        <div class="fgi"><label>Month</label><input id="cf-mo" value="March 2026"></div>
+        <div class="fgi"><label>Net Fee (₹)</label><input id="cf-tot" type="number" readonly style="background:#eef2ff;font-weight:700;border-color:#c7d4f8"></div>
       </div>
-      <div id="splitNote" style="margin-top:6px;font-size:11px;color:var(--tx3);padding:6px 10px;background:var(--sf2);border-radius:var(--r2)"></div>
     </div>
-    <div id="cf-balance-note" style="display:none;margin-top:10px;padding:10px 13px;border-radius:var(--r2);border:1px solid rgba(196,125,43,.3);background:rgba(196,125,43,.07)"></div>
-    <div class="fg" style="margin-top:10px"><div class="fgi full"><label>Remarks</label><input id="cf-rem" placeholder="Optional…"></div></div>
-    <div style="margin-top:12px;padding:10px 13px;background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.2);border-radius:var(--r2)">
+    <div id="cf-status-info" style="margin-bottom:10px;display:none"></div>
+    <!-- Payment Section -->
+    <div style="background:#f5fdf7;border:1.5px solid #c6e9d4;border-radius:var(--r2);padding:14px;margin-bottom:12px">
+      <div style="font-size:9.5px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin-bottom:10px">Payment Details</div>
+      <div class="fg">
+        <div class="fgi full"><label>Payment Mode</label>
+          <select id="cf-mode" onchange="toggleSplit()">
+            <option value="cash">💵 Cash</option><option value="upi">📱 UPI</option><option value="neft">🏦 NEFT</option><option value="cheque">📄 Cheque</option><option value="split">✂ Split (UPI + Cash)</option><option value="split2">✂ Split (2 Custom)</option>
+          </select>
+        </div>
+      </div>
+      <div id="payNormal" class="fg" style="margin-top:10px">
+        <div class="fgi"><label>Amount Paying (₹)</label><input id="cf-amt" type="number" placeholder="0" oninput="cfCalcBalance()"></div>
+        <div class="fgi"><label>Transaction Ref</label><input id="cf-ref" placeholder="Auto-generated"></div>
+      </div>
+      <div id="paySplit" style="display:none;margin-top:10px">
+        <div class="fg">
+          <div class="fgi"><label>Mode 1</label><select id="cf-m1"><option>Cash</option><option>UPI</option><option>NEFT</option></select></div>
+          <div class="fgi"><label>Amount 1 (₹)</label><input id="cf-a1" type="number" placeholder="0" oninput="calcSplitRem()"></div>
+          <div class="fgi"><label>Mode 2</label><select id="cf-m2"><option>UPI</option><option>Cash</option><option>NEFT</option></select></div>
+          <div class="fgi"><label>Amount 2 (₹)</label><input id="cf-a2" type="number" placeholder="0" readonly style="background:var(--sf3)"></div>
+        </div>
+        <div id="splitNote" style="margin-top:6px;font-size:11px;color:var(--tx3);padding:6px 10px;background:rgba(61,111,240,.06);border-radius:var(--r2);border:1px solid rgba(61,111,240,.15)"></div>
+      </div>
+    </div>
+    <div id="cf-balance-note" style="display:none;margin-bottom:12px;padding:10px 13px;border-radius:var(--r2);border:1px solid rgba(196,125,43,.3);background:rgba(196,125,43,.07)"></div>
+    <!-- Remarks & WA Section -->
+    <div style="background:#fafafa;border:1.5px solid var(--br);border-radius:var(--r2);padding:14px">
+      <div class="fg" style="margin-bottom:10px"><div class="fgi full"><label>Remarks</label><input id="cf-rem" placeholder="Optional…"></div></div>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="cf-wa" checked style="width:auto"> <span style="font-size:12px;color:var(--tx2)">💬 Send payment receipt via WhatsApp</span></label>
     </div>
   </div>
@@ -876,7 +1050,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <!-- WhatsApp Quick Send Modal -->
 <!-- STUDENT PROFILE MODAL -->
 <div class="mo" id="mStudentProfile"><div class="md lg">
-  <div class="mh" style="border-bottom:none;padding-bottom:0">
+  <div class="mh" style="border-bottom:none;padding-bottom:0;position:relative;z-index:10">
     <div></div>
     <div style="display:flex;align-items:center;gap:7px">
       <button class="sp-edit-toggle" id="spEditToggle" onclick="toggleProfileEdit()">✏ Edit</button>
@@ -1070,6 +1244,53 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   <div class="mf"><button class="btn bg" onclick="closeM('mChangePw')">Cancel</button><button class="btn bp" onclick="doChangePassword()">Update Password</button></div>
 </div></div>
 
+<!-- RENEWAL MODAL -->
+<div class="mo" id="mRenew"><div class="md">
+  <div class="mh"><div class="mt">🔄 Renew Student</div><button class="mc" onclick="closeM('mRenew')"><span class="mi sm">close</span></button></div>
+  <div class="mb">
+    <div id="mRenewStudentInfo" style="background:var(--sf2);border-radius:var(--r2);padding:12px;margin-bottom:14px"></div>
+    <div class="fg">
+      <div class="fgi"><label>Extend By</label>
+        <select id="ren-extend">
+          <option value="1">1 Month</option>
+          <option value="2">2 Months</option>
+          <option value="3">3 Months</option>
+          <option value="6">6 Months</option>
+        </select>
+      </div>
+      <div class="fgi"><label>New Due Date</label><input id="ren-newdate" type="date" readonly style="background:var(--sf3)"></div>
+      <div class="fgi"><label>Fee Amount (₹)</label><input id="ren-fee" type="number" placeholder="0"></div>
+      <div class="fgi"><label>Payment Mode</label>
+        <select id="ren-mode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+      </div>
+      <div class="fgi full"><label>Notes</label><input id="ren-notes" placeholder="Optional renewal note"></div>
+    </div>
+    <div style="margin-top:12px;padding:10px 12px;background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.2);border-radius:var(--r2);font-size:12px;color:var(--tx2)" id="ren-summary"></div>
+  </div>
+  <div class="mf">
+    <button class="btn bg" onclick="closeM('mRenew')">Cancel</button>
+    <button class="btn bwa" style="font-size:11px" onclick="sendRenewalWA()">💬 Send WA</button>
+    <button class="btn bp" onclick="confirmRenew()">✅ Confirm Renewal</button>
+  </div>
+</div></div>
+
+<!-- STAFF SALARY SLIP MODAL -->
+<div class="mo" id="mSalarySlip"><div class="md">
+  <div class="mh"><div class="mt">💰 Salary Slip</div><button class="mc" onclick="closeM('mSalarySlip')"><span class="mi sm">close</span></button></div>
+  <div class="mb" id="mSalarySlipContent"></div>
+  <div class="mf">
+    <button class="btn bg" onclick="closeM('mSalarySlip')">Close</button>
+    <button class="btn bp" onclick="printSalarySlip()">🖨 Print</button>
+  </div>
+</div></div>
+
+<!-- PWA INSTALL BANNER -->
+<div class="pwa-banner" id="pwaBanner" onclick="installPWA()">
+  <span class="mi" style="font-size:22px">install_mobile</span>
+  <div style="flex:1"><div style="font-size:13px;font-weight:700">Install Library App</div><div style="font-size:11px;opacity:.85">Add to home screen for quick access</div></div>
+  <button onclick="event.stopPropagation();document.getElementById('pwaBanner').classList.remove('show')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px">Later</button>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 <script>
 // ═══ API CONFIG ═══
@@ -1213,7 +1434,7 @@ function timeSince(ts) {
 }
 
 // ═══ NAVIGATION ═══
-const PAGE_TITLES={dashboard:'Dashboard',students:'All Students',seats:'Seat Allocation',attendance:'Attendance',books:'Books Catalog',transactions:'Issue & Returns',fees:'Fee Management',invoices:'Invoices',expenses:'Expenses',reports:'Reports',analytics:'Analytics',whatsapp:'WhatsApp Messaging',staff:'Staff & Users',notifications:'Notifications',settings:'Settings'};
+const PAGE_TITLES={dashboard:'Dashboard',students:'All Students',seats:'Seat Allocation',attendance:'Attendance',books:'Books Catalog',transactions:'Issue & Returns',fees:'Fee Management',invoices:'Invoices',expenses:'Expenses',reports:'Reports',analytics:'Analytics',whatsapp:'WhatsApp Messaging',staff:'Staff & Users',staff_attendance:'Staff Attendance & Salary',renewal:'Student Renewals',audit:'Audit Log',notifications:'Notifications',settings:'Settings'};
 function navTo(page){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   const ni=document.querySelector(`.ni[data-page="${page}"]`);if(ni)ni.classList.add('active');
@@ -1226,7 +1447,7 @@ document.querySelectorAll('.ni[data-page]').forEach(el=>{
   el.addEventListener('click',()=>{if(el.dataset.page==='enroll'){openM('mEnroll');return;}navTo(el.dataset.page);});
 });
 function renderPage(p){
-  const map={dashboard:renderDash,students:renderStudents,seats:renderSeats,attendance:renderAtt,books:renderBooks,transactions:renderTx,fees:renderFees,invoices:renderInv,expenses:renderExp,analytics:renderAnal,whatsapp:renderWA,staff:renderStaff,notifications:renderNotifs,settings:renderSettings};
+  const map={dashboard:renderDash,students:renderStudents,seats:renderSeats,attendance:renderAtt,books:renderBooks,transactions:renderTx,fees:renderFees,invoices:renderInv,expenses:renderExp,analytics:renderAnal,whatsapp:renderWA,staff:renderStaff,staff_attendance:renderStaffAtt,renewal:renderRenewal,audit:renderAudit,notifications:renderNotifs,settings:renderSettings};
   if(map[p])map[p]();
 }
 
@@ -1965,8 +2186,14 @@ function cfCalcBalance(){
   else note.style.display='none';
 }
 function toggleSplit(){
-  const m=gv('cf-mode');const isSplit=m==='split'||m==='split2';
-  document.getElementById('payNormal').style.display=isSplit?'none':'grid';
+  const m=gv('cf-mode');
+  const isSplit=m==='split'||m==='split2';
+  // Keep the payNormal row visible always; hide individual sub-fields when split is active
+  const amtRow=document.getElementById('cf-amt');
+  const refRow=document.getElementById('cf-ref');
+  if(amtRow) amtRow.closest('.fgi').style.display=isSplit?'none':'flex';
+  if(refRow) refRow.closest('.fgi').style.display=isSplit?'none':'flex';
+  document.getElementById('payNormal').style.display='grid';
   document.getElementById('paySplit').style.display=isSplit?'block':'none';
   if(isSplit)calcSplitRem();
 }
@@ -2122,7 +2349,7 @@ function renderWA(){
     {key:'holiday',ic:'📅',lb:'Holiday Notice',ds:'Library closure'},
     {key:'custom',ic:'✏️',lb:'Custom',ds:'Write your own'},
   ];
-  document.getElementById('waTemplateGrid').innerHTML=templates.map(t=>`<div class="wa-tpl" onclick="waSelectTpl('${t.key}')"><div class="wt-ic">${t.ic}</div><div class="wt-lb">${t.lb}</div><div class="wt-ds">${t.ds}</div></div>`).join('');
+  document.getElementById('waTemplateGrid').innerHTML=templates.map(t=>`<div class="wa-tpl" data-key="${t.key}" onclick="waSelectTpl('${t.key}')"><div class="wt-ic">${t.ic}</div><div class="wt-lb">${t.lb}</div><div class="wt-ds">${t.ds}</div></div>`).join('');
   const pending=DB.students.filter(x=>x.feeStatus!=='paid').length;
   const overdue=DB.students.filter(x=>x.feeStatus==='overdue').length;
   const newStudents=DB.students.filter(s=>s.joinDate&&s.joinDate.includes('Mar')).length;
@@ -2135,7 +2362,13 @@ function renderWA(){
   document.getElementById('wa-stu').innerHTML='<option value="">-- Select Student --</option><option value="all">📢 All Students</option><option value="pending_all">⏳ All Pending + Partial</option><option value="overdue">🚨 All Overdue</option>'+DB.students.map(s=>`<option value="${s.id}">${s.fname} ${s.lname} (${s.feeStatus})</option>`).join('');
   renderWASendLog();
 }
-function waSelectTpl(key){document.getElementById('wa-tpl').value=key;waLoadTemplate();}
+function waSelectTpl(key){
+  document.querySelectorAll('.wa-tpl').forEach(t=>t.classList.remove('selected'));
+  const tplEl=document.querySelector(`.wa-tpl[data-key="${key}"]`);
+  if(tplEl)tplEl.classList.add('selected');
+  document.getElementById('wa-tpl').value=key;
+  waLoadTemplate();
+}
 function waLoadTemplate(){
   const tplKey=gv('wa-tpl');const stuId=gv('wa-stu');
   let s=DB.students[0];let b=DB.batches.find(x=>x.id===s?.batchId);
@@ -2212,8 +2445,8 @@ function renderStaff(){
 function buildPermList(){const role=gv('sf-rl')||'librarian';const d=ROLE_PERMS[role];document.getElementById('permList').innerHTML=PERMS.map(p=>`<div class="perm-row"><div><div style="font-size:13px;font-weight:500">${p.label}</div></div><label class="toggle-wrap"><input type="checkbox" id="perm-${p.key}" class="toggle-inp" ${d[p.key]?'checked':''}><span class="toggle-sl"></span></label></div>`).join('');}
 function setDefaultPerms(){buildPermList();}
 function editStaff(idx){editStaffIdx=idx;const sf=DB.staff[idx];document.getElementById('staffModalTitle').textContent='✏ Edit Staff';document.getElementById('staffSaveBtn').textContent='Save';document.getElementById('sf-nm').value=sf.name;document.getElementById('sf-rl').value=sf.role;document.getElementById('sf-em').value=sf.email;document.getElementById('sf-ph').value=sf.phone;document.getElementById('sf-un').value=sf.username;buildPermList();PERMS.forEach(p=>{const el=document.getElementById('perm-'+p.key);if(el)el.checked=sf.perms[p.key];});openM('mAddStaff');}
-function delStaff(idx){if(!confirm('Remove?'))return;DB.staff.splice(idx,1);toast('Removed','wn');renderStaff();}
-function saveStaff(){const nm=gv('sf-nm'),rl=gv('sf-rl'),em=gv('sf-em');if(!nm||!rl||!em)return toast('Fill required','er');const perms={};PERMS.forEach(p=>{const el=document.getElementById('perm-'+p.key);perms[p.key]=el?el.checked:false;});if(editStaffIdx>=0){Object.assign(DB.staff[editStaffIdx],{name:nm,role:rl,email:em,phone:gv('sf-ph'),username:gv('sf-un'),perms});toast(`${nm} updated!`,'ok');editStaffIdx=-1;}else{DB.staff.push({id:'SF-'+Date.now(),name:nm,role:rl,email:em,phone:gv('sf-ph'),username:gv('sf-un')||nm.split(' ')[0].toLowerCase(),perms,status:'active'});toast(`${nm} added!`,'ok');}closeM('mAddStaff');document.getElementById('staffModalTitle').textContent='Add Staff';document.getElementById('staffSaveBtn').textContent='Add Staff';editStaffIdx=-1;renderStaff();}
+// delStaff is defined below as an async function (API-backed with local fallback)
+// saveStaff is defined below as an async function (API-backed with local fallback)
 
 // ═══ NOTIFICATIONS ═══
 function renderNotifs(){
@@ -2253,7 +2486,7 @@ function openM(id){
   document.getElementById(id)?.classList.add('open');
 }
 function closeM(id){document.getElementById(id)?.classList.remove('open');}
-document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+// Modals close ONLY via the × button or Cancel — NOT on outside click.
 
 // ═══ UTILITIES ═══
 function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
@@ -2266,6 +2499,11 @@ function batchEmoji(n){const m={'Early Morning':'🌅','Morning':'☀️','After
 function addActivity(icon,bg,text){DB.activities.unshift({icon,bg,text,time:'Just now'});if(DB.activities.length>20)DB.activities.pop();}
 function addNotif(type,title,msg){DB.notifications.unshift({id:Date.now(),type,title,msg,time:'Just now',read:false});}
 function updateBadges(){
+  // Renewal badge
+  const today=new Date();today.setHours(0,0,0,0);
+  const in7=new Date(today);in7.setDate(in7.getDate()+7);
+  const renDue=DB.students.filter(s=>{const d=new Date(s.dueDate);return d<=in7;}).length;
+  const bRen=document.getElementById('b-renewal');if(bRen)bRen.textContent=renDue;
   const pf=DB.students.filter(x=>x.feeStatus!=='paid').length;
   const od=DB.transactions.filter(t=>t.status==='overdue').length;
   const un=DB.notifications.filter(n=>!n.read).length;
@@ -2491,23 +2729,41 @@ async function saveStaff() {
     phone: gv('sf-ph'), username: gv('sf-un'), password: gv('sf-pw'), perms
   };
   if (editStaffIdx >= 0) payload.id = DB.staff[editStaffIdx].id;
-  const res = await apiPost('save_staff', payload);
-  if (res.error) return toast(res.error, 'er');
+
+  // Optimistically update local DB first so table shows immediately
+  if (editStaffIdx >= 0) {
+    Object.assign(DB.staff[editStaffIdx], { name: nm, role: rl, email: em, phone: gv('sf-ph'), username: gv('sf-un'), perms });
+  } else {
+    DB.staff.push({ id: 'SF-' + Date.now(), name: nm, role: rl, email: em, phone: gv('sf-ph'), username: gv('sf-un') || nm.split(' ')[0].toLowerCase(), perms, status: 'active' });
+  }
   toast(editStaffIdx >= 0 ? `${nm} updated!` : `${nm} added!`, 'ok');
   editStaffIdx = -1;
   closeM('mAddStaff');
   document.getElementById('staffModalTitle').textContent = 'Add Staff';
   document.getElementById('staffSaveBtn').textContent = 'Add Staff';
-  await reloadDB();
+  renderStaff(); // render immediately with local data
+  document.getElementById('staffCount').textContent = `${DB.staff.length} staff`;
+
+  // Then try to persist to server in background
+  try {
+    const res = await apiPost('save_staff', payload);
+    if (res && res.error) { toast('Server: ' + res.error, 'wn'); }
+    else { await reloadDB(); } // refresh from server to get proper IDs
+  } catch(e) {
+    // API not available — local data already shown above
+  }
 }
 
 // ── DELETE STAFF ──
 async function delStaff(idx) {
   if (!confirm('Remove?')) return;
-  const res = await apiPost('delete_staff', { id: DB.staff[idx].id });
-  if (res.error) return toast(res.error, 'er');
+  const staffId = DB.staff[idx]?.id;
+  DB.staff.splice(idx, 1); // optimistic local remove
   toast('Removed', 'wn');
-  await reloadDB();
+  renderStaff();
+  try {
+    if (staffId) await apiPost('delete_staff', { id: staffId });
+  } catch(e) { /* API not available — local removal already done */ }
 }
 
 // ── MARK NOTIFICATION READ ──
@@ -2610,6 +2866,431 @@ async function doChangePassword() {
   } catch(e) {
     toast('Error: ' + e.message, 'er');
   }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// ═══ FEATURE 11: STUDENT RENEWAL SYSTEM ═══════════════════════
+// ══════════════════════════════════════════════════════════════
+let renewStudentId = null;
+
+function renderRenewal() {
+  const filter = document.getElementById('renFilterSel')?.value || 'all';
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const in7    = new Date(today); in7.setDate(in7.getDate() + 7);
+  const in30   = new Date(today); in30.setDate(in30.getDate() + 30);
+
+  let list = DB.students.filter(s => {
+    const due = new Date(s.dueDate);
+    if (filter === 'overdue') return due < today;
+    if (filter === 'due7')    return due >= today && due <= in7;
+    if (filter === 'due30')   return due >= today && due <= in30;
+    return true;
+  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  const overdue = DB.students.filter(s => new Date(s.dueDate) < today).length;
+  const soon    = DB.students.filter(s => { const d=new Date(s.dueDate); return d>=today && d<=in7; }).length;
+  document.getElementById('ren-overdue').textContent = overdue;
+  document.getElementById('ren-soon').textContent    = soon;
+  document.getElementById('b-renewal').textContent   = overdue + soon;
+  document.getElementById('renCount').textContent    = list.length + ' student(s)';
+
+  document.getElementById('renewalList').innerHTML = list.map(s => {
+    const due     = new Date(s.dueDate);
+    const diffMs  = due - today;
+    const diffDays= Math.round(diffMs / (1000*60*60*24));
+    const isOver  = diffDays < 0;
+    const isSoon  = diffDays >= 0 && diffDays <= 7;
+    const badge   = isOver
+      ? `<span class="ren-badge ren-overdue">⚠ ${Math.abs(diffDays)}d overdue</span>`
+      : isSoon
+        ? `<span class="ren-badge ren-soon">⏰ ${diffDays}d left</span>`
+        : `<span class="ren-badge ren-ok">✓ ${diffDays}d left</span>`;
+    const b = DB.batches.find(x => x.id === s.batchId);
+    return `<div class="ren-card">
+      <div class="ren-av" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div>
+      <div class="ren-info">
+        <div class="ren-name">${s.fname} ${s.lname}</div>
+        <div class="ren-meta">${b?b.name:'—'} · Seat ${s.seat||'—'} · ₹${s.netFee}/mo</div>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:6px">${badge}
+          <span style="font-size:10px;color:var(--tx3);font-family:var(--fm)">Due: ${fmtDate(s.dueDate)}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <button class="btn bp" style="font-size:10px;padding:4px 10px" onclick="openRenewModal('${s.id}')">🔄 Renew</button>
+        <button class="btn bwa" style="font-size:10px;padding:4px 10px" onclick="waQuick('${s.id}','fee_due')">💬 WA</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty"><div class="ei">✅</div><div class="et">All students up to date!</div></div>';
+}
+
+function openRenewModal(id) {
+  const s = DB.students.find(x => x.id === id);
+  if (!s) return;
+  renewStudentId = id;
+  const b = DB.batches.find(x => x.id === s.batchId);
+  document.getElementById('mRenewStudentInfo').innerHTML =
+    `<div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:9px;background:${s.color};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">${s.fname[0]+s.lname[0]}</div>
+      <div><div style="font-weight:600;font-size:13px">${s.fname} ${s.lname}</div>
+      <div style="font-size:11px;color:var(--tx3)">${b?b.name:'—'} · Current due: ${fmtDate(s.dueDate)}</div></div>
+    </div>`;
+  document.getElementById('ren-fee').value = s.netFee;
+  document.getElementById('ren-extend').value = '1';
+  updateRenewDate();
+  document.getElementById('ren-extend').addEventListener('change', updateRenewDate);
+  openM('mRenew');
+}
+
+function updateRenewDate() {
+  const s = DB.students.find(x => x.id === renewStudentId);
+  if (!s) return;
+  const months = +document.getElementById('ren-extend').value;
+  const base   = new Date(s.dueDate) < new Date() ? new Date() : new Date(s.dueDate);
+  base.setMonth(base.getMonth() + months);
+  document.getElementById('ren-newdate').value = base.toISOString().split('T')[0];
+  const fee = +document.getElementById('ren-fee').value || s.netFee;
+  document.getElementById('ren-summary').innerHTML =
+    `✅ Extending by <strong>${months} month${months>1?'s':''}</strong> · New due: <strong>${base.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</strong> · Fee: <strong>₹${fee}</strong>`;
+}
+
+function confirmRenew() {
+  const s = DB.students.find(x => x.id === renewStudentId);
+  if (!s) return;
+  const newDate = document.getElementById('ren-newdate').value;
+  const fee     = +document.getElementById('ren-fee').value || 0;
+  const mode    = document.getElementById('ren-mode').value;
+  const notes   = document.getElementById('ren-notes').value;
+  const months  = +document.getElementById('ren-extend').value;
+
+  s.dueDate   = newDate;
+  s.paidAmt   = (s.paidAmt||0) + fee;
+  if (s.paidAmt >= s.netFee) s.feeStatus = 'paid';
+  else if (s.paidAmt > 0)    s.feeStatus = 'partial';
+  s.paidOn    = new Date().toISOString().split('T')[0];
+
+  // Log renewal to invoices
+  const invId = 'REN-' + Date.now();
+  DB.invoices.push({id:invId, studentId:s.id, type:`Renewal (${months}mo)`, amount:fee, baseFee:s.baseFee, discount:s.baseFee-s.netFee, netFee:s.netFee, paidAmt:fee, balance:0, date:new Date().toISOString().split('T')[0], month:new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}), mode, status:'paid'});
+
+  // Audit
+  auditLog('renewal', `Renewed ${s.fname} ${s.lname} — ${months}mo, ₹${fee} (${mode})${notes?' — '+notes:''}`);
+  addActivity('🔄','rgba(61,111,240,.14)',`Renewed <strong>${s.fname} ${s.lname}</strong> for ${months} month${months>1?'s':''}`);
+  closeM('mRenew');
+  toast(`✅ ${s.fname} renewed for ${months} month${months>1?'s':''}!`,'ok');
+  renderRenewal(); renderStudents(); updateBadges();
+}
+
+function sendRenewalWA() {
+  const s = DB.students.find(x => x.id === renewStudentId);
+  if (!s) return;
+  const newDate = document.getElementById('ren-newdate').value;
+  const fee = document.getElementById('ren-fee').value;
+  const months = document.getElementById('ren-extend').value;
+  const d = new Date(newDate).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  const msg = `🔄 *Renewal Confirmation*
+
+Dear *${s.fname} ${s.lname}*,
+
+Your library membership has been renewed!
+
+✅ *Details:*
+• Extended By: ${months} month(s)
+• Fee Paid: ₹${fee}
+• New Due Date: ${d}
+• Seat: ${s.seat||'—'}
+
+Thank you! 📚
+
+🏫 ${DB.settings.name}
+📞 ${DB.settings.phone}`;
+  waSendDirect(s.phone, msg, s.fname+' '+s.lname);
+}
+
+function bulkRenew() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due   = DB.students.filter(s => new Date(s.dueDate) <= today);
+  if (!due.length) return toast('No overdue students', 'wn');
+  if (!confirm(`Renew ${due.length} overdue students by 1 month?`)) return;
+  due.forEach(s => {
+    const d = new Date(s.dueDate) < today ? new Date() : new Date(s.dueDate);
+    d.setMonth(d.getMonth()+1);
+    s.dueDate = d.toISOString().split('T')[0];
+    s.feeStatus = 'pending';
+  });
+  auditLog('renewal', `Bulk renewal — ${due.length} students extended 1 month`);
+  toast(`✅ ${due.length} students renewed!`, 'ok');
+  renderRenewal(); renderStudents(); updateBadges();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ═══ FEATURE 25: STAFF ATTENDANCE & SALARY ════════════════════
+// ══════════════════════════════════════════════════════════════
+// staffAttData: { 'YYYY-MM-DD': { 'SF-001': 'present'|'absent'|'half' } }
+if (!DB.staffAtt) DB.staffAtt = {};
+if (!DB.staffSalary) DB.staffSalary = {}; // { 'SF-001': 30000 } monthly base
+
+function renderStaffAtt() {
+  const dateEl = document.getElementById('staffAttDate');
+  if (!dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+  const date = dateEl.value;
+  if (!DB.staffAtt[date]) DB.staffAtt[date] = {};
+
+  document.getElementById('staffAttList').innerHTML = DB.staff.map(sf => {
+    const cur = DB.staffAtt[date][sf.id] || 'present';
+    const av  = sf.name.split(' ').map(p=>p[0]).join('').toUpperCase().slice(0,2);
+    return `<div class="att-row">
+      <div class="att-av" style="background:${sf.color||'var(--ac)'}">${av}</div>
+      <div style="flex:1">
+        <div class="att-name">${sf.name}</div>
+        <div class="att-role">${sf.role}</div>
+      </div>
+      <div class="att-toggle">
+        <button class="att-btn att-p ${cur==='present'?'active':''}" onclick="setStaffAtt('${sf.id}','present','${date}',this)">P</button>
+        <button class="att-btn att-a ${cur==='absent'?'active':''}" onclick="setStaffAtt('${sf.id}','absent','${date}',this)">A</button>
+        <button class="att-btn att-h ${cur==='half'?'active':''}" onclick="setStaffAtt('${sf.id}','half','${date}',this)">½</button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty"><div class="et">No staff members</div></div>';
+
+  renderStaffSalary();
+  renderStaffAttSummary();
+}
+
+function setStaffAtt(sfId, status, date, btn) {
+  if (!DB.staffAtt[date]) DB.staffAtt[date] = {};
+  DB.staffAtt[date][sfId] = status;
+  const row = btn.closest('.att-toggle');
+  row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function saveStaffAtt() {
+  const date = document.getElementById('staffAttDate').value;
+  auditLog('staff', `Staff attendance saved for ${date}`);
+  toast('✅ Attendance saved!', 'ok');
+  renderStaffAttSummary();
+}
+
+function renderStaffSalary() {
+  const selEl = document.getElementById('staffSalMonth');
+  // Populate months if empty
+  if (!selEl.options.length) {
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(); d.setMonth(d.getMonth() - i);
+      const val = d.toISOString().slice(0,7);
+      const lbl = d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+      const opt = new Option(lbl, val);
+      selEl.appendChild(opt);
+    }
+  }
+  const month = selEl.value || new Date().toISOString().slice(0,7);
+  let total = 0;
+
+  document.getElementById('staffSalList').innerHTML = DB.staff.map(sf => {
+    const base    = DB.staffSalary[sf.id] || 0;
+    // Count working days this month
+    const daysInMonth = new Date(month.split('-')[0], month.split('-')[1], 0).getDate();
+    let present=0, absent=0, half=0;
+    for (let d=1; d<=daysInMonth; d++) {
+      const key  = `${month}-${String(d).padStart(2,'0')}`;
+      const stat = (DB.staffAtt[key]||{})[sf.id] || 'present';
+      if (stat==='present') present++;
+      else if (stat==='absent') absent++;
+      else half += 0.5;
+    }
+    const worked  = present + half;
+    const salary  = base > 0 ? Math.round((base / daysInMonth) * worked) : 0;
+    total += salary;
+    return `<div class="sal-row">
+      <div>
+        <div style="font-size:12.5px;font-weight:600">${sf.name}</div>
+        <div class="sal-days">P:${present} A:${absent} ½:${half*2} · ${worked.toFixed(1)}/${daysInMonth} days</div>
+        ${base===0?'<div style="font-size:10px;color:var(--ro)">Set salary below</div>':''}
+      </div>
+      <div style="text-align:right">
+        <div class="sal-amt">${salary>0?'₹'+salary.toLocaleString():'—'}</div>
+        <input type="number" value="${base||''}" placeholder="Base₹" style="width:80px;font-size:11px;padding:3px 6px;margin-top:4px;text-align:right"
+          onchange="DB.staffSalary['${sf.id}']=+this.value;renderStaffSalary()" title="Monthly base salary">
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--tx3);font-size:12px;padding:10px">No staff added yet</div>';
+
+  document.getElementById('staffSalTotal').textContent = total > 0 ? '₹' + total.toLocaleString() : '₹0';
+}
+
+function renderStaffAttSummary() {
+  const today = new Date().toISOString().slice(0,7);
+  document.getElementById('staffAttSummary').innerHTML = DB.staff.map(sf => {
+    const daysInMonth = new Date(today.split('-')[0], today.split('-')[1], 0).getDate();
+    let p=0, a=0, h=0;
+    for (let d=1; d<=daysInMonth; d++) {
+      const key = `${today}-${String(d).padStart(2,'0')}`;
+      const s   = (DB.staffAtt[key]||{})[sf.id] || 'present';
+      if (s==='present') p++; else if (s==='absent') a++; else h++;
+    }
+    const pct = Math.round(((p + h*0.5) / daysInMonth) * 100);
+    return `<div class="sa-card">
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px">${sf.name}</div>
+      <div style="font-size:22px;font-weight:700;font-family:var(--fm);color:${pct>=90?'var(--em)':pct>=70?'var(--gd)':'var(--ro)'}">${pct}%</div>
+      <div style="font-size:10px;color:var(--tx3);margin-top:4px">P:${p} A:${a} ½:${h}</div>
+      <div style="margin-top:8px;height:4px;background:var(--sf2);border-radius:2px;overflow:hidden">
+        <div style="height:100%;border-radius:2px;background:${pct>=90?'var(--em)':pct>=70?'var(--gd)':'var(--ro)'};width:${pct}%;transition:width .6s"></div>
+      </div>
+      <button class="btn bg" style="font-size:10px;padding:3px 8px;margin-top:8px" onclick="openSalarySlip('${sf.id}')">📄 Slip</button>
+    </div>`;
+  }).join('');
+}
+
+function openSalarySlip(sfId) {
+  const sf    = DB.staff.find(x => x.id === sfId);
+  if (!sf) return;
+  const month = document.getElementById('staffSalMonth').value || new Date().toISOString().slice(0,7);
+  const base  = DB.staffSalary[sfId] || 0;
+  const daysInMonth = new Date(month.split('-')[0], month.split('-')[1], 0).getDate();
+  let p=0, a=0, h=0;
+  for (let d=1; d<=daysInMonth; d++) {
+    const key = `${month}-${String(d).padStart(2,'0')}`;
+    const s   = (DB.staffAtt[key]||{})[sfId] || 'present';
+    if (s==='present') p++; else if (s==='absent') a++; else h++;
+  }
+  const worked  = p + h*0.5;
+  const salary  = base > 0 ? Math.round((base / daysInMonth) * worked) : 0;
+  const mLabel  = new Date(month).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  document.getElementById('mSalarySlipContent').innerHTML = `
+    <div style="padding:4px 0">
+      <div style="text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid var(--ac)">
+        <div style="font-size:16px;font-weight:700;color:var(--ac)">${DB.settings.name}</div>
+        <div style="font-size:12px;color:var(--tx3)">${DB.settings.addr}</div>
+        <div style="font-size:13px;font-weight:600;margin-top:8px">SALARY SLIP — ${mLabel.toUpperCase()}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+        <div><div style="font-size:13px;font-weight:700">${sf.name}</div><div style="font-size:11px;color:var(--tx3)">${sf.role} · ${sf.id}</div></div>
+      </div>
+      <div style="background:var(--sf2);border-radius:var(--r2);padding:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+          <div><span style="color:var(--tx3)">Working Days</span><div style="font-weight:600">${daysInMonth}</div></div>
+          <div><span style="color:var(--tx3)">Days Present</span><div style="font-weight:600;color:var(--em)">${p}</div></div>
+          <div><span style="color:var(--tx3)">Days Absent</span><div style="font-weight:600;color:var(--ro)">${a}</div></div>
+          <div><span style="color:var(--tx3)">Half Days</span><div style="font-weight:600;color:var(--gd)">${h}</div></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(61,111,240,.07);border-radius:var(--r2)">
+        <span style="font-size:13px;font-weight:600">Net Salary</span>
+        <span style="font-size:20px;font-weight:700;font-family:var(--fm);color:var(--ac)">₹${salary.toLocaleString()}</span>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:var(--tx3);text-align:center">Base: ₹${base.toLocaleString()}/month · Worked: ${worked}/${daysInMonth} days</div>
+    </div>`;
+  openM('mSalarySlip');
+}
+
+function printSalarySlip() {
+  const w = window.open('', '_blank');
+  w.document.write('<html><head><title>Salary Slip</title><style>body{font-family:sans-serif;padding:30px;color:#1e293b;max-width:500px;margin:auto}@media print{body{padding:0}}</style></head><body>');
+  w.document.write(document.getElementById('mSalarySlipContent').innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ═══ FEATURE 30: AUDIT LOG ════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+if (!DB.auditLog) DB.auditLog = [];
+
+function auditLog(type, text) {
+  const who = '<?= $staffName ?>';
+  DB.auditLog.unshift({
+    id: Date.now(),
+    who,
+    type,
+    text,
+    time: new Date().toLocaleString('en-IN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+    ts: Date.now()
+  });
+  if (DB.auditLog.length > 500) DB.auditLog = DB.auditLog.slice(0, 500);
+}
+
+// Patch existing functions to log — wrap addActivity
+const _origAddActivity = addActivity;
+window.addActivity = function(icon, bg, text) {
+  _origAddActivity(icon, bg, text);
+  const type = icon==='💬'?'whatsapp':icon==='💰'||icon==='🧾'?'fee':icon==='📚'||icon==='🔄'?'book':icon==='🆕'||icon==='✏'?'student':icon==='⚙'?'settings':'other';
+  DB.auditLog.unshift({ id:Date.now(), who:'<?= $staffName ?>', type, text:text.replace(/<[^>]+>/g,''), time:new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}), ts:Date.now() });
+  if (DB.auditLog.length>500) DB.auditLog=DB.auditLog.slice(0,500);
+};
+
+function renderAudit() {
+  const filter = document.getElementById('auditFilter')?.value || 'all';
+  let log = filter === 'all' ? DB.auditLog : DB.auditLog.filter(a => a.type === filter);
+
+  // Stats
+  const types = ['fee','student','book','staff','whatsapp','settings','renewal','other'];
+  const typeLabels = {fee:'💰 Fee',student:'👤 Student',book:'📚 Book',staff:'👥 Staff',whatsapp:'💬 WhatsApp',settings:'⚙ Settings',renewal:'🔄 Renewal',other:'📌 Other'};
+  const typeBg = {fee:'rgba(22,163,74,.1)',student:'rgba(61,111,240,.1)',book:'rgba(124,58,237,.1)',staff:'rgba(217,119,6,.1)',whatsapp:'rgba(37,211,102,.1)',settings:'rgba(100,116,139,.1)',renewal:'rgba(61,111,240,.1)',other:'rgba(100,116,139,.1)'};
+  document.getElementById('auditStats').innerHTML = types.filter(t=>DB.auditLog.filter(a=>a.type===t).length>0).map(t => {
+    const cnt = DB.auditLog.filter(a => a.type===t).length;
+    return `<div class="sc" style="--ca:var(--ac);padding:12px"><div class="s-lb" style="font-size:9px">${typeLabels[t]||t}</div><div class="s-vl" style="font-size:20px">${cnt}</div></div>`;
+  }).join('');
+
+  document.getElementById('auditCount').textContent = log.length + ' entries';
+  const iconMap = {fee:'💰',student:'👤',book:'📚',staff:'👥',whatsapp:'💬',settings:'⚙️',renewal:'🔄',other:'📌'};
+  const bgMap   = {fee:'rgba(22,163,74,.12)',student:'rgba(61,111,240,.12)',book:'rgba(124,58,237,.12)',staff:'rgba(217,119,6,.12)',whatsapp:'rgba(37,211,102,.12)',settings:'rgba(100,116,139,.12)',renewal:'rgba(61,111,240,.12)',other:'rgba(100,116,139,.12)'};
+
+  document.getElementById('auditList').innerHTML = log.length
+    ? log.map(a => `<div class="audit-row">
+        <div class="audit-ic" style="background:${bgMap[a.type]||bgMap.other}">${iconMap[a.type]||'📌'}</div>
+        <div style="flex:1">
+          <div class="audit-who">${a.who} <span class="audit-tag" style="background:${bgMap[a.type]||bgMap.other}">${a.type}</span></div>
+          <div class="audit-what">${a.text}</div>
+          <div class="audit-time">${a.time}</div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty"><div class="et">No audit entries yet — actions will appear here</div></div>';
+}
+
+function clearAudit() {
+  if (!confirm('Clear all audit log entries?')) return;
+  DB.auditLog = [];
+  renderAudit();
+  toast('Audit log cleared', 'wn');
+}
+
+// ══════════════════════════════════════════════════════════════
+// ═══ FEATURE 14: PWA (Student App) ═══════════════════════════
+// ══════════════════════════════════════════════════════════════
+let pwaInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  pwaInstallPrompt = e;
+  document.getElementById('pwaBanner').classList.add('show');
+});
+
+function installPWA() {
+  if (pwaInstallPrompt) {
+    pwaInstallPrompt.prompt();
+    pwaInstallPrompt.userChoice.then(r => {
+      if (r.outcome === 'accepted') {
+        toast('✅ App installed!', 'ok');
+        auditLog('settings', 'ERP installed as PWA app');
+      }
+      document.getElementById('pwaBanner').classList.remove('show');
+      pwaInstallPrompt = null;
+    });
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  toast('📱 App installed successfully!', 'ok');
+  document.getElementById('pwaBanner').classList.remove('show');
+});
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
 }
 
 // ═══ BOOT ═══

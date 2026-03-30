@@ -14,347 +14,337 @@ $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(e
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OPTMS Tech ERP v6</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <style>
-:root{--bg:#f0ede8;--sf:#faf8f5;--sf2:#ede9e3;--sf3:#e4dfd8;--br:#d8d3cc;--br2:#c8c2ba;--ac:#4a7c6f;--ac2:#5a9186;--gd:#c47d2b;--gd2:#d4902f;--em:#3a7d5e;--ro:#c0444f;--vi:#7c5cbf;--sk:#3a7ab0;--wa:#25d366;--wa2:#128c7e;--or:#e67e22;--tx:#2c2825;--tx2:#5a534c;--tx3:#8a8078;--fd:'DM Serif Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--r:12px;--r2:8px;--sh:0 2px 16px rgba(60,50,40,.10);--sh2:0 8px 32px rgba(60,50,40,.18)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-font-family:var(--fb);
-font-size:14px;
-background:var(--bg);
-color:var(--tx);
-min-height:100vh;
-overflow-x:hidden;
-line-height:1.6
+/* ── GOOGLE MATERIAL ICONS HELPER ── */
+.mi{font-family:'Material Icons Round';font-style:normal;font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;user-select:none}
+.mi.sm{font-size:14px}.mi.lg{font-size:22px}.mi.xl{font-size:28px}
+
+:root{
+  --bg:#f0f4fb;
+  --sf:#ffffff;
+  --sf2:#f5f7fc;
+  --sf3:#eaeffa;
+  --br:#e2e7f0;
+  --br2:#ccd3e0;
+  --ac:#3d6ff0;--ac2:#2d5de0;
+  --em:#16a34a;--ro:#dc2626;--or:#ea580c;
+  --gd:#d97706;--gd2:#b45309;
+  --vi:#7c3aed;--sk:#0284c7;
+  --wa:#25d366;--wa2:#128c7e;
+  --tx:#0f172a;--tx2:#334155;--tx3:#64748b;
+  --c-blue:#eff4ff;--cb:#bfcffd;
+  --c-green:#f0fdf4;--cg:#bbf7d0;
+  --c-rose:#fff1f2;--cr:#fecdd3;
+  --c-amber:#fffbeb;--ca2:#fde68a;
+  --c-purple:#faf5ff;--cp:#e9d5ff;
+  --c-sky:#f0f9ff;--cs:#bae6fd;
+  --c-orange:#fff7ed;--co:#fed7aa;
+  --c-teal:#f0fdfa;--ct:#99f6e4;
+  --fd:'DM Serif Display',serif;
+  --fb:'Inter',sans-serif;
+  --fm:'JetBrains Mono',monospace;
+  --r:14px;--r2:9px;
+  --sh:0 1px 4px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05);
+  --sh2:0 8px 32px rgba(15,23,42,.12),0 2px 8px rgba(15,23,42,.06);
 }
-/* SIDEBAR */
-.sb{position:fixed;left:0;top:0;bottom:0;width:232px;background:var(--sf);border-right:1px solid var(--br);display:flex;flex-direction:column;z-index:200}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fb);font-size:14px;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;line-height:1.6}
+
+.sb{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--sf);border-right:1px solid var(--br);display:flex;flex-direction:column;z-index:200;box-shadow:var(--sh)}
 .sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--br)}
-.logo-row{display:flex;align-items:center;gap:9px}
-.logo-ic{width:33px;height:33px;background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px}
-.logo-tx{font-family:var(--fd);font-size:18px}.logo-sb{font-size:9px;color:var(--tx3);font-family:var(--fm);letter-spacing:1.5px;text-transform:uppercase}
-.sb-nav{flex:1;padding:10px 9px;overflow-y:auto}
-.nl{font-size:9px;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;padding:0 7px;margin-bottom:3px;font-family:var(--fm)}
-.ni{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--r2);cursor:pointer;transition:all .2s;color:var(--tx2);font-size:12.5px;font-weight:500;position:relative;white-space:nowrap}
+.logo-row{display:flex;align-items:center;gap:10px}
+.logo-ic{width:36px;height:36px;background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(61,111,240,.3)}
+.logo-tx{font-family:var(--fd);font-size:18px;color:var(--tx)}.logo-sb{font-size:9px;color:var(--tx3);font-family:var(--fm);letter-spacing:1.5px;text-transform:uppercase}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nl{font-size:9px;color:var(--tx3);letter-spacing:1.8px;text-transform:uppercase;padding:0 8px;margin-bottom:4px;font-family:var(--fm);font-weight:600}
+.ni{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--r2);cursor:pointer;transition:all .18s;color:var(--tx2);font-size:12.5px;font-weight:500;position:relative;white-space:nowrap}
 .ni:hover{background:var(--sf2);color:var(--tx)}
-.ni.active{background:rgba(74,124,111,.12);color:var(--ac)}
-.ni.active::before{content:'';position:absolute;left:0;top:5px;bottom:5px;width:3px;background:var(--ac);border-radius:0 3px 3px 0}
-.ni-ic{font-size:14px;width:17px;text-align:center}
-.nbadge{margin-left:auto;background:var(--ro);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;min-width:16px;text-align:center}
-.nbadge.g{background:var(--em)}.nbadge.y{background:var(--gd);color:#000}.nbadge.wa{background:var(--wa)}.nbadge.or{background:var(--or)}
-.ns{margin-bottom:16px}
+.ni.active{background:rgba(61,111,240,.09);color:var(--ac);font-weight:600}
+.ni.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--ac);border-radius:0 3px 3px 0}
+.ni-ic{font-size:18px;width:20px;text-align:center;display:flex;align-items:center;justify-content:center;color:inherit}
+.nbadge{margin-left:auto;background:var(--ro);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;min-width:17px;text-align:center}
+.nbadge.g{background:var(--em)}.nbadge.y{background:var(--gd)}.nbadge.wa{background:var(--wa)}.nbadge.or{background:var(--or)}
+.ns{margin-bottom:14px}
 .sb-foot{padding:12px;border-top:1px solid var(--br)}
-.u-card{display:flex;align-items:center;gap:8px;padding:8px 9px;background:var(--sf2);border-radius:var(--r2)}
-.u-av{width:28px;height:28px;background:linear-gradient(135deg,var(--gd),var(--ro));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
-.u-nm{font-size:11.5px;font-weight:600}.u-rl{font-size:10px;color:var(--tx3)}
-/* MAIN */
-.main{margin-left:232px;min-height:100vh;display:flex;flex-direction:column}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(240,237,232,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--br);padding:0 22px;height:56px;display:flex;align-items:center;gap:11px}
-.pg-title{font-family:var(--fd);font-size:18px;flex:1}
-.srch{display:flex;align-items:center;gap:6px;background:var(--sf);border:1px solid var(--br2);border-radius:var(--r2);padding:6px 10px;width:190px}
+.u-card{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--sf2);border-radius:var(--r2);border:1px solid var(--br)}
+.u-av{width:30px;height:30px;background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.u-nm{font-size:12px;font-weight:600;color:var(--tx)}.u-rl{font-size:10px;color:var(--tx3)}
+
+.main{margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--br);padding:0 24px;height:58px;display:flex;align-items:center;gap:12px}
+.pg-title{font-family:var(--fd);font-size:19px;flex:1;color:var(--tx)}
+.srch{display:flex;align-items:center;gap:7px;background:var(--sf2);border:1px solid var(--br);border-radius:var(--r2);padding:6px 11px;width:200px;transition:all .2s}
+.srch:focus-within{border-color:var(--ac);background:#fff}
 .srch input{background:none;border:none;outline:none;color:var(--tx);font-size:12px;width:100%;font-family:var(--fb)}
 .srch input::placeholder{color:var(--tx3)}
-.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:var(--r2);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:var(--fb)}
-.bp{background:var(--ac);color:#fff}.bp:hover{background:var(--ac2);transform:translateY(-1px)}
-.bg{background:transparent;color:var(--tx2);border:1px solid var(--br2)}.bg:hover{background:var(--sf2);color:var(--tx)}
-.bd{background:var(--ro);color:#fff}.bd:hover{background:#a83840}
-.bwa{background:var(--wa);color:#fff}.bwa:hover{background:var(--wa2)}
-.bor{background:var(--or);color:#fff}.bor:hover{background:#d35400}
-/* CONTENT */
-.content{padding:18px 22px;flex:1}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r2);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:var(--fb)}
+.bp{background:var(--ac);color:#fff;box-shadow:0 2px 6px rgba(61,111,240,.3)}.bp:hover{background:var(--ac2);transform:translateY(-1px)}
+.bg{background:var(--sf);color:var(--tx2);border:1px solid var(--br)}.bg:hover{background:var(--sf2);color:var(--tx)}
+.bd{background:var(--ro);color:#fff}.bd:hover{background:#b91c1c}
+.bwa{background:#25d366;color:#fff}.bwa:hover{background:#128c7e}
+.bor{background:var(--or);color:#fff}.bor:hover{background:#c2410c}
+
+.content{padding:20px 24px;flex:1}
 .page{display:none}.page.active{display:block}
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.sc{
-background:linear-gradient(135deg,#ffffff,#f8f6f2);
-border:1px solid var(--br);
-border-radius:var(--r);
-padding:16px;
-position:relative;
-overflow:hidden;
-transition:all .3s
-}
-.sc:hover{border-color:var(--br2);transform:translateY(-2px);box-shadow:var(--sh)}
-.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ca,var(--ac))}
-.s-ic{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
-.s-lb{font-size:9.5px;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;font-family:var(--fm);margin-bottom:3px}
-.s-vl{font-size:24px;font-weight:700;color:var(--tx);line-height:1;margin-bottom:5px;font-family:var(--fd)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:18px;position:relative;overflow:hidden;transition:all .22s;box-shadow:var(--sh)}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sh2);border-color:var(--br2)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ca,var(--ac));border-radius:var(--r) var(--r) 0 0}
+.s-ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.s-lb{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;font-family:var(--fm);font-weight:600;margin-bottom:4px}
+.s-vl{font-size:26px;font-weight:700;color:var(--tx);line-height:1;margin-bottom:5px;font-family:var(--fd)}
 .s-mt{font-size:11px;color:var(--tx3)}
-.bup{background:rgba(58,125,94,.12);color:var(--em);font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px}
-.bdn{background:rgba(192,68,79,.12);color:var(--ro);font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px}
-/* PANEL */
-.panel{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
-.ph{padding:13px 17px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.pt{font-family:var(--fd);font-size:14.5px}.pb{padding:16px}
-/* TABLE */
+.bup{background:rgba(22,163,74,.12);color:var(--em);font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px}
+.bdn{background:rgba(220,38,38,.10);color:var(--ro);font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px}
+
+.panel{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:16px;box-shadow:var(--sh)}
+.ph{padding:14px 18px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.pt{font-family:var(--fd);font-size:15px;color:var(--tx)}.pb{padding:16px}
+
 .tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{text-align:left;padding:8px 12px;background:var(--sf2);color:var(--tx3);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;font-family:var(--fm);border-bottom:1px solid var(--br)}
-tbody tr{border-bottom:1px solid var(--br);transition:background .15s}
-tbody tr:hover{background:var(--sf2)}
+thead th{text-align:left;padding:9px 13px;background:var(--sf2);color:var(--tx3);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;font-family:var(--fm);border-bottom:1px solid var(--br)}
+tbody tr{border-bottom:1px solid var(--br);transition:background .13s}
+tbody tr:hover{background:#f5f7ff}
 tbody tr:last-child{border-bottom:none}
-tbody td{padding:9px 12px;color:var(--tx2);vertical-align:middle}
-/* TAGS */
-.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--fm)}
-.tpd{background:rgba(58,125,94,.12);color:var(--em)}.tpn{background:rgba(196,125,43,.12);color:var(--gd)}
-.tod{background:rgba(192,68,79,.12);color:var(--ro)}.tac{background:rgba(74,124,111,.12);color:var(--ac2)}
-.tis{background:rgba(124,92,191,.1);color:var(--vi)}.trt{background:rgba(58,125,94,.1);color:var(--em)}
-.tav{background:rgba(74,124,111,.1);color:var(--ac)}.twa{background:rgba(37,211,102,.12);color:var(--wa2)}
-.tpart{background:rgba(58,122,176,.12);color:var(--sk)}.tor{background:rgba(230,126,34,.12);color:var(--or)}
-/* MODAL */
-.mo{display:none;position:fixed;inset:0;background:rgba(44,40,37,.52);z-index:500;align-items:center;justify-content:center;padding:16px}
+tbody td{padding:10px 13px;color:var(--tx2);vertical-align:middle}
+
+.tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;font-family:var(--fm)}
+.tpd{background:var(--c-green);color:#166534;border:1px solid var(--cg)}
+.tpn{background:var(--c-amber);color:#92400e;border:1px solid var(--ca2)}
+.tod{background:var(--c-rose);color:#9f1239;border:1px solid var(--cr)}
+.tac{background:var(--c-blue);color:#1e40af;border:1px solid var(--cb)}
+.tis{background:var(--c-purple);color:#5b21b6;border:1px solid var(--cp)}
+.trt{background:var(--c-teal);color:#0f766e;border:1px solid var(--ct)}
+.tav{background:var(--c-sky);color:#075985;border:1px solid var(--cs)}
+.twa{background:var(--c-green);color:#166534;border:1px solid var(--cg)}
+.tpart{background:var(--c-sky);color:#075985;border:1px solid var(--cs)}
+.tor{background:var(--c-orange);color:#9a3412;border:1px solid var(--co)}
+
+.mo{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:500;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
 .mo.open{display:flex}
-.md{background:var(--sf);border-radius:var(--r);width:100%;max-width:540px;max-height:94vh;overflow-y:auto;box-shadow:var(--sh2);animation:mIn .22s ease}
+.md{background:var(--sf);border-radius:var(--r);width:100%;max-width:540px;max-height:94vh;overflow-y:auto;box-shadow:var(--sh2);animation:mIn .22s ease;border:1px solid var(--br)}
 .md.wide{max-width:680px}.md.lg{max-width:800px}
-@keyframes mIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.mh{padding:16px 19px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between}
-.mt{font-family:var(--fd);font-size:16px}
-.mc{width:28px;height:28px;border-radius:6px;background:var(--sf2);border:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:all .2s}
-.mc:hover{background:var(--sf3)}.mb{padding:18px}.mf{padding:12px 19px;border-top:1px solid var(--br);display:flex;justify-content:flex-end;gap:9px}
-/* FORM */
-.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fgi{display:flex;flex-direction:column;gap:4px}.fgi.full{grid-column:1/-1}
+@keyframes mIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.mh{padding:16px 20px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;background:var(--sf2)}
+.mt{font-family:var(--fd);font-size:16px;color:var(--tx)}
+.mc{width:30px;height:30px;border-radius:8px;background:var(--sf);border:1px solid var(--br);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx3);transition:all .18s}
+.mc:hover{background:var(--c-rose);color:var(--ro);border-color:var(--cr)}
+.mb{padding:20px}.mf{padding:13px 20px;border-top:1px solid var(--br);display:flex;justify-content:flex-end;gap:9px;background:var(--sf2)}
+
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fgi{display:flex;flex-direction:column;gap:5px}.fgi.full{grid-column:1/-1}
 label{font-size:11px;font-weight:600;color:var(--tx2);letter-spacing:.3px}
-input,select,textarea{padding:7px 10px;border:1px solid var(--br2);border-radius:var(--r2);background:var(--sf2);color:var(--tx);font-size:12.5px;font-family:var(--fb);outline:none;transition:border-color .2s;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--ac)}
+input,select,textarea{padding:8px 11px;border:1px solid var(--br);border-radius:var(--r2);background:var(--sf);color:var(--tx);font-size:12.5px;font-family:var(--fb);outline:none;transition:all .18s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(61,111,240,.1);background:#fff}
 textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
-/* SECTION */
-.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.sec-t{font-family:var(--fd);font-size:15px}.sec-s{font-size:11px;color:var(--tx3);margin-top:2px}
-/* BATCH */
-.sbar{height:5px;background:var(--sf2);border-radius:3px;overflow:hidden;margin-bottom:7px}
+.sdiv{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1.2px;font-family:var(--fm);padding:8px 0 5px;border-bottom:1px solid var(--br);margin-bottom:10px}
+
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sec-t{font-family:var(--fd);font-size:16px;color:var(--tx)}.sec-s{font-size:11px;color:var(--tx3);margin-top:2px}
+
+.sbar{height:5px;background:var(--sf2);border-radius:3px;overflow:hidden;margin-bottom:7px;border:1px solid var(--br)}
 .sfill{height:100%;border-radius:3px;transition:width 1s ease}
-.sf-g{background:linear-gradient(90deg,var(--em),#4ead82)}.sf-y{background:linear-gradient(90deg,var(--gd),var(--gd2))}.sf-r{background:linear-gradient(90deg,var(--ro),#e05565)}
+.sf-g{background:linear-gradient(90deg,var(--em),#4ade80)}.sf-y{background:linear-gradient(90deg,var(--gd),var(--gd2))}.sf-r{background:linear-gradient(90deg,var(--ro),#f87171)}
 .bst{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;font-family:var(--fm)}
-.bst-o{background:rgba(58,125,94,.12);color:var(--em)}.bst-f{background:rgba(192,68,79,.12);color:var(--ro)}.bst-n{background:rgba(196,125,43,.12);color:var(--gd)}
-/* SEAT VISUAL */
+.bst-o{background:var(--c-green);color:#166534}.bst-f{background:var(--c-rose);color:#9f1239}.bst-n{background:var(--c-amber);color:#92400e}
+
 .seat-visual{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px}
-.seat-cell{width:34px;height:23px;border-radius:4px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:7.5px;font-family:var(--fm);cursor:pointer;transition:all .15s;font-weight:600;position:relative}
+.seat-cell{width:34px;height:23px;border-radius:5px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:7.5px;font-family:var(--fm);cursor:pointer;transition:all .15s;font-weight:600;position:relative}
 .seat-cell:hover{transform:scale(1.1);z-index:5}
-.seat-occ{background:rgba(192,68,79,.14);border-color:rgba(192,68,79,.4);color:var(--ro)}
-.seat-vac{background:rgba(58,125,94,.1);border-color:rgba(58,125,94,.3);color:var(--em)}
-.seat-due{background:rgba(230,126,34,.2);border-color:rgba(230,126,34,.5);color:var(--or);animation:pulseDue 2s infinite}
-.seat-overdue{background:rgba(192,68,79,.25);border-color:rgba(192,68,79,.6);color:var(--ro);animation:pulseDue 1s infinite}
-.seat-tooltip{display:none;position:absolute;bottom:calc(100%+4px);left:50%;transform:translateX(-50%);background:var(--tx);color:var(--sf);font-size:9px;padding:3px 7px;border-radius:4px;white-space:nowrap;z-index:20;pointer-events:none}
+.seat-occ{background:var(--c-rose);border-color:var(--cr);color:#9f1239}
+.seat-vac{background:var(--c-green);border-color:var(--cg);color:#166534}
+.seat-due{background:var(--c-amber);border-color:var(--ca2);color:#92400e;animation:pulseDue 2s infinite}
+.seat-overdue{background:var(--c-rose);border-color:var(--cr);color:#9f1239;animation:pulseDue 1s infinite}
+.seat-tooltip{display:none;position:absolute;bottom:calc(100%+5px);left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;font-size:9px;padding:3px 8px;border-radius:5px;white-space:nowrap;z-index:20;pointer-events:none}
 .seat-cell:hover .seat-tooltip{display:block}
-@keyframes pulseDue{0%,100%{opacity:1}50%{opacity:.6}}
-/* DONUT */
-.dn-wrap{display:flex;align-items:center;gap:16px;padding:14px 17px}
-.dn-leg{flex:1;display:flex;flex-direction:column;gap:6px}
-.dli{display:flex;align-items:center;gap:6px;font-size:12px}
-.dld{width:7px;height:7px;border-radius:2px}.dll{flex:1;color:var(--tx2)}.dlv{font-weight:700;font-family:var(--fm);font-size:12px}
-/* ACTIVITY */
-.act-it{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--br)}
+@keyframes pulseDue{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ── SEAT LEGEND ── */
+.seat-legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--sf2);border-top:1px solid var(--br)}
+.sl-item{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:500;color:var(--tx2)}
+.sl-dot{width:22px;height:14px;border-radius:4px;border:1px solid;flex-shrink:0}
+/* Sticky table header inside scrollable container */
+.tw table thead th{position:sticky;top:0;z-index:2;background:var(--sf2)}
+
+.dn-wrap{display:flex;align-items:center;gap:18px;padding:16px 18px}
+.dn-leg{flex:1;display:flex;flex-direction:column;gap:7px}
+.dli{display:flex;align-items:center;gap:7px;font-size:12px}
+.dld{width:8px;height:8px;border-radius:3px}.dll{flex:1;color:var(--tx2)}.dlv{font-weight:700;font-family:var(--fm);font-size:12px}
+
+.act-it{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--br)}
 .act-it:last-child{border-bottom:none}
-.act-d{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.act-d{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 .act-tx{font-size:12px;color:var(--tx2);line-height:1.5}.act-tx strong{color:var(--tx)}.act-tm{font-size:10px;color:var(--tx3);font-family:var(--fm);margin-top:2px}
-/* CHART */
-.cbar{flex:1;border-radius:3px 3px 0 0;cursor:pointer;position:relative}
+
+.cbar{flex:1;border-radius:4px 4px 0 0;cursor:pointer;position:relative}
 .cbar:hover{opacity:.75}
-.cbar .tt{display:none;position:absolute;bottom:calc(100%+4px);left:50%;transform:translateX(-50%);background:var(--tx);color:var(--sf);font-size:9px;padding:2px 6px;border-radius:4px;white-space:nowrap;font-family:var(--fm);z-index:10}
+.cbar .tt{display:none;position:absolute;bottom:calc(100%+4px);left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;font-size:9px;padding:2px 7px;border-radius:4px;white-space:nowrap;font-family:var(--fm);z-index:10}
 .cbar:hover .tt{display:block}
-/* CALENDAR */
+
 .mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-family:var(--fm)}
 .cal-dl{text-align:center;color:var(--tx3);padding:2px 0;font-size:9px}
-.cal-d{text-align:center;padding:5px 2px;border-radius:4px;cursor:pointer;color:var(--tx2);transition:all .15s;font-size:11px}
-.cal-d:hover{background:var(--sf3)}.cal-d.today{background:var(--ac);color:#fff;font-weight:700}
-.cal-d.event{color:var(--gd2);font-weight:600}.cal-d.empty{color:transparent;pointer-events:none}
-/* TOAST */
+.cal-d{text-align:center;padding:5px 2px;border-radius:5px;cursor:pointer;color:var(--tx2);transition:all .15s;font-size:11px}
+.cal-d:hover{background:var(--sf2)}.cal-d.today{background:var(--ac);color:#fff;font-weight:700}
+.cal-d.event{color:var(--gd);font-weight:600}.cal-d.empty{color:transparent;pointer-events:none}
+
 .toast-wrap{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:7px}
-.toast{padding:11px 15px;border-radius:var(--r2);background:var(--tx);color:var(--sf);font-size:12.5px;font-weight:500;box-shadow:var(--sh2);display:flex;align-items:center;gap:7px;animation:tIn .28s ease;min-width:220px}
-.toast.ok{background:var(--em)}.toast.er{background:var(--ro)}.toast.wn{background:var(--gd);color:#fff}.toast.wa{background:var(--wa)}
+.toast{padding:12px 16px;border-radius:var(--r2);background:var(--tx);color:#fff;font-size:12.5px;font-weight:500;box-shadow:var(--sh2);display:flex;align-items:center;gap:8px;animation:tIn .28s ease;min-width:230px}
+.toast.ok{background:var(--em)}.toast.er{background:var(--ro)}.toast.wn{background:var(--gd)}.toast.wa{background:var(--wa)}
 @keyframes tIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes tOut{from{opacity:1}to{opacity:0;transform:translateX(28px)}}
-/* TABS */
-.tabs{display:flex;gap:2px;background:var(--sf2);padding:3px;border-radius:var(--r2)}
-.tab{flex:1;padding:5px 10px;text-align:center;font-size:11.5px;font-weight:500;color:var(--tx3);border-radius:6px;cursor:pointer;transition:all .2s;white-space:nowrap}
-.tab.active{background:var(--sf);color:var(--tx)}
-/* PAG */
-.pag{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--br)}
+
+.tabs{display:flex;gap:2px;background:var(--sf2);padding:4px;border-radius:var(--r2);border:1px solid var(--br)}
+.tab{flex:1;padding:6px 10px;text-align:center;font-size:11.5px;font-weight:500;color:var(--tx3);border-radius:7px;cursor:pointer;transition:all .18s;white-space:nowrap}
+.tab.active{background:var(--sf);color:var(--tx);font-weight:600;box-shadow:var(--sh)}
+
+.pag{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--br)}
 .pag-i{font-size:11px;color:var(--tx3)}.pag-b{display:flex;gap:3px}
-.pb2{padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--br2);background:var(--sf);color:var(--tx2);transition:all .2s}
+.pb2{padding:3px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--br);background:var(--sf);color:var(--tx2);transition:all .18s}
 .pb2:hover,.pb2.active{background:var(--ac);color:#fff;border-color:var(--ac)}
-/* PROGRESS */
-.prg{height:6px;background:var(--sf2);border-radius:3px;overflow:hidden}
+
+.prg{height:6px;background:var(--sf2);border-radius:3px;overflow:hidden;border:1px solid var(--br)}
 .prf{height:100%;border-radius:3px}
-/* GRIDS */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.gm{display:grid;grid-template-columns:1fr 310px;gap:14px}
-/* EMPTY */
-.empty{text-align:center;padding:36px 16px;color:var(--tx3)}
-.empty .ei{font-size:36px;margin-bottom:8px}.empty .et{font-size:12.5px}
-/* QUICK ACTIONS */
-.qa-gr{display:grid;grid-template-columns:repeat(8,1fr);gap:9px;margin-bottom:18px}
-.qa-b{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 7px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);cursor:pointer;transition:all .2s;text-align:center}
-.qa-b:hover{border-color:var(--ac);background:rgba(74,124,111,.05);transform:translateY(-2px)}
-.qa-ic{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
-.qa-lb{font-size:10px;font-weight:500;color:var(--tx2);line-height:1.3}
-/* ALERTS */
-.al-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-bottom:18px}
-.al-card{padding:11px 14px;border-radius:var(--r);border:1px solid;display:flex;align-items:flex-start;gap:9px}
-.al-w{background:rgba(196,125,43,.07);border-color:rgba(196,125,43,.25)}.al-d{background:rgba(192,68,79,.07);border-color:rgba(192,68,79,.25)}.al-i{background:rgba(74,124,111,.07);border-color:rgba(74,124,111,.25)}
-.al-t{font-size:12px;font-weight:600;margin-bottom:2px}.al-b{font-size:11px;color:var(--tx2);line-height:1.4}
-/* FEE ITEMS */
-.fi{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--sf2);border-radius:var(--r2);margin-bottom:6px}
-.fd2{width:7px;height:7px;border-radius:50%;flex-shrink:0}.fn2{flex:1;font-size:12.5px;font-weight:500}.fsb{font-size:10px;color:var(--tx3)}.fa{font-size:13px;font-weight:700;font-family:var(--fm)}
-/* EXP ITEMS */
-.ei2{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sf2);border:1px solid var(--br);border-radius:var(--r2)}
-.eic{width:31px;height:31px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.en2{font-size:12.5px;font-weight:500}.ed{font-size:10px;color:var(--tx3);font-family:var(--fm)}.ea{font-size:13px;font-weight:700;font-family:var(--fm)}.ea-d{color:var(--ro)}.ea-c{color:var(--em)}
-/* STU */
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.gm{display:grid;grid-template-columns:1fr 320px;gap:16px}
+
+.empty{text-align:center;padding:40px 16px;color:var(--tx3)}
+.empty .ei{font-size:38px;margin-bottom:8px}.empty .et{font-size:12.5px}
+
+.qa-gr{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:20px}
+.qa-b{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 8px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);cursor:pointer;transition:all .2s;text-align:center;box-shadow:var(--sh)}
+.qa-b:hover{border-color:var(--ac);box-shadow:0 4px 16px rgba(61,111,240,.15);transform:translateY(-2px)}
+.qa-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.qa-lb{font-size:10px;font-weight:600;color:var(--tx2);line-height:1.3}
+
+.al-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.al-card{padding:12px 14px;border-radius:var(--r);border:1px solid;display:flex;align-items:flex-start;gap:10px;box-shadow:var(--sh)}
+.al-w{background:var(--c-amber);border-color:var(--ca2)}.al-d{background:var(--c-rose);border-color:var(--cr)}.al-i{background:var(--c-blue);border-color:var(--cb)}
+.al-t{font-size:12px;font-weight:700;margin-bottom:2px}.al-b{font-size:11px;color:var(--tx2);line-height:1.4}
+
+.fi{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--sf2);border-radius:var(--r2);margin-bottom:7px;border:1px solid var(--br)}
+.fd2{width:8px;height:8px;border-radius:50%;flex-shrink:0}.fn2{flex:1;font-size:12.5px;font-weight:500}.fsb{font-size:10px;color:var(--tx3)}.fa{font-size:13px;font-weight:700;font-family:var(--fm)}
+
+.ei2{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--sf);border:1px solid var(--br);border-radius:var(--r2);box-shadow:var(--sh)}
+.eic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.en2{font-size:12.5px;font-weight:600;color:var(--tx)}.ed{font-size:10px;color:var(--tx3);font-family:var(--fm)}.ea{font-size:13px;font-weight:700;font-family:var(--fm)}.ea-d{color:var(--ro)}.ea-c{color:var(--em)}
+
 .si{display:flex;align-items:center;gap:8px}
-.sav{width:27px;height:27px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
-/* CHIP */
-.chip{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid}
-.chip-tl{border-color:rgba(74,124,111,.3);color:var(--ac);background:rgba(74,124,111,.08)}
-/* NOTIF BTN */
-.nb-btn{width:32px;height:32px;background:var(--sf);border:1px solid var(--br2);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--tx2);font-size:13px;transition:all .2s}
-.nb-btn:hover{background:var(--sf2)}
-.nd{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--ro);border-radius:50%;border:2px solid var(--bg)}
-/* DIVIDER */
-.sdiv{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--br)}
-/* TOGGLE */
+.sav{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+
+.chip{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid}
+.chip-tl{border-color:var(--cb);color:var(--ac);background:var(--c-blue)}
+
+.nb-btn{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--r2);background:var(--sf2);border:1px solid var(--br);transition:all .18s;color:var(--tx2)}
+.nb-btn:hover{background:var(--sf3);color:var(--tx)}
+.nd{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--ro);border:1.5px solid #fff}
+
+.fee-bal-badge{display:inline-flex;align-items:center;padding:2px 7px;background:var(--c-rose);color:#9f1239;border:1px solid var(--cr);border-radius:5px;font-size:10px;font-weight:700;font-family:var(--fm)}
+.fee-partial-wrap{margin-top:4px}.fee-partial-bar{height:4px;background:var(--sf2);border-radius:2px;overflow:hidden;margin-bottom:2px;border:1px solid var(--br)}
+.fee-partial-fill{height:100%;background:linear-gradient(90deg,var(--ac),#60a5fa);border-radius:2px}
+.fee-due-row{background:rgba(220,38,38,.02)}.fee-partial-row{background:rgba(217,119,6,.02)}
+
+.perm-row{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border:1px solid var(--br);border-radius:var(--r2);margin-bottom:7px;background:var(--sf2)}
 .toggle-wrap{position:relative;display:inline-block;width:36px;height:20px}
-.toggle-inp{display:none}
-.toggle-sl{position:absolute;inset:0;background:var(--br2);border-radius:20px;cursor:pointer;transition:.3s}
-.toggle-sl::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle-inp{opacity:0;width:0;height:0;position:absolute}
+.toggle-sl{position:absolute;inset:0;background:var(--br2);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-sl::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
 .toggle-inp:checked+.toggle-sl{background:var(--ac)}
 .toggle-inp:checked+.toggle-sl::before{transform:translateX(16px)}
-.perm-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)}
-.perm-row:last-child{border-bottom:none}
-/* WHATSAPP */
-.wa-panel{background:linear-gradient(135deg,rgba(37,211,102,.07),rgba(18,140,126,.05));border:1px solid rgba(37,211,102,.22);border-radius:var(--r)}
-.wa-tpl{background:var(--sf);border:1px solid rgba(37,211,102,.25);border-radius:var(--r2);padding:11px 13px;cursor:pointer;transition:all .2s}
-.wa-tpl:hover{border-color:var(--wa);background:rgba(37,211,102,.05);transform:translateY(-1px)}
-.wa-tpl .wt-ic{font-size:20px;margin-bottom:5px}.wa-tpl .wt-lb{font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px}.wa-tpl .wt-ds{font-size:10px;color:var(--tx3)}
-.wa-preview{background:#e3f7d5;border-radius:12px 12px 0 12px;padding:12px 14px;font-size:12px;line-height:1.6;color:#1a1a1a;white-space:pre-line;border:1px solid rgba(37,211,102,.2)}
-.wa-status-dot{width:8px;height:8px;border-radius:50%;background:var(--wa);display:inline-block;animation:waPulse 1.5s infinite}
-.wa-topbar-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--fm);cursor:pointer;border:none;transition:all .25s;white-space:nowrap}
-.wa-pill-ok{background:rgba(37,211,102,.13);color:var(--wa2);border:1px solid rgba(37,211,102,.28)}
-.wa-pill-off{background:rgba(192,68,79,.09);color:var(--ro);border:1px solid rgba(192,68,79,.22)}
-.wa-pill-wait{background:rgba(196,125,43,.1);color:var(--gd);border:1px solid rgba(196,125,43,.25)}
-.wa-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.wa-pill-dot.ok{background:var(--wa);animation:waPulse 1.5s infinite}
-.wa-pill-dot.off{background:var(--ro)}
-.wa-pill-dot.wait{background:var(--gd);animation:waPulse 1s infinite}
-/* server status panel inside modal */
-.wa-server-panel{border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-start}
-.wa-server-ok{background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2)}
-.wa-server-off{background:rgba(192,68,79,.06);border:1px solid rgba(192,68,79,.2)}
-.wa-server-wait{background:rgba(196,125,43,.07);border:1px solid rgba(196,125,43,.22)}
-.wa-cmd{font-family:var(--fm);font-size:11px;background:var(--sf2);border:1px solid var(--br);border-radius:5px;padding:5px 10px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.wa-cmd code{color:var(--ac);font-size:11px}
-.wa-copy-btn{font-size:9px;padding:2px 6px;border-radius:3px;background:var(--sf3);border:1px solid var(--br2);cursor:pointer;color:var(--tx2);white-space:nowrap}
-@keyframes waPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
-/* DISCOUNT */
-.disc-badge{background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);border-radius:var(--r2);padding:6px 10px;display:flex;align-items:center;gap:8px}
-.fee-due-row{background:rgba(192,68,79,.04) !important;border-left:3px solid var(--ro)}
-.fee-partial-row{background:rgba(230,126,34,.04) !important;border-left:3px solid var(--or)}
-.seat-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--tx3);margin-top:8px}
-.sl-item{display:flex;align-items:center;gap:5px}
-.sl-dot{width:12px;height:10px;border-radius:2px}
-/* FEE PARTIAL BAR */
-.fee-partial-wrap{margin-top:5px}
-.fee-partial-bar{height:6px;background:var(--sf2);border-radius:3px;overflow:hidden;margin:3px 0}
-.fee-partial-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--em),#4ead82)}
-.fee-bal-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;background:rgba(192,68,79,.1);color:var(--ro);font-size:10px;font-weight:700;font-family:var(--fm)}
 
-.sc.green{--ca:#3bb273}
-.sc.blue{--ca:#4a8cff}
-.sc.orange{--ca:#ff9f43}
-.sc.red{--ca:#ff5c5c}
-.sc.purple{--ca:#8e6cff}
-.panel{background:rgba(255,255,255,0.85);backdrop-filter:blur(6px)}
-.panel:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,0,0,0.06)}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
-
-/* STUDENT PROFILE */
-.sp-header{background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:var(--r) var(--r) 0 0;padding:22px 22px 54px;position:relative;overflow:hidden}
-.sp-header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07)}
+.sp-header{background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:var(--r) var(--r) 0 0;padding:22px 22px 54px;position:relative}
+.sp-header::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.08)}
 .sp-av-wrap{position:absolute;bottom:-34px;left:22px;z-index:2}
-.sp-av{width:68px;height:68px;border-radius:18px;border:3px solid var(--sf);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;box-shadow:var(--sh)}
+.sp-av{width:68px;height:68px;border-radius:18px;border:3px solid var(--sf);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;box-shadow:var(--sh2)}
 .sp-name{color:#fff;font-family:var(--fd);font-size:20px;margin-bottom:3px}
-.sp-id{color:rgba(255,255,255,.7);font-size:11px;font-family:var(--fm)}
+.sp-id{color:rgba(255,255,255,.75);font-size:11px;font-family:var(--fm)}
 .sp-body{padding:46px 22px 14px}
 .sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.sp-field{display:flex;flex-direction:column;gap:3px}
-.sp-field.full{grid-column:1/-1}
+.sp-field{display:flex;flex-direction:column;gap:3px}.sp-field.full{grid-column:1/-1}
 .sp-label{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;font-family:var(--fm)}
-.sp-val{font-size:13px;font-weight:500;color:var(--tx);padding:6px 10px;background:var(--sf2);border-radius:var(--r2);border:1px solid transparent;transition:all .2s}
-.sp-val.editable{cursor:text;border-color:var(--br);background:var(--sf)}
-.sp-val.editable:hover{border-color:var(--br2)}
-.sp-val.editable:focus{border-color:var(--ac);outline:none;background:#fff}
+.sp-val{font-size:13px;font-weight:500;color:var(--tx);padding:7px 11px;background:var(--sf2);border-radius:var(--r2);border:1px solid var(--br);transition:all .18s}
+.sp-val.editable{cursor:text}.sp-val.editable:hover{border-color:var(--br2)}
+.sp-val.editable:focus{border-color:var(--ac);outline:none;background:#fff;box-shadow:0 0 0 3px rgba(61,111,240,.1)}
 .sp-section{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--br)}
-.sp-fee-bar{height:8px;background:var(--sf2);border-radius:4px;overflow:hidden;margin:5px 0}
-.sp-fee-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--em),#4ead82)}
-.sp-stat{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--sf2);border-radius:var(--r2);font-size:12px}
-.sp-stat-ic{font-size:16px}
-.sp-edit-toggle{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid var(--br2);background:var(--sf2);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+.sp-fee-bar{height:8px;background:var(--sf2);border-radius:4px;overflow:hidden;margin:5px 0;border:1px solid var(--br)}
+.sp-fee-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--em),#4ade80)}
+.sp-stat{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--sf2);border-radius:var(--r2);font-size:12px;border:1px solid var(--br)}
+.sp-stat-ic{font-size:17px}
+.sp-edit-toggle{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid var(--br);background:var(--sf);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s}
 .sp-edit-toggle:hover,.sp-edit-toggle.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.sp-seat-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(74,124,111,.1);border:1px solid rgba(74,124,111,.3);border-radius:20px;font-size:12px;font-weight:700;color:var(--ac);font-family:var(--fm);cursor:pointer;transition:all .2s}
-.sp-seat-chip:hover{background:rgba(74,124,111,.2);transform:scale(1.05)}
+.sp-seat-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--c-blue);border:1px solid var(--cb);border-radius:20px;font-size:12px;font-weight:700;color:var(--ac);font-family:var(--fm);cursor:pointer;transition:all .18s}
+.sp-seat-chip:hover{background:rgba(61,111,240,.15);transform:scale(1.04)}
 
-/* WHATSAPP QR */
-.wa-qr-box{display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px;background:rgba(37,211,102,.05);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);cursor:pointer;transition:all .2s}
-.wa-qr-box:hover{background:rgba(37,211,102,.1)}
-.wa-qr-img{width:160px;height:160px;border:3px solid var(--wa);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+.wa-qr-box{display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px;background:rgba(37,211,102,.04);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);cursor:pointer;transition:all .2s}
+.wa-qr-box:hover{background:rgba(37,211,102,.08)}
+.wa-qr-img{width:160px;height:160px;border:2px solid var(--wa);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
 .wa-conn-badge{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--fm)}
-.wa-conn-ok{background:rgba(37,211,102,.15);color:var(--wa2);border:1px solid rgba(37,211,102,.3)}
-.wa-conn-no{background:rgba(192,68,79,.1);color:var(--ro);border:1px solid rgba(192,68,79,.25)}
+.wa-conn-ok{background:rgba(37,211,102,.12);color:var(--wa2);border:1px solid rgba(37,211,102,.25)}
+.wa-conn-no{background:var(--c-rose);color:var(--ro);border:1px solid var(--cr)}
 .wa-steps{display:flex;flex-direction:column;gap:8px}
 .wa-step{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--tx2)}
 .wa-step-n{width:22px;height:22px;border-radius:50%;background:var(--wa);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-@keyframes fuUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.page.active>*{animation:fuUp .28s ease both}
+@keyframes waPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+@keyframes fuUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page.active>*{animation:fuUp .25s ease both}
+
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
+
 @media(max-width:1100px){
 .stats-grid,.qa-gr{grid-template-columns:repeat(2,1fr)}
 .gm,.g2,.g3,.g4,.al-row{grid-template-columns:1fr}
-#dashBatchCards{grid-template-columns:1fr !important}
+#dashBatchCards{grid-template-columns:repeat(2,1fr) !important}
 }
 </style>
 </head>
 <body>
 <!-- SIDEBAR -->
 <div class="sb">
-  <div class="sb-logo"><div class="logo-row"><div class="logo-ic">📚</div><div><div class="logo-tx">OPTMS Tech</div><div class="logo-sb">ERP v6.0</div></div></div></div>
+  <div class="sb-logo"><div class="logo-row"><div class="logo-ic"><span class="mi" style="color:#fff;font-size:20px">auto_stories</span></div><div><div class="logo-tx">OPTMS Tech</div><div class="logo-sb">ERP v6.0</div></div></div></div>
   <nav class="sb-nav">
     <div class="ns"><div class="nl">Overview</div>
-      <div class="ni active" data-page="dashboard"><span class="ni-ic">⊞</span> Dashboard</div>
-      <div class="ni" data-page="analytics"><span class="ni-ic">📊</span> Analytics</div>
+      <div class="ni active" data-page="dashboard"><span class="ni-ic mi">dashboard</span> Dashboard</div>
+      <div class="ni" data-page="analytics"><span class="ni-ic mi">insights</span> Analytics</div>
     </div>
     <div class="ns"><div class="nl">Students</div>
-      <div class="ni" data-page="students"><span class="ni-ic">👨‍🎓</span> All Students</div>
-      <div class="ni" data-page="enroll" id="ni-enroll"><span class="ni-ic">➕</span> Enroll Student</div>
-      <div class="ni" data-page="seats"><span class="ni-ic">🪑</span> Seat Allocation</div>
-      <div class="ni" data-page="attendance"><span class="ni-ic">📋</span> Attendance <span class="nbadge" id="b-absent">0</span></div>
+      <div class="ni" data-page="students"><span class="ni-ic mi">school</span> All Students</div>
+      <div class="ni" data-page="enroll" id="ni-enroll"><span class="ni-ic mi">person_add</span> Enroll Student</div>
+      <div class="ni" data-page="seats"><span class="ni-ic mi">event_seat</span> Seat Allocation</div>
+      <div class="ni" data-page="attendance"><span class="ni-ic mi">fact_check</span> Attendance <span class="nbadge" id="b-absent">0</span></div>
     </div>
     <div class="ns"><div class="nl">Books</div>
-      <div class="ni" data-page="books"><span class="ni-ic">📖</span> Books Catalog</div>
-      <div class="ni" data-page="transactions"><span class="ni-ic">🔄</span> Issue / Returns <span class="nbadge" id="b-overdue">0</span></div>
+      <div class="ni" data-page="books"><span class="ni-ic mi">menu_book</span> Books Catalog</div>
+      <div class="ni" data-page="transactions"><span class="ni-ic mi">sync_alt</span> Issue / Returns <span class="nbadge" id="b-overdue">0</span></div>
     </div>
     <div class="ns"><div class="nl">Finance</div>
-      <div class="ni" data-page="fees"><span class="ni-ic">💰</span> Fee Management <span class="nbadge" id="b-fee">0</span></div>
-      <div class="ni" data-page="invoices"><span class="ni-ic">🧾</span> Invoices</div>
-      <div class="ni" data-page="expenses"><span class="ni-ic">💸</span> Expenses</div>
-      <div class="ni" data-page="reports"><span class="ni-ic">📈</span> Reports</div>
+      <div class="ni" data-page="fees"><span class="ni-ic mi">payments</span> Fee Management <span class="nbadge" id="b-fee">0</span></div>
+      <div class="ni" data-page="invoices"><span class="ni-ic mi">receipt_long</span> Invoices</div>
+      <div class="ni" data-page="expenses"><span class="ni-ic mi">account_balance_wallet</span> Expenses</div>
+      <div class="ni" data-page="reports"><span class="ni-ic mi">bar_chart</span> Reports</div>
     </div>
     <div class="ns"><div class="nl">Communication</div>
-      <div class="ni" data-page="whatsapp"><span class="ni-ic">💬</span> WhatsApp <span class="nbadge wa">New</span></div>
+      <div class="ni" data-page="whatsapp"><span class="ni-ic mi">chat</span> WhatsApp <span class="nbadge wa">New</span></div>
     </div>
     <div class="ns"><div class="nl">Admin</div>
-      <div class="ni" data-page="staff"><span class="ni-ic">👥</span> Staff & Users</div>
-      <div class="ni" data-page="notifications"><span class="ni-ic">🔔</span> Notifications <span class="nbadge g" id="b-notif">0</span></div>
-      <div class="ni" data-page="settings"><span class="ni-ic">⚙️</span> Settings</div>
+      <div class="ni" data-page="staff"><span class="ni-ic mi">manage_accounts</span> Staff & Users</div>
+      <div class="ni" data-page="notifications"><span class="ni-ic mi">notifications</span> Notifications <span class="nbadge g" id="b-notif">0</span></div>
+      <div class="ni" data-page="settings"><span class="ni-ic mi">settings</span> Settings</div>
     </div>
   </nav>
   <div class="sb-foot">
     <div class="u-card">
       <div class="u-av"><?= $staffInitials ?></div>
       <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
-      <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')">⚙</span>
-      <a href="logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px">⏻</a>
+      <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')"><span class="mi sm">lock_reset</span></span>
+      <a href="logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
     </div>
   </div>
 </div>
@@ -363,16 +353,13 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="main">
   <div class="topbar">
     <div class="pg-title" id="topTitle">Dashboard</div>
-    <div class="srch"><span style="color:var(--tx3);font-size:12px">🔍</span><input id="gSearch" placeholder="Search students, books…" oninput="globalSearch(this.value)"></div>
+    <div class="srch"><span class="mi sm" style="color:var(--tx3)">search</span><input id="gSearch" placeholder="Search students, books…" oninput="globalSearch(this.value)"></div>
     <div style="display:flex;align-items:center;gap:9px">
-      <div class="chip chip-tl">📅 <span id="todayChip"></span></div>
-      <button class="btn bwa" onclick="navTo('whatsapp')" style="gap:5px;font-size:11px">💬 WhatsApp</button>
-      <button class="wa-topbar-pill wa-pill-off" id="waTopPill" onclick="openM('mWaQR')" title="Click to manage WhatsApp connection">
-        <span class="wa-pill-dot off" id="waTopDot"></span>
-        <span id="waTopLabel">WA Offline</span>
-      </button>
-      <div class="nb-btn" onclick="navTo('notifications')">🔔<div class="nd" id="notifDot" style="display:none"></div></div>
-      <button class="btn bp" onclick="openM('mEnroll')">+ Enroll</button>
+      <div class="chip chip-tl"><span class="mi sm">calendar_today</span> <span id="todayChip"></span></div>
+      <button class="btn bwa" onclick="navTo('whatsapp')" style="gap:5px;font-size:11px"><span class="mi sm">chat</span>WhatsApp</button>
+      <button class="btn bg" onclick="openM('mWaQR')" style="font-size:11px;padding:6px 9px" title="Connect WhatsApp QR"><span class="mi sm">qr_code_scanner</span></button>
+      <div class="nb-btn" onclick="navTo('notifications')"><span class="mi sm">notifications</span><div class="nd" id="notifDot" style="display:none"></div></div>
+      <button class="btn bp" onclick="openM('mEnroll')"><span class="mi sm">person_add</span> Enroll</button>
     </div>
   </div>
   <div class="content">
@@ -381,45 +368,40 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   <div class="al-row" id="dashAlerts"></div>
   <div class="stats-grid" id="dashStats"></div>
   <div class="qa-gr">
-    <div class="qa-b" onclick="openM('mEnroll')"><div class="qa-ic" style="background:rgba(74,124,111,.12)">➕</div><div class="qa-lb">New<br>Enroll</div></div>
-    <div class="qa-b" onclick="openM('mCollectFee')"><div class="qa-ic" style="background:rgba(58,125,94,.12)">💳</div><div class="qa-lb">Collect<br>Fee</div></div>
-    <div class="qa-b" onclick="openM('mIssueBook')"><div class="qa-ic" style="background:rgba(196,125,43,.12)">📤</div><div class="qa-lb">Issue<br>Book</div></div>
-    <div class="qa-b" onclick="openM('mReturnBook')"><div class="qa-ic" style="background:rgba(124,92,191,.12)">📩</div><div class="qa-lb">Return<br>Book</div></div>
-    <div class="qa-b" onclick="navTo('seats')"><div class="qa-ic" style="background:rgba(192,68,79,.12)">🪑</div><div class="qa-lb">Seat<br>Booking</div></div>
-    <div class="qa-b" onclick="navTo('attendance')"><div class="qa-ic" style="background:rgba(58,122,176,.12)">📋</div><div class="qa-lb">Mark<br>Attend.</div></div>
-    <div class="qa-b" onclick="openM('mExpense')"><div class="qa-ic" style="background:rgba(212,144,47,.12)">💸</div><div class="qa-lb">Add<br>Expense</div></div>
-    <div class="qa-b" onclick="navTo('whatsapp')"><div class="qa-ic" style="background:rgba(37,211,102,.12)">💬</div><div class="qa-lb">WhatsApp</div></div>
+    <div class="qa-b" onclick="openM('mEnroll')"><div class="qa-ic" style="background:var(--c-blue)"><span class="mi lg" style="color:var(--ac)">person_add</span></div><div class="qa-lb">New<br>Enroll</div></div>
+    <div class="qa-b" onclick="openM('mCollectFee')"><div class="qa-ic" style="background:var(--c-green)"><span class="mi lg" style="color:var(--em)">payments</span></div><div class="qa-lb">Collect<br>Fee</div></div>
+    <div class="qa-b" onclick="openM('mIssueBook')"><div class="qa-ic" style="background:var(--c-amber)"><span class="mi lg" style="color:var(--gd)">upload</span></div><div class="qa-lb">Issue<br>Book</div></div>
+    <div class="qa-b" onclick="openM('mReturnBook')"><div class="qa-ic" style="background:var(--c-purple)"><span class="mi lg" style="color:var(--vi)">download</span></div><div class="qa-lb">Return<br>Book</div></div>
+    <div class="qa-b" onclick="navTo('seats')"><div class="qa-ic" style="background:var(--c-rose)"><span class="mi lg" style="color:var(--ro)">event_seat</span></div><div class="qa-lb">Seat<br>Booking</div></div>
+    <div class="qa-b" onclick="navTo('attendance')"><div class="qa-ic" style="background:var(--c-sky)"><span class="mi lg" style="color:var(--sk)">fact_check</span></div><div class="qa-lb">Mark<br>Attend.</div></div>
+    <div class="qa-b" onclick="openM('mExpense')"><div class="qa-ic" style="background:var(--c-orange)"><span class="mi lg" style="color:var(--or)">account_balance_wallet</span></div><div class="qa-lb">Add<br>Expense</div></div>
+    <div class="qa-b" onclick="navTo('whatsapp')"><div class="qa-ic" style="background:var(--c-teal)"><span class="mi lg" style="color:var(--wa2)">chat</span></div><div class="qa-lb">WhatsApp</div></div>
   </div>
-  <!-- Row 1: Batch Seats (left) + Expense Tracker (right) -->
-  <div class="g2" style="margin-bottom:14px">
-    <div>
-      <div class="sec-hd"><div><div class="sec-t">Batch-wise Seat Availability</div><div class="sec-s">Live occupancy · 🟠 Fee Pending · 🔴 Fee Overdue</div></div><button class="btn bg" onclick="navTo('seats')" style="font-size:11px">Manage →</button></div>
-      <div id="dashBatchCards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
-    </div>
-    <div>
-      <div class="sec-hd"><div><div class="sec-t">Expense Tracker</div><div class="sec-s">Monthly outflows by category</div></div><button class="btn bg" onclick="openM('mExpense')" style="font-size:11px">+ Add</button></div>
-      <div class="panel" id="dashExpTracker"></div>
-    </div>
+  <!-- Row 1: Batch-wise Seat Availability — full width -->
+  <div style="margin-bottom:16px">
+    <div class="sec-hd"><div><div class="sec-t">Batch-wise Seat Availability</div><div class="sec-s">Live occupancy · <span style="color:var(--gd);font-weight:600">● Pending</span> · <span style="color:var(--ro);font-weight:600">● Overdue</span></div></div><button class="btn bg" onclick="navTo('seats')" style="font-size:11px"><span class="mi sm">event_seat</span>Manage</button></div>
+    <div id="dashBatchCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
   </div>
-  <!-- Row 2: Recent Students + Fee Overview + Revenue + Calendar -->
-  <div class="g2">
-    <div>
+  <!-- Row 2: Recent Students (full width, scrollable) + Expense Tracker -->
+  <div class="g2" style="margin-bottom:16px">
+    <div style="grid-column:1/-1">
       <div class="sec-hd"><div><div class="sec-t">Recent Students & Fee Status</div></div><button class="btn bg" onclick="navTo('students')" style="font-size:11px">All →</button></div>
-      <div class="panel">
-        <div class="tw"><table>
-          <thead><tr><th>Student</th><th>Batch</th><th>Seat</th><th>Fee</th><th>Paid</th><th>Balance</th><th>Status</th><th>Msg</th></tr></thead>
+      <div class="panel" style="margin-bottom:0">
+        <div class="tw" style="max-height:420px;overflow-y:auto"><table>
+          <thead><tr style="position:sticky;top:0;z-index:2"><th>Student</th><th>Batch</th><th>Seat</th><th>Fee</th><th>Paid</th><th>Balance</th><th>Status</th><th>Msg</th></tr></thead>
           <tbody id="dashStuTable"></tbody>
         </table></div>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <!-- Fee Overview -->
-      <div>
-        <div class="sec-hd"><div><div class="sec-t">Fee Overview</div></div><button class="btn bg" onclick="navTo('fees')" style="font-size:11px">Details →</button></div>
-        <div id="dashFeeOv"></div>
-      </div>
-      <!-- Revenue split donut -->
-      <div class="panel" style="margin-bottom:0">
+  </div>
+  <!-- Row 3: Fee Overview + Revenue Split (side by side) + Expense Tracker -->
+  <div class="g2" style="margin-bottom:16px">
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="sec-hd"><div><div class="sec-t">Fee Overview</div></div><button class="btn bg" onclick="navTo('fees')" style="font-size:11px">Details →</button></div>
+      <div id="dashFeeOv" style="flex:1"></div>
+    </div>
+    <!-- Revenue split donut -->
+    <div class="panel" style="margin-bottom:0">
         <div class="ph"><div class="pt">Revenue Split</div><span style="font-size:10px;color:var(--tx3);font-family:var(--fm)">This Month</span></div>
         <div class="dn-wrap">
           <svg width="84" height="84" viewBox="0 0 84 84">
@@ -441,18 +423,23 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
           <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx3);font-family:var(--fm);margin-top:4px"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>
         </div>
       </div>
-      <!-- Mini Calendar -->
-      <div class="panel" style="margin-bottom:0">
-        <div class="ph"><div class="pt">📅 Calendar</div><div style="display:flex;gap:5px"><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calPrev">‹</button><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calNext">›</button></div></div>
-        <div class="pb" style="padding-top:10px">
-          <div style="text-align:center;font-size:11.5px;font-weight:600;margin-bottom:8px;font-family:var(--fm)" id="calTitle"></div>
-          <div class="mcal" id="miniCal"></div>
-        </div>
+    </div>
+  <!-- Row 4: Expense Tracker + Calendar -->
+  <div class="g2">
+    <div>
+      <div class="sec-hd"><div><div class="sec-t">Expense Tracker</div><div class="sec-s">Monthly outflows by category</div></div><button class="btn bg" onclick="openM('mExpense')" style="font-size:11px">+ Add</button></div>
+      <div class="panel" id="dashExpTracker"></div>
+    </div>
+    <div class="panel" style="margin-bottom:0">
+      <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">calendar_month</span>Calendar</div><div style="display:flex;gap:5px"><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calPrev">‹</button><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calNext">›</button></div></div>
+      <div class="pb" style="padding-top:10px">
+        <div style="text-align:center;font-size:11.5px;font-weight:600;margin-bottom:8px;font-family:var(--fm)" id="calTitle"></div>
+        <div class="mcal" id="miniCal"></div>
       </div>
     </div>
   </div>
-</div>
 
+</div>
 <!-- STUDENTS -->
 <div class="page" id="page-students">
   <div class="sec-hd">
@@ -460,8 +447,8 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
       <input placeholder="Search…" style="width:130px;font-size:11.5px" oninput="stuSrch(this.value)" id="stuSrchInp">
       <div class="tabs" id="stuTabs"><div class="tab active" onclick="stuFilt('all',this)">All</div><div class="tab" onclick="stuFilt('paid',this)">Paid</div><div class="tab" onclick="stuFilt('partial',this)">Partial</div><div class="tab" onclick="stuFilt('pending',this)">Pending</div><div class="tab" onclick="stuFilt('overdue',this)">Overdue</div></div>
-      <button class="btn bp" onclick="openM('mEnroll')">+ Enroll</button>
-      <button class="btn bwa" onclick="navTo('whatsapp')" style="font-size:11px">💬 Bulk Msg</button>
+      <button class="btn bp" onclick="openM('mEnroll')"><span class="mi sm">person_add</span> Enroll</button>
+      <button class="btn bwa" onclick="navTo('whatsapp')" style="font-size:11px"><span class="mi sm">chat</span>Bulk Msg</button>
     </div>
   </div>
   <div class="panel"><div class="tw"><table>
@@ -478,16 +465,16 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div style="display:flex;gap:7px"><button class="btn bp" onclick="openM('mAddBatch')">+ Add Batch</button><button class="btn bg" onclick="openM('mAllocSeat')">Allocate Seat</button></div>
   </div>
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-    <div class="sc" style="--ca:var(--ac)"><div class="s-ic" style="background:rgba(74,124,111,.1)">🏠</div><div class="s-lb">Total Seats</div><div class="s-vl" id="st-total">0</div></div>
-    <div class="sc" style="--ca:var(--em)"><div class="s-ic" style="background:rgba(58,125,94,.1)">✅</div><div class="s-lb">Vacant</div><div class="s-vl" id="st-vacant">0</div></div>
-    <div class="sc" style="--ca:var(--ro)"><div class="s-ic" style="background:rgba(192,68,79,.1)">🔴</div><div class="s-lb">Occupied</div><div class="s-vl" id="st-occupied">0</div></div>
+    <div class="sc" style="--ca:var(--ac)"><div class="s-ic" style="background:var(--c-blue)"><span class="mi" style="color:var(--ac)">event_seat</span></div><div class="s-lb">Total Seats</div><div class="s-vl" id="st-total">0</div></div>
+    <div class="sc" style="--ca:var(--em)"><div class="s-ic" style="background:var(--c-green)"><span class="mi" style="color:var(--em)">check_circle</span></div><div class="s-lb">Vacant</div><div class="s-vl" id="st-vacant">0</div></div>
+    <div class="sc" style="--ca:var(--ro)"><div class="s-ic" style="background:var(--c-rose)"><span class="mi" style="color:var(--ro)">person</span></div><div class="s-lb">Occupied</div><div class="s-vl" id="st-occupied">0</div></div>
   </div>
   <div style="margin-bottom:10px">
     <div class="seat-legend">
-      <div class="sl-item"><div class="sl-dot" style="background:rgba(58,125,94,.15);border:1px solid rgba(58,125,94,.4)"></div>Vacant</div>
-      <div class="sl-item"><div class="sl-dot" style="background:rgba(192,68,79,.15);border:1px solid rgba(192,68,79,.4)"></div>Occupied (Fee Paid)</div>
-      <div class="sl-item"><div class="sl-dot" style="background:rgba(230,126,34,.25);border:1px solid rgba(230,126,34,.5)"></div>Fee Pending/Partial ⚠</div>
-      <div class="sl-item"><div class="sl-dot" style="background:rgba(192,68,79,.3);border:1px solid rgba(192,68,79,.7)"></div>Fee Overdue 🚨</div>
+      <div class="sl-item"><div class="sl-dot seat-vac"></div>Vacant</div>
+      <div class="sl-item"><div class="sl-dot seat-occ"></div>Occupied (Fee Paid)</div>
+      <div class="sl-item"><div class="sl-dot seat-due"></div>Fee Pending / Partial</div>
+      <div class="sl-item"><div class="sl-dot seat-overdue"></div>Fee Overdue</div>
     </div>
   </div>
   <div class="g2" id="batchGrid"></div>
@@ -499,7 +486,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div><div class="sec-t">Attendance</div><div class="sec-s" id="attLbl"></div></div>
     <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
       <select id="attBatchF" onchange="renderAtt()" style="font-size:12px;padding:6px 9px"><option value="all">All Batches</option></select>
-      <button class="btn bp" onclick="saveAtt()">💾 Save</button>
+      <button class="btn bp" onclick="saveAtt()"><span class="mi sm">save</span>Save</button>
       <button class="btn bg" onclick="markAll(true)">✓ All Present</button>
       <button class="btn bd" onclick="markAll(false)" style="font-size:11px">✗ All Absent</button>
     </div>
@@ -557,15 +544,15 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div><div class="sec-t">Fee Management</div></div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">
       <button class="btn bp" onclick="openM('mCollectFee')">💳 Collect Fee</button>
-      <button class="btn bwa" onclick="waBulkFee()" style="font-size:11px">💬 WA Reminders</button>
+      <button class="btn bwa" onclick="waBulkFee()" style="font-size:11px"><span class="mi sm">chat</span>WA Reminders</button>
       <button class="btn bg" onclick="sendReminders()" style="font-size:11px">📣 Send Reminders</button>
     </div>
   </div>
   <div class="stats-grid">
-    <div class="sc" style="--ca:var(--em)"><div class="s-ic" style="background:rgba(58,125,94,.1)">✅</div><div class="s-lb">Collected</div><div class="s-vl" id="fc-c">₹0</div><div class="s-mt" id="fc-cm"></div></div>
-    <div class="sc" style="--ca:var(--sk)"><div class="s-ic" style="background:rgba(58,122,176,.1)">◑</div><div class="s-lb">Partial Payments</div><div class="s-vl" id="fc-pp">0</div><div class="s-mt" id="fc-ppm"></div></div>
-    <div class="sc" style="--ca:var(--gd)"><div class="s-ic" style="background:rgba(196,125,43,.1)">⏳</div><div class="s-lb">Pending</div><div class="s-vl" id="fc-p">₹0</div><div class="s-mt" id="fc-pm"></div></div>
-    <div class="sc" style="--ca:var(--ro)"><div class="s-ic" style="background:rgba(192,68,79,.1)">🚨</div><div class="s-lb">Overdue</div><div class="s-vl" id="fc-o">₹0</div><div class="s-mt" id="fc-om"></div></div>
+    <div class="sc" style="--ca:var(--em)"><div class="s-ic" style="background:var(--c-green)"><span class="mi" style="color:var(--em)">check_circle</span></div><div class="s-lb">Collected</div><div class="s-vl" id="fc-c">₹0</div><div class="s-mt" id="fc-cm"></div></div>
+    <div class="sc" style="--ca:var(--sk)"><div class="s-ic" style="background:var(--c-sky)"><span class="mi" style="color:var(--sk)">timelapse</span></div><div class="s-lb">Partial Payments</div><div class="s-vl" id="fc-pp">0</div><div class="s-mt" id="fc-ppm"></div></div>
+    <div class="sc" style="--ca:var(--gd)"><div class="s-ic" style="background:var(--c-amber)"><span class="mi" style="color:var(--gd)">pending</span></div><div class="s-lb">Pending</div><div class="s-vl" id="fc-p">₹0</div><div class="s-mt" id="fc-pm"></div></div>
+    <div class="sc" style="--ca:var(--ro)"><div class="s-ic" style="background:var(--c-rose)"><span class="mi" style="color:var(--ro)">warning</span></div><div class="s-lb">Overdue</div><div class="s-vl" id="fc-o">₹0</div><div class="s-mt" id="fc-om"></div></div>
   </div>
   <div class="panel">
     <div class="ph"><div class="pt">Fee Records</div>
@@ -619,25 +606,19 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="page" id="page-reports">
   <div class="sec-hd"><div><div class="sec-t">Reports</div></div></div>
   <div class="g3">
-    <div class="panel" style="cursor:pointer" onclick="genReport('monthly')"><div class="pb" style="text-align:center;padding:22px"><div style="font-size:34px;margin-bottom:8px">📄</div><div style="font-weight:600;margin-bottom:3px">Monthly Summary</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
-    <div class="panel" style="cursor:pointer" onclick="genReport('fee')"><div class="pb" style="text-align:center;padding:22px"><div style="font-size:34px;margin-bottom:8px">💰</div><div style="font-weight:600;margin-bottom:3px">Fee Report</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
-    <div class="panel" style="cursor:pointer" onclick="genReport('books')"><div class="pb" style="text-align:center;padding:22px"><div style="font-size:34px;margin-bottom:8px">📚</div><div style="font-weight:600;margin-bottom:3px">Book Inventory</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
-    <div class="panel" style="cursor:pointer" onclick="genReport('attendance')"><div class="pb" style="text-align:center;padding:22px"><div style="font-size:34px;margin-bottom:8px">📋</div><div style="font-weight:600;margin-bottom:3px">Attendance</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
-    <div class="panel" style="cursor:pointer" onclick="genReport('expense')"><div class="pb" style="text-align:center;padding:22px"><div style="font-size:34px;margin-bottom:8px">💸</div><div style="font-weight:600;margin-bottom:3px">Expense Report</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
-    <div class="panel" style="cursor:pointer" onclick="genReport('student')"><div class="pb" style="text-align:center;padding:22px"><div style="font-size:34px;margin-bottom:8px">👥</div><div style="font-weight:600;margin-bottom:3px">Student Directory</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
+    <div class="panel" style="cursor:pointer" onclick="genReport('monthly')"><div class="pb" style="text-align:center;padding:22px"><div style="margin-bottom:8px"><span class="mi xl" style="color:var(--ac)">description</span></div><div style="font-weight:600;margin-bottom:3px">Monthly Summary</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
+    <div class="panel" style="cursor:pointer" onclick="genReport('fee')"><div class="pb" style="text-align:center;padding:22px"><div style="margin-bottom:8px"><span class="mi xl" style="color:var(--em)">payments</span></div><div style="font-weight:600;margin-bottom:3px">Fee Report</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
+    <div class="panel" style="cursor:pointer" onclick="genReport('books')"><div class="pb" style="text-align:center;padding:22px"><div style="margin-bottom:8px"><span class="mi xl" style="color:var(--gd)">menu_book</span></div><div style="font-weight:600;margin-bottom:3px">Book Inventory</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
+    <div class="panel" style="cursor:pointer" onclick="genReport('attendance')"><div class="pb" style="text-align:center;padding:22px"><div style="margin-bottom:8px"><span class="mi xl" style="color:var(--vi)">fact_check</span></div><div style="font-weight:600;margin-bottom:3px">Attendance</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
+    <div class="panel" style="cursor:pointer" onclick="genReport('expense')"><div class="pb" style="text-align:center;padding:22px"><div style="margin-bottom:8px"><span class="mi xl" style="color:var(--or)">account_balance_wallet</span></div><div style="font-weight:600;margin-bottom:3px">Expense Report</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
+    <div class="panel" style="cursor:pointer" onclick="genReport('student')"><div class="pb" style="text-align:center;padding:22px"><div style="margin-bottom:8px"><span class="mi xl" style="color:var(--sk)">groups</span></div><div style="font-weight:600;margin-bottom:3px">Student Directory</div><button class="btn bp" style="margin-top:10px">Generate</button></div></div>
   </div>
-  <div class="panel" id="rptOut" style="display:none"><div class="ph"><div class="pt" id="rptTitle">Report</div><button class="btn bg" onclick="window.print()">🖨 Print</button></div><div class="pb" id="rptBody"></div></div>
+  <div class="panel" id="rptOut" style="display:none"><div class="ph"><div class="pt" id="rptTitle">Report</div><button class="btn bg" onclick="window.print()"><span class="mi sm">print</span>Print</button></div><div class="pb" id="rptBody"></div></div>
 </div>
 
 <!-- WHATSAPP -->
 <div class="page" id="page-whatsapp">
-  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment &amp; reminder messages</div></div><div style="display:flex;align-items:center;gap:8px">
-    <button class="wa-topbar-pill wa-pill-off" id="waPagePill" onclick="openM('mWaQR')" style="font-size:11px">
-      <span class="wa-pill-dot off" id="waPageDot"></span>
-      <span id="waPageLabel">Server Offline</span>
-    </button>
-    <button class="btn bwa" style="font-size:11px" onclick="openM('mWaQR')">📱 Connect / Status</button>
-  </div></div>
+  <div class="sec-hd"><div><div class="sec-t">💬 WhatsApp Messaging</div><div class="sec-s">Auto-send fee, enrollment & reminder messages</div></div><div style="display:flex;align-items:center;gap:8px"><button class="btn bwa" style="font-size:11px;gap:6px" onclick="openM('mWaQR')"><span class="mi sm">qr_code_scanner</span>Connect QR</button></div></div>
   <div class="panel wa-panel" style="margin-bottom:14px">
     <div class="ph" style="border-color:rgba(37,211,102,.2)"><div class="pt" style="color:var(--wa2)">📋 Message Templates</div><span style="font-size:11px;color:var(--tx3)">Click any template to compose & send</span></div>
     <div class="pb"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="waTemplateGrid"></div></div>
@@ -649,7 +630,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <div class="fgi" style="margin-bottom:10px"><label>Select Student(s)</label><select id="wa-stu" onchange="waUpdatePreview()"><option value="">-- Select Student --</option><option value="all">📢 All Students</option><option value="pending_all">⏳ All Pending + Partial</option><option value="overdue">🚨 All Overdue</option></select></div>
         <div class="fgi" style="margin-bottom:10px"><label>Template</label><select id="wa-tpl" onchange="waLoadTemplate()"><option value="">-- Select Template --</option><option value="welcome">🎉 Welcome / Enrollment</option><option value="fee_due">💰 Fee Due Reminder</option><option value="fee_overdue">🚨 Fee Overdue Alert</option><option value="partial_payment">💳 Partial Payment Received</option><option value="fee_receipt">✅ Fee Payment Receipt</option><option value="discount_applied">🎁 Discount Applied</option><option value="book_due">📚 Book Return Reminder</option><option value="book_overdue">⚠ Book Overdue Fine</option><option value="seat_allotted">🪑 Seat Allotment</option><option value="holiday">📅 Holiday Notice</option><option value="custom">✏ Custom Message</option></select></div>
         <div class="fgi" style="margin-bottom:10px"><label>Message</label><textarea id="wa-msg" rows="8" placeholder="Select a template…" oninput="waUpdatePreview()" style="font-size:12px;line-height:1.6;min-height:140px"></textarea></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn bwa" onclick="waSend()" style="flex:1">💬 Send Direct</button><button class="btn bg" onclick="waCopy()" style="font-size:11px">📋 Copy</button><button class="btn bg" onclick="waSchedule()" style="font-size:11px">⏰ Schedule</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn bwa" onclick="waSend()" style="flex:1">💬 Send via WhatsApp</button><button class="btn bg" onclick="waCopy()" style="font-size:11px"><span class="mi sm">content_copy</span>Copy</button><button class="btn bg" onclick="waSchedule()" style="font-size:11px">⏰ Schedule</button></div>
         <div id="wa-send-info" style="margin-top:8px;font-size:11px;color:var(--tx3)"></div>
       </div>
     </div>
@@ -680,7 +661,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- STAFF -->
 <div class="page" id="page-staff">
-  <div class="sec-hd"><div><div class="sec-t">Staff & Users</div><div class="sec-s" id="staffCount"></div></div><button class="btn bp" onclick="openM('mAddStaff')">+ Add Staff</button></div>
+  <div class="sec-hd"><div><div class="sec-t">Staff & Users</div><div class="sec-s" id="staffCount"></div></div><button class="btn bp" onclick="openM('mAddStaff')"><span class="mi sm">person_add</span>Add Staff</button></div>
   <div class="panel"><div class="tw"><table>
     <thead><tr><th>Staff</th><th>Role</th><th>Email</th><th>Phone</th><th>Permissions</th><th>Status</th><th>Action</th></tr></thead>
     <tbody id="staffTable"></tbody>
@@ -689,7 +670,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- NOTIFICATIONS -->
 <div class="page" id="page-notifications">
-  <div class="sec-hd"><div><div class="sec-t">Notifications</div><div class="sec-s" id="notifCount"></div></div><button class="btn bg" onclick="clearNotifs()" style="font-size:11px">Clear All</button></div>
+  <div class="sec-hd"><div><div class="sec-t">Notifications</div><div class="sec-s" id="notifCount"></div></div><button class="btn bg" onclick="clearNotifs()" style="font-size:11px"><span class="mi sm">delete_sweep</span>Clear All</button></div>
   <div class="panel"><div class="pb" id="notifList" style="display:flex;flex-direction:column;gap:7px"></div></div>
 </div>
 
@@ -709,8 +690,8 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <div class="fgi"><label>WhatsApp Number</label><input id="s-wa" value="917282071620"></div>
       </div>
       <div style="margin-top:14px;display:flex;gap:8px">
-        <button class="btn bp" onclick="saveSettings()">💾 Save</button>
-        <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}">🔄 Reset</button>
+        <button class="btn bp" onclick="saveSettings()"><span class="mi sm">save</span>Save</button>
+        <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}"><span class="mi sm">restart_alt</span>Reset</button>
       </div>
     </div></div>
     <div class="panel"><div class="ph"><div class="pt">System Stats</div></div><div class="pb" id="setStats"></div></div>
@@ -721,7 +702,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div><!-- /main -->
 <!-- MODALS -->
 <div class="mo" id="mEnroll"><div class="md wide">
-  <div class="mh"><div class="mt">Enroll New Student</div><button class="mc" onclick="closeM('mEnroll')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">person_add</span>Enroll New Student</div><button class="mc" onclick="closeM('mEnroll')"><span class="mi sm">close</span></button></div>
   <div class="mb">
     <div class="sdiv">Personal Info</div>
     <div class="fg">
@@ -756,7 +737,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mCollectFee"><div class="md wide">
-  <div class="mh"><div class="mt">Collect Fee</div><button class="mc" onclick="closeM('mCollectFee')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">payments</span>Collect Fee</div><button class="mc" onclick="closeM('mCollectFee')"><span class="mi sm">close</span></button></div>
   <div class="mb">
     <div class="fg">
       <div class="fgi full"><label>Student *</label><select id="cf-stu" onchange="cfLoadStudent()"><option value="">-- Select --</option></select></div>
@@ -795,7 +776,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mAddBatch"><div class="md">
-  <div class="mh"><div class="mt" id="mAddBatchTitle">Add New Batch</div><button class="mc" onclick="closeM('mAddBatch')">✕</button></div>
+  <div class="mh"><div class="mt" id="mAddBatchTitle">Add New Batch</div><button class="mc" onclick="closeM('mAddBatch')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Batch Name *</label><input id="ab-nm" placeholder="Morning Batch"></div>
     <div class="fgi"><label>Start Time *</label><input id="ab-st" type="time" value="08:00"></div>
@@ -808,7 +789,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mIssueBook"><div class="md">
-  <div class="mh"><div class="mt">Issue Book</div><button class="mc" onclick="closeM('mIssueBook')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">upload</span>Issue Book</div><button class="mc" onclick="closeM('mIssueBook')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Student *</label><select id="ib-stu"><option value="">-- Select --</option></select></div>
     <div class="fgi full"><label>Book *</label><select id="ib-bk"><option value="">-- Select --</option></select></div>
@@ -819,7 +800,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mReturnBook"><div class="md">
-  <div class="mh"><div class="mt">Return Book</div><button class="mc" onclick="closeM('mReturnBook')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">download</span>Return Book</div><button class="mc" onclick="closeM('mReturnBook')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Transaction *</label><select id="rb-tx" onchange="calcFine()"><option value="">-- Select --</option></select></div>
     <div class="fgi"><label>Return Date</label><input id="rb-dt" type="date"></div>
@@ -832,7 +813,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mAddBook"><div class="md">
-  <div class="mh"><div class="mt">Add Book</div><button class="mc" onclick="closeM('mAddBook')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">menu_book</span>Add Book</div><button class="mc" onclick="closeM('mAddBook')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Title *</label><input id="bk-tl" placeholder="Atomic Habits"></div>
     <div class="fgi"><label>Author *</label><input id="bk-au"></div><div class="fgi"><label>ISBN</label><input id="bk-is"></div>
@@ -843,7 +824,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mExpense"><div class="md">
-  <div class="mh"><div class="mt">Add Expense</div><button class="mc" onclick="closeM('mExpense')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">account_balance_wallet</span>Add Expense</div><button class="mc" onclick="closeM('mExpense')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Name *</label><input id="ex-nm" placeholder="Electricity Bill"></div>
     <div class="fgi"><label>Amount (₹) *</label><input id="ex-am" type="number"></div>
@@ -855,7 +836,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mAllocSeat"><div class="md">
-  <div class="mh"><div class="mt">Allocate Seat</div><button class="mc" onclick="closeM('mAllocSeat')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">event_seat</span>Allocate Seat</div><button class="mc" onclick="closeM('mAllocSeat')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Student *</label><select id="as-stu"><option value="">-- Select --</option></select></div>
     <div class="fgi"><label>Batch *</label><select id="as-bt"><option value="">-- Select --</option></select></div>
@@ -865,7 +846,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mAddStaff"><div class="md wide">
-  <div class="mh"><div class="mt" id="staffModalTitle">Add Staff</div><button class="mc" onclick="closeM('mAddStaff')">✕</button></div>
+  <div class="mh"><div class="mt" id="staffModalTitle">Add Staff</div><button class="mc" onclick="closeM('mAddStaff')"><span class="mi sm">close</span></button></div>
   <div class="mb">
     <div class="fg">
       <div class="fgi"><label>Full Name *</label><input id="sf-nm"></div>
@@ -882,7 +863,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 </div></div>
 
 <div class="mo" id="mGenInv"><div class="md">
-  <div class="mh"><div class="mt">Generate Invoice</div><button class="mc" onclick="closeM('mGenInv')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">receipt_long</span>Generate Invoice</div><button class="mc" onclick="closeM('mGenInv')"><span class="mi sm">close</span></button></div>
   <div class="mb"><div class="fg">
     <div class="fgi full"><label>Student *</label><select id="gi-stu" onchange="autoFillInv()"><option value="">-- Select --</option></select></div>
     <div class="fgi"><label>Type</label><select id="gi-tp"><option value="fee">Monthly Fee</option><option value="fine">Book Fine</option><option value="other">Other</option></select></div>
@@ -899,13 +880,13 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div></div>
     <div style="display:flex;align-items:center;gap:7px">
       <button class="sp-edit-toggle" id="spEditToggle" onclick="toggleProfileEdit()">✏ Edit</button>
-      <button class="mc" onclick="closeM('mStudentProfile')">✕</button>
+      <button class="mc" onclick="closeM('mStudentProfile')"><span class="mi sm">close</span></button>
     </div>
   </div>
   <div class="sp-header" id="spHeader">
     <div class="sp-name" id="spHeaderName">Student Name</div>
     <div class="sp-id" id="spHeaderId">#STU-001</div>
-    <div class="sp-av-wrap"><div class="sp-av" id="spAv" style="background:#4a7c6f">AB</div></div>
+    <div class="sp-av-wrap"><div class="sp-av" id="spAv" style="background:var(--ac)">AB</div></div>
   </div>
   <div class="sp-body">
     <!-- Fee status bar -->
@@ -931,7 +912,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
       <div class="sp-field">
         <div class="sp-label">Seat Number</div>
         <div id="spSeatDisp">
-          <span class="sp-seat-chip" id="spSeatChip" onclick="openAllocFromProfile()">🪑 <span id="spSeatNum">—</span></span>
+          <span class="sp-seat-chip" id="spSeatChip" onclick="openAllocFromProfile()"><span class="mi sm">event_seat</span><span id="spSeatNum">—</span></span>
         </div>
       </div>
       <div class="sp-field">
@@ -974,7 +955,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     </div>
 
     <!-- Fee Details -->
-    <div class="sp-section">💰 Fee Details</div>
+    <div class="sp-section"><span class="mi sm" style="vertical-align:middle;margin-right:5px">payments</span>Fee Details</div>
     <div class="sp-grid" style="margin-bottom:14px">
       <div class="sp-field">
         <div class="sp-label">Base Fee</div>
@@ -997,9 +978,9 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <!-- Quick Actions -->
     <div class="sp-section">⚡ Quick Actions</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn bp" style="font-size:11px" id="spCollectBtn" onclick="closeM('mStudentProfile')">💰 Collect Fee</button>
+      <button class="btn bp" style="font-size:11px" id="spCollectBtn" onclick="closeM('mStudentProfile')"><span class="mi sm">payments</span>Collect Fee</button>
       <button class="btn bwa" style="font-size:11px" id="spWaBtn">💬 Send WhatsApp</button>
-      <button class="btn bg" style="font-size:11px" onclick="openAllocFromProfile()">🪑 Change Seat</button>
+      <button class="btn bg" style="font-size:11px" onclick="openAllocFromProfile()"><span class="mi sm">event_seat</span>Change Seat</button>
       <button class="btn bd" style="font-size:11px" id="spDelBtn">🗑 Remove</button>
     </div>
   </div>
@@ -1011,89 +992,76 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 <!-- WHATSAPP QR CONNECT MODAL -->
 <div class="mo" id="mWaQR"><div class="md">
-  <div class="mh"><div class="mt">📱 WhatsApp Connection</div><button class="mc" onclick="closeM('mWaQR')">✕</button></div>
+  <div class="mh"><div class="mt">📱 Connect WhatsApp</div><button class="mc" onclick="closeM('mWaQR')"><span class="mi sm">close</span></button></div>
   <div class="mb">
-
-    <!-- Live server status panel -->
-    <div class="wa-server-panel wa-server-off" id="waServerPanel">
-      <div style="font-size:26px;flex-shrink:0" id="waServerIcon">🖥️</div>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:13px;margin-bottom:3px" id="waServerTitle">Node server not running</div>
-        <div style="font-size:11px;color:var(--tx2);line-height:1.6" id="waServerDesc">Start the local server on your PC to send messages directly from your WhatsApp number.</div>
-        <div class="wa-cmd" id="waServerCmd">
-          <code>whatsapp-server/START-WINDOWS.bat</code>
-          <button class="wa-copy-btn" onclick="navigator.clipboard.writeText('cd whatsapp-server && node server.js');toast('Copied!','ok')">Copy</button>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:14px;align-items:flex-start">
-      <!-- QR / Status area -->
-      <div style="flex-shrink:0;text-align:center">
-        <div class="wa-qr-box" onclick="refreshWaQR()" id="waQRBox" style="width:170px">
-          <div class="wa-qr-img" id="waQRImg" style="width:160px;height:160px">
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div style="flex-shrink:0">
+        <div class="wa-qr-box" onclick="refreshWaQR()" id="waQRBox">
+          <div class="wa-qr-img" id="waQRImg">
             <canvas id="waQRCanvas" width="150" height="150"></canvas>
           </div>
-          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-top:4px" id="waQRStatus">Checking server…</div>
+          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm)" id="waQRStatus">Tap to refresh</div>
         </div>
         <div style="display:flex;justify-content:center;margin-top:8px">
-          <div class="wa-conn-badge wa-conn-no" id="waConnBadge">● Offline</div>
+          <div class="wa-conn-badge wa-conn-no" id="waConnBadge">● Disconnected</div>
         </div>
-        <button class="btn bg" style="font-size:10px;margin-top:8px;width:100%" onclick="refreshWaQR()">🔄 Refresh</button>
       </div>
-
-      <!-- Steps -->
       <div style="flex:1">
-        <div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-family:var(--fm);margin-bottom:10px">HOW TO CONNECT</div>
-        <div class="wa-steps" id="waSetupSteps">
-          <div class="wa-step" id="waStep1">
-            <div class="wa-step-n" id="waStep1n">1</div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Start the Node server</div>
-              <div style="font-size:11px;color:var(--tx3)">Run <code style="font-size:10px;background:var(--sf2);padding:1px 5px;border-radius:3px">START-WINDOWS.bat</code> on your PC</div>
-            </div>
-          </div>
-          <div class="wa-step" id="waStep2">
-            <div class="wa-step-n" id="waStep2n">2</div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Scan the QR code</div>
-              <div style="font-size:11px;color:var(--tx3)">WhatsApp → ⋮ Menu → Linked Devices → Link a Device</div>
-            </div>
-          </div>
-          <div class="wa-step" id="waStep3">
-            <div class="wa-step-n" id="waStep3n">3</div>
-            <div>
-              <div style="font-size:12px;font-weight:600;color:var(--tx)">Start sending messages</div>
-              <div style="font-size:11px;color:var(--tx3)">All ERP messages now send directly from your number</div>
-            </div>
-          </div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--tx)">Scan to Connect</div>
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Link your WhatsApp to send messages directly from the ERP without switching apps.</div>
+        <div class="wa-steps">
+          <div class="wa-step"><div class="wa-step-n">1</div><span>Open <strong>WhatsApp</strong> on your phone</span></div>
+          <div class="wa-step"><div class="wa-step-n">2</div><span>Tap <strong>Menu (⋮)</strong> → <strong>Linked Devices</strong></span></div>
+          <div class="wa-step"><div class="wa-step-n">3</div><span>Tap <strong>Link a Device</strong></span></div>
+          <div class="wa-step"><div class="wa-step-n">4</div><span>Point your camera at the <strong>QR code</strong></span></div>
         </div>
-
-        <div style="margin-top:14px;border-top:1px solid var(--br);padding-top:12px">
-          <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:6px">YOUR WHATSAPP NUMBER</div>
+        <div style="margin-top:14px;padding:10px 12px;background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:var(--r2)">
+          <div style="font-size:11px;font-weight:600;color:var(--wa2);margin-bottom:4px">📌 Note</div>
+          <div style="font-size:11px;color:var(--tx2)">WhatsApp Web QR requires a backend service. In standalone mode, messages open in WhatsApp Web automatically.</div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:10px;color:var(--tx3);margin-bottom:6px;font-family:var(--fm)">WHATSAPP NUMBER</div>
           <div style="display:flex;gap:7px">
-            <input id="waConnNum" placeholder="+91 XXXXXXXXXX" style="flex:1;font-size:12px">
+            <input id="waConnNum" placeholder="+91 XXXXXXXXXX" style="flex:1;font-size:12px" value="">
             <button class="btn bwa" style="font-size:11px" onclick="saveWaNumber()">Save</button>
           </div>
         </div>
-
-        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:10px;color:var(--tx3);font-family:var(--fm)">MESSAGES SENT THIS SESSION</span>
-          <span style="font-size:13px;font-weight:700;font-family:var(--fm);color:var(--wa2)" id="waConnMsgCount">0</span>
-        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--br);padding-top:12px">
+      <div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-bottom:8px">CONNECTION STATUS</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="sp-stat" style="flex:1"><span class="sp-stat-ic">📱</span><div><div style="font-size:11px;font-weight:600">WhatsApp Web</div><div style="font-size:10px;color:var(--wa2)">Opens automatically</div></div></div>
+        <div class="sp-stat" style="flex:1"><span class="sp-stat-ic">✅</span><div><div style="font-size:11px;font-weight:600">Messages Sent</div><div style="font-size:10px;color:var(--tx3)" id="waConnMsgCount">0 messages this session</div></div></div>
       </div>
     </div>
   </div>
   <div class="mf">
     <button class="btn bg" onclick="closeM('mWaQR')">Close</button>
-    <button class="btn bg" style="font-size:11px;color:var(--ro)" onclick="waLogoutDevice()">🔌 Disconnect</button>
-    <button class="btn bwa" onclick="testWaConnection()">💬 Test Message</button>
+    <button class="btn bwa" onclick="testWaConnection()"><span class="mi sm">chat</span>Test Message</button>
   </div>
-</div></div></div></div>
+</div></div>
+
+<div class="mo" id="mWaSend"><div class="md">
+  <div class="mh"><div class="mt">💬 Send WhatsApp</div><button class="mc" onclick="closeM('mWaSend')"><span class="mi sm">close</span></button></div>
+  <div class="mb">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 13px;background:rgba(37,211,102,.08);border-radius:var(--r2);border:1px solid rgba(37,211,102,.2)">
+      <div><span class="mi xl" style="color:var(--wa)">chat</span></div>
+      <div><div style="font-weight:600;font-size:13px" id="waSendTo">Student Name</div><div style="font-size:11px;color:var(--tx3)" id="waSendPhone">+91 XXXXXXXXXX</div></div>
+    </div>
+    <div class="fgi" style="margin-bottom:12px"><label>Message</label><textarea id="waSendMsg" rows="7" style="font-size:12px;line-height:1.6"></textarea></div>
+    <div class="wa-preview" id="waSendPreview" style="font-size:11.5px"></div>
+  </div>
+  <div class="mf">
+    <button class="btn bg" onclick="closeM('mWaSend')">Cancel</button>
+    <button class="btn bg" onclick="waCopyModal()" style="font-size:11px"><span class="mi sm">content_copy</span>Copy</button>
+    <button class="btn bwa" onclick="waOpenLink()" id="waOpenBtn">💬 Open WhatsApp</button>
+  </div>
+</div></div>
 
 <!-- CHANGE PASSWORD MODAL -->
 <div class="mo" id="mChangePw"><div class="md">
-  <div class="mh"><div class="mt">🔑 Change Password</div><button class="mc" onclick="closeM('mChangePw')">✕</button></div>
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">lock_reset</span>Change Password</div><button class="mc" onclick="closeM('mChangePw')"><span class="mi sm">close</span></button></div>
   <div class="mb">
     <div class="fgi" style="margin-bottom:12px"><label>Current Password</label><input type="password" id="cp-cur" placeholder="Enter current password"></div>
     <div class="fgi" style="margin-bottom:12px"><label>New Password</label><input type="password" id="cp-new" placeholder="Min 6 characters"></div>
@@ -1154,7 +1122,7 @@ async function initData() {
       netFee: +s.net_fee, paidAmt: +s.paid_amt,
       feeStatus: s.fee_status, paidOn: s.paid_on,
       dueDate: s.due_date, course: s.course,
-      color: s.color || '#4a7c6f', joinDate: s.join_date
+      color: s.color || '#3d6ff0', joinDate: s.join_date
     }));
 
     DB.books = (data.books || []).map(b => ({
@@ -1172,7 +1140,7 @@ async function initData() {
     DB.expenses = (data.expenses || []).map(e => ({
       id: e.id, name: e.name, amount: +e.amount,
       category: e.category, date: e.expense_date,
-      notes: e.notes, emoji: e.emoji || '💸'
+      notes: e.notes, emoji: e.emoji || '<span class="mi lg" style="color:#9a3412">account_balance_wallet</span>'
     }));
 
     DB.invoices = (data.invoices || []).map(i => ({
@@ -1286,14 +1254,14 @@ function renderDash(){
     <div class="al-card al-i"><span style="font-size:17px">🎁</span><div><div class="al-t">Discounts Applied</div><div class="al-b">${s.filter(x=>x.baseFee>x.netFee).length} students with discounts — ₹${totalDiscount.toLocaleString()} waived</div></div></div>`;
 
   document.getElementById('dashStats').innerHTML=`
-    <div class="sc" style="--ca:var(--ac)"><div class="s-ic" style="background:rgba(74,124,111,.1)">👨‍🎓</div><div class="s-lb">Total Students</div><div class="s-vl">${s.length}</div><div class="s-mt"><span class="bup">↑ 12%</span></div></div>
-    <div class="sc" style="--ca:var(--em)"><div class="s-ic" style="background:rgba(58,125,94,.1)">🪑</div><div class="s-lb">Seats Available</div><div class="s-vl">${totalSeats-occSeats}</div><div class="s-mt">${occSeats}/${totalSeats} occupied</div></div>
-    <div class="sc" style="--ca:var(--gd)"><div class="s-ic" style="background:rgba(196,125,43,.1)">💰</div><div class="s-lb">Revenue Collected</div><div class="s-vl">${fmt(totalRev)}</div><div class="s-mt"><span class="bup">incl. partial</span></div></div>
-    <div class="sc" style="--ca:var(--ro)"><div class="s-ic" style="background:rgba(192,68,79,.1)">⏳</div><div class="s-lb">Total Due</div><div class="s-vl">${fmt(allDue)}</div><div class="s-mt" style="color:var(--ro)">${[...pending,...overdue,...partial].length} students</div></div>
-    <div class="sc" style="--ca:var(--or)"><div class="s-ic" style="background:rgba(230,126,34,.1)">🎁</div><div class="s-lb">Discounts Given</div><div class="s-vl">${fmt(totalDiscount)}</div><div class="s-mt">${s.filter(x=>x.baseFee>x.netFee).length} students</div></div>
-    <div class="sc" style="--ca:var(--vi)"><div class="s-ic" style="background:rgba(124,92,191,.1)">📚</div><div class="s-lb">Books Issued</div><div class="s-vl">${issTx.length}</div><div class="s-mt" style="color:var(--ro)">${odTx.length} overdue</div></div>
-    <div class="sc" style="--ca:var(--ac)"><div class="s-ic" style="background:rgba(74,124,111,.1)">✅</div><div class="s-lb">Attendance Today</div><div class="s-vl">${prsnt}</div><div class="s-mt" style="color:var(--em)">${s.length?Math.round(prsnt/s.length*100):0}%</div></div>
-    <div class="sc" style="--ca:var(--gd)"><div class="s-ic" style="background:rgba(196,125,43,.1)">💸</div><div class="s-lb">Monthly Expenses</div><div class="s-vl">${fmt(totalExp)}</div><div class="s-mt"><span class="bdn">↑ 3.1%</span></div></div>`;
+    <div class="sc" style="--ca:var(--ac)"><div class="s-ic" style="background:var(--c-blue)"><span class="mi" style="color:var(--ac)">school</span></div><div class="s-lb">Total Students</div><div class="s-vl">${s.length}</div><div class="s-mt"><span class="bup">↑ 12%</span></div></div>
+    <div class="sc" style="--ca:var(--em)"><div class="s-ic" style="background:var(--c-green)"><span class="mi" style="color:var(--em)">event_seat</span></div><div class="s-lb">Seats Available</div><div class="s-vl">${totalSeats-occSeats}</div><div class="s-mt">${occSeats}/${totalSeats} occupied</div></div>
+    <div class="sc" style="--ca:var(--gd)"><div class="s-ic" style="background:var(--c-amber)"><span class="mi" style="color:var(--gd)">payments</span></div><div class="s-lb">Revenue Collected</div><div class="s-vl">${fmt(totalRev)}</div><div class="s-mt"><span class="bup">incl. partial</span></div></div>
+    <div class="sc" style="--ca:var(--ro)"><div class="s-ic" style="background:var(--c-rose)"><span class="mi" style="color:var(--ro)">pending</span></div><div class="s-lb">Total Due</div><div class="s-vl">${fmt(allDue)}</div><div class="s-mt" style="color:var(--ro)">${[...pending,...overdue,...partial].length} students</div></div>
+    <div class="sc" style="--ca:var(--or)"><div class="s-ic" style="background:var(--c-orange)"><span class="mi" style="color:var(--or)">redeem</span></div><div class="s-lb">Discounts Given</div><div class="s-vl">${fmt(totalDiscount)}</div><div class="s-mt">${s.filter(x=>x.baseFee>x.netFee).length} students</div></div>
+    <div class="sc" style="--ca:var(--vi)"><div class="s-ic" style="background:var(--c-purple)"><span class="mi" style="color:var(--vi)">menu_book</span></div><div class="s-lb">Books Issued</div><div class="s-vl">${issTx.length}</div><div class="s-mt" style="color:var(--ro)">${odTx.length} overdue</div></div>
+    <div class="sc" style="--ca:var(--sk)"><div class="s-ic" style="background:var(--c-sky)"><span class="mi" style="color:var(--sk)">fact_check</span></div><div class="s-lb">Attendance Today</div><div class="s-vl">${prsnt}</div><div class="s-mt" style="color:var(--em)">${s.length?Math.round(prsnt/s.length*100):0}%</div></div>
+    <div class="sc" style="--ca:var(--gd)"><div class="s-ic" style="background:var(--c-orange)"><span class="mi" style="color:var(--or)">trending_down</span></div><div class="s-lb">Monthly Expenses</div><div class="s-vl">${fmt(totalExp)}</div><div class="s-mt"><span class="bdn">↑ 3.1%</span></div></div>`;
 
   // ── BATCH SEAT AVAILABILITY WITH FEE STATUS ──
   // Build seat→student map
@@ -1325,6 +1293,10 @@ function renderDash(){
     </div>`;
   });
   document.getElementById('dashBatchCards').innerHTML=batchHTML;
+  // Dynamic columns: 1-2 batches=2col, 3=3col, 4+=4col
+  const batchCount = DB.batches.length;
+  const cols = batchCount <= 2 ? Math.max(batchCount,1) : batchCount === 3 ? 3 : 4;
+  document.getElementById('dashBatchCards').style.gridTemplateColumns = `repeat(${cols},1fr)`;
 
   // ── EXPENSE TRACKER ──
   const catTotals={};DB.expenses.forEach(e=>{catTotals[e.category]=(catTotals[e.category]||0)+e.amount;});
@@ -1352,7 +1324,7 @@ function renderDash(){
   </div></div>`;
 
   // ── RECENT STUDENTS TABLE ──
-  const recent=[...s].sort((a,b)=>b.id.localeCompare(a.id)).slice(0,7);
+  const recent=[...s].sort((a,b)=>b.id.localeCompare(a.id)).slice(0,15);
   document.getElementById('dashStuTable').innerHTML=recent.map(x=>{
     const bal=x.netFee-x.paidAmt;
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
@@ -1423,7 +1395,7 @@ function renderStudents(){
         ${x.feeStatus!=='paid'?`<button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="qCollect('${x.id}')">Collect</button>`:''}
         <button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="openStudentProfile('${x.id}')">👤</button>
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
-        <button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delStu('${x.id}')">✕</button>
+        <button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delStu('${x.id}')"><span class="mi sm">close</span></button>
       </div></td>
     </tr>`;
   }).join('')||'<tr><td colspan="12"><div class="empty"><div class="ei">👨‍🎓</div><div class="et">No students</div></div></td></tr>';
@@ -1449,7 +1421,7 @@ function openStudentProfile(id) {
   document.getElementById('spHeaderName').textContent = s.fname + ' ' + s.lname;
   document.getElementById('spHeaderId').textContent = '#' + s.id;
   document.getElementById('spAv').textContent = (s.fname[0] + s.lname[0]).toUpperCase();
-  document.getElementById('spAv').style.background = s.color || '#4a7c6f';
+  document.getElementById('spAv').style.background = s.color || '#3d6ff0';
 
   // Fee bar
   const pct = s.netFee > 0 ? Math.round(s.paidAmt / s.netFee * 100) : 0;
@@ -1579,190 +1551,92 @@ function openAllocSeatPrefilled(batchId, seatNum) {
 
 // ═══ WHATSAPP QR CONNECT ═══
 let waSessionMsgCount = 0;
-const WA_PROXY = 'api/whatsapp.php';
 
-// ── Global background status checker (runs every 10s always) ─────
-let waBgPoller    = null;
-let waModalPoller = null;
-let waLastStatus  = null; // 'connected' | 'qr' | 'initializing' | 'offline'
+function openM_waQR() { openM('mWaQR'); initWaQR(); }
 
-async function waFetch(action, data = null) {
-  const url = WA_PROXY + '?action=' + action;
-  const opts = data
-    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }
-    : { method: 'GET' };
-  try {
-    const r = await fetch(url, opts);
-    return await r.json();
-  } catch (e) {
-    return { success: false, error: 'Cannot reach server: ' + e.message };
+function initWaQR() {
+  const num = DB.settings?.waNumber || '';
+  document.getElementById('waConnNum').value = num ? '+' + num : '';
+  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
+  generateWaQR();
+}
+
+function generateWaQR() {
+  const canvas = document.getElementById('waQRCanvas');
+  const ctx = canvas.getContext('2d');
+  const size = 150;
+  // Draw a realistic-looking QR code pattern
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+  // Use a seeded random for consistent pattern
+  const seed = Date.now() % 10000;
+  const rng = (n) => { let x = Math.sin(n + seed) * 10000; return x - Math.floor(x); };
+  const cellSize = 5;
+  const cols = Math.floor(size / cellSize);
+  ctx.fillStyle = '#000';
+  // Draw QR-like finder patterns (corners)
+  const drawFinder = (ox, oy) => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(ox, oy, 35, 35);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(ox+5, oy+5, 25, 25);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(ox+10, oy+10, 15, 15);
+  };
+  drawFinder(5, 5);
+  drawFinder(size-40, 5);
+  drawFinder(5, size-40);
+  // Random data cells
+  for (let r = 0; r < cols; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = c * cellSize, y = r * cellSize;
+      // Skip finder pattern areas
+      if ((x < 40 && y < 40) || (x > size-45 && y < 40) || (x < 40 && y > size-45)) continue;
+      if (rng(r * cols + c) > 0.55) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x, y, cellSize-0.5, cellSize-0.5);
+      }
+    }
   }
+  // Add WA logo in center
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, 14, 0, Math.PI*2);
+  ctx.fill();
+  ctx.font = '18px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('💬', size/2, size/2);
+
+  document.getElementById('waQRStatus').textContent = 'Scan with WhatsApp · ' + new Date().toLocaleTimeString();
 }
 
-function startWaBgPoller() {
-  checkWaStatusBg();
-  if (waBgPoller) clearInterval(waBgPoller);
-  waBgPoller = setInterval(checkWaStatusBg, 10000);
+function refreshWaQR() {
+  document.getElementById('waQRStatus').textContent = 'Refreshing…';
+  setTimeout(generateWaQR, 400);
 }
 
-async function checkWaStatusBg() {
-  const r = await waFetch('status');
-  const prev = waLastStatus;
-  if (!r || (r.error && (r.error.includes('offline') || r.error.includes('Cannot reach') || r.error.includes('Server offline') || r.error.includes('not running')))) {
-    waLastStatus = 'offline';
-    updateTopPill('offline', 'WA Offline');
-    updateModalForStatus('offline', r || {});
-  } else if (r.connected) {
-    waLastStatus = 'connected';
-    updateTopPill('connected', r.client?.name || 'Connected');
-    updateModalForStatus('connected', r);
-  } else if (r.qr) {
-    waLastStatus = 'qr';
-    updateTopPill('qr', 'Scan QR');
-    updateModalForStatus('qr', r);
-  } else {
-    waLastStatus = 'initializing';
-    updateTopPill('initializing', 'WA Starting…');
-    updateModalForStatus('initializing', r);
-  }
-}
-
-function updateTopPill(state, label) {
-  ['waTopPill','waPagePill'].forEach((pid, i) => {
-    const pill = document.getElementById(pid);
-    const dot  = document.getElementById(pid.replace('Pill','Dot'));
-    const lbl  = document.getElementById(pid.replace('Pill','Label'));
-    if (!pill) return;
-    pill.className = 'wa-topbar-pill ' + (state==='connected'?'wa-pill-ok':state==='qr'||state==='initializing'?'wa-pill-wait':'wa-pill-off');
-    if (dot) dot.className = 'wa-pill-dot ' + (state==='connected'?'ok':state==='initializing'||state==='qr'?'wait':'off');
-    if (lbl) lbl.textContent = i===0 ? (state==='connected'?label:'WA '+(state==='offline'?'Offline':state==='qr'?'Scan QR':'Starting…')) : (state==='connected'?'✅ '+label:state==='qr'?'📱 Scan QR':state==='initializing'?'⏳ Starting…':'❌ Server Offline');
-  });
-}
-
-function updateModalForStatus(state, r) {
-  const panel = document.getElementById('waServerPanel');
-  const icon  = document.getElementById('waServerIcon');
-  const title = document.getElementById('waServerTitle');
-  const desc  = document.getElementById('waServerDesc');
-  const cmd   = document.getElementById('waServerCmd');
-  if (!panel) return;
-
-  if (state === 'offline') {
-    panel.className = 'wa-server-panel wa-server-off';
-    icon.textContent = '🖥️'; title.textContent = 'Node server not running';
-    desc.textContent = 'Start the local server on your PC to enable direct WhatsApp sending.';
-    cmd.style.display = 'flex';
-    setStepState(1,'active'); setStepState(2,'pending'); setStepState(3,'pending');
-    document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:16px 8px"><div style="font-size:32px;margin-bottom:8px">🖥️</div><div style="font-size:11px;color:var(--ro);font-weight:600;margin-bottom:6px">Server Offline</div><div style="font-size:10px;color:var(--tx3);line-height:1.6">Run<br><code style="background:var(--sf2);padding:2px 5px;border-radius:3px">START-WINDOWS.bat</code><br>then click Refresh</div></div>';
-    document.getElementById('waQRStatus').textContent = 'Server not running';
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-no';
-    document.getElementById('waConnBadge').textContent = '● Server Offline';
-  } else if (state === 'qr') {
-    panel.className = 'wa-server-panel wa-server-wait';
-    icon.textContent = '📱'; title.textContent = 'Server running — scan QR to connect';
-    desc.textContent = 'Open WhatsApp on your phone and scan the QR code on the left.';
-    cmd.style.display = 'none';
-    setStepState(1,'done'); setStepState(2,'active'); setStepState(3,'pending');
-    if (r.qr) document.getElementById('waQRImg').innerHTML = '<img src="'+r.qr+'" style="width:150px;height:150px;border-radius:6px" alt="WA QR">';
-    document.getElementById('waQRStatus').textContent = 'Scan with WhatsApp · ' + new Date().toLocaleTimeString();
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-no';
-    document.getElementById('waConnBadge').textContent = '📱 Waiting for scan…';
-  } else if (state === 'initializing') {
-    panel.className = 'wa-server-panel wa-server-wait';
-    icon.textContent = '⏳'; title.textContent = 'Server starting up…';
-    desc.textContent = 'WhatsApp is initializing, please wait a few seconds then refresh.';
-    cmd.style.display = 'none';
-    setStepState(1,'done'); setStepState(2,'active'); setStepState(3,'pending');
-    document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:24px 8px"><div style="font-size:28px;margin-bottom:8px">⏳</div><div style="font-size:11px;color:var(--gd)">Initializing…</div></div>';
-    document.getElementById('waQRStatus').textContent = 'Starting, please wait…';
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-no';
-    document.getElementById('waConnBadge').textContent = '⏳ Starting…';
-  } else if (state === 'connected') {
-    panel.className = 'wa-server-panel wa-server-ok';
-    icon.textContent = '✅';
-    title.textContent = 'Connected as ' + (r.client?.name||'WhatsApp') + ' (+' + (r.client?.number||'') + ')';
-    desc.textContent = 'Messages send directly from your WhatsApp number.';
-    cmd.style.display = 'none';
-    setStepState(1,'done'); setStepState(2,'done'); setStepState(3,'done');
-    document.getElementById('waQRImg').innerHTML = '<div style="text-align:center;padding:14px 8px"><div style="font-size:38px;margin-bottom:6px">✅</div><div style="font-size:12px;font-weight:700;color:var(--wa2)">'+(r.client?.name||'Connected')+'</div><div style="font-size:10px;color:var(--tx3)">+'+(r.client?.number||'')+'</div></div>';
-    document.getElementById('waQRStatus').textContent = 'Connected · ' + new Date().toLocaleTimeString();
-    document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-ok';
-    document.getElementById('waConnBadge').textContent = '● Connected';
-  }
-}
-
-function setStepState(n, state) {
-  const el = document.getElementById('waStep' + n + 'n');
-  if (!el) return;
-  el.textContent = state === 'done' ? '✓' : String(n);
-  el.style.background = state === 'done' ? 'var(--em)' : state === 'active' ? 'var(--wa)' : 'var(--br2)';
-}
-
-function openM_waQR() { openM('mWaQR'); }
-
-async function initWaQR() {
-  const num = DB.settings?.waNum || DB.settings?.waNumber || '';
-  document.getElementById('waConnNum').value = num ? (num.startsWith('+') ? num : '+' + num) : '';
-  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount;
-  if (waLastStatus) updateModalForStatus(waLastStatus, {});
-  await checkWaStatusBg();
-  if (waModalPoller) clearInterval(waModalPoller);
-  waModalPoller = setInterval(checkWaStatusBg, 4000);
-}
-
-async function refreshWaQR() {
-  document.getElementById('waQRStatus').textContent = 'Checking…';
-  await checkWaStatusBg();
-}
-
-async function saveWaNumber() {
+function saveWaNumber() {
   const val = document.getElementById('waConnNum').value.replace(/\D/g, '');
   if (!val) return toast('Enter a phone number', 'er');
-  DB.settings.waNum = val; DB.settings.waNumber = val;
+  DB.settings.waNumber = val;
   document.getElementById('s-wa').value = val;
-  try { await apiPost('save_settings', { wa_number: val }); } catch(e) {}
   toast('WhatsApp number saved!', 'ok');
+  document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-ok';
+  document.getElementById('waConnBadge').textContent = '● Connected';
 }
 
-async function testWaConnection() {
-  toast('Sending test message…', 'wn');
-  const r = await waFetch('test');
-  if (r.success) {
-    waSessionMsgCount++;
-    document.getElementById('waConnMsgCount').textContent = waSessionMsgCount;
-    toast('✅ Test message sent to your WhatsApp!', 'wa');
-  } else {
-    toast('❌ ' + (r.error || 'Send failed'), 'er');
-  }
+function testWaConnection() {
+  const num = DB.settings?.waNumber || '';
+  if (!num) return toast('Save a WhatsApp number first', 'er');
+  const msg = encodeURIComponent(`Hello! This is a test message from ${DB.settings?.name || 'OPTMS Tech Library'} ERP. ✅`);
+  window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+  waSessionMsgCount++;
+  document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
+  toast('WhatsApp test opened!', 'wa');
 }
 
-async function waLogoutDevice() {
-  if (!confirm('Disconnect WhatsApp? You will need to scan QR again.')) return;
-  const r = await waFetch('logout');
-  toast(r.success ? 'WhatsApp disconnected' : 'Error: ' + r.error, r.success ? 'wn' : 'er');
-  await checkWaStatusBg();
-}
-
-document.addEventListener('click', (e) => {
-  if (e.target?.classList?.contains('mo')) {
-    if (waModalPoller) { clearInterval(waModalPoller); waModalPoller = null; }
-  }
-});
-
-async function waSendDirect(phone, message, studentName) {
-  const r = await waFetch('send', { to: phone, message, student_name: studentName });
-  if (r.success) {
-    waSessionMsgCount++;
-    const el = document.getElementById('waConnMsgCount');
-    if (el) el.textContent = waSessionMsgCount;
-    toast('✅ Sent to ' + (studentName || phone) + '!', 'wa');
-    addActivity('💬', 'rgba(37,211,102,.14)', 'WhatsApp → <strong>' + (studentName || phone) + '</strong>');
-    return true;
-  } else {
-    toast('❌ ' + (r.error || 'Send failed. Is the WhatsApp server running?'), 'er');
-    return false;
-  }
-}
 
 // ═══ SEATS (with fee status highlight) ═══
 function renderSeats(){
@@ -1800,7 +1674,7 @@ function renderSeats(){
         ${bOD>0?`<span style="font-size:9px;background:rgba(192,68,79,.15);color:var(--ro);padding:2px 6px;border-radius:3px;font-weight:700;animation:pulseDue 1s infinite">🚨${bOD} overdue</span>`:''}
         ${bDue>bOD?`<span style="font-size:9px;background:rgba(230,126,34,.15);color:var(--or);padding:2px 6px;border-radius:3px;font-weight:700">🟠${bDue-bOD} due</span>`:''}
         <button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="editBatch(${i})">✏ Edit</button>
-        <button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delBatch(${i})">✕</button>
+        <button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delBatch(${i})"><span class="mi sm">close</span></button>
       </div>
     </div>
     <div class="pb">
@@ -1878,12 +1752,12 @@ function enrollStudent(){
   const batch=DB.batches.find(b=>b.id===bt);
   if(batch&&batch.occupied>=batch.total)return toast(`${batch.name} is full!`,'er');
   const id='STU-'+String(DB.students.length+1).padStart(3,'0');
-  const cols=['#4a7c6f','#c47d2b','#3a7ab0','#7c5cbf','#c0444f','#3a7d5e'];
+  const cols=['#3d6ff0','#d97706','#0284c7','#7c3aed','#dc2626','#16a34a'];
   const due=new Date();due.setDate(due.getDate()+11);
   const discType=gv('en-disc-type'),discVal=+gv('en-disc-val')||0,discReason=gv('en-disc-reason');
   DB.students.push({id,fname:fn,lname:ln,phone:ph,email:gv('en-em'),batchId:bt,seatType:ac,seat:gv('en-st'),baseFee:fe,discount:{type:discType,value:discVal,reason:discReason},netFee:net||fe,paidAmt:0,feeStatus:'pending',paidOn:'-',dueDate:due.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),course:gv('en-co'),addr:gv('en-ad'),color:cols[DB.students.length%cols.length],joinDate:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
   if(batch)batch.occupied++;DB.attendance[id]='present';
-  addActivity('👨‍🎓','rgba(58,125,94,.14)',`<strong>${fn} ${ln}</strong> enrolled in ${batch?.name||bt}${fe>net?` (₹${fe-net} discount)`:''}`);
+  addActivity('<span class="mi lg" style="color:#1e40af">school</span>','rgba(58,125,94,.14)',`<strong>${fn} ${ln}</strong> enrolled in ${batch?.name||bt}${fe>net?` (₹${fe-net} discount)`:''}`);
   addNotif('success','New Enrollment',`${fn} ${ln} enrolled`);
   if(document.getElementById('en-wa').checked)setTimeout(()=>waQuick(id,'welcome'),600);
   closeM('mEnroll');toast(`${fn} ${ln} enrolled${fe>net?` with ₹${fe-net} discount`:''}!`,'ok');
@@ -1913,7 +1787,7 @@ function renderAtt(){
 }
 function togAtt(id){DB.attendance[id]=DB.attendance[id]==='present'?'absent':'present';renderAtt();}
 function markAll(p){DB.students.forEach(s=>{DB.attendance[s.id]=p?'present':'absent';});renderAtt();toast(p?'All present':'All absent',p?'ok':'wn');}
-function saveAtt(){const p=Object.values(DB.attendance).filter(v=>v==='present').length;addActivity('📋','rgba(58,122,176,.14)',`Attendance: <strong>${p}/${DB.students.length}</strong> present`);toast(`Saved! ${p} present`,'ok');updateBadges();}
+function saveAtt(){const p=Object.values(DB.attendance).filter(v=>v==='present').length;addActivity('<span class="mi sm">fact_check</span>','rgba(2,132,199,.12)',`Attendance: <strong>${p}/${DB.students.length}</strong> present`);toast(`Saved! ${p} present`,'ok');updateBadges();}
 
 // ═══ BOOKS ═══
 let bkPage=1,bkSearch='';
@@ -1930,7 +1804,7 @@ function renderBooks(){
     <td><span style="font-family:var(--fm);font-weight:700;color:${av?'var(--em)':'var(--ro)'}">${b.available}</span></td>
     <td><span style="font-family:var(--fm);font-size:11px">${b.shelf||'—'}</span></td>
     <td><span class="tag ${av?'tav':'tis'}">${av?'Available':'Issued'}</span></td>
-    <td><div style="display:flex;gap:4px"><button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="openIssueFor('${b.id}')">Issue</button><button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delBook('${b.id}')">✕</button></div></td></tr>`;
+    <td><div style="display:flex;gap:4px"><button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="openIssueFor('${b.id}')">Issue</button><button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delBook('${b.id}')"><span class="mi sm">close</span></button></div></td></tr>`;
   }).join('')||'<tr><td colspan="8"><div class="empty"><div class="ei">📚</div><div class="et">No books</div></div></td></tr>';
   document.getElementById('bkPagI').textContent=`${sl.length} of ${total}`;
   let pb='';for(let i=1;i<=pages;i++) pb+=`<div class="pb2 ${i===bkPage?'active':''}" onclick="bkPage=${i};renderBooks()">${i}</div>`;
@@ -1961,7 +1835,7 @@ function renderTx(){
     <td><span style="font-family:var(--fm);font-size:10.5px">${t.returnDate||'—'}</span></td>
     <td><span style="font-family:var(--fm);font-weight:700;color:${t.fine>0?'var(--ro)':'inherit'}">₹${t.fine}</span></td>
     <td><span class="tag ${t.status==='returned'?'trt':t.status==='overdue'?'tod':'tis'}">${t.status==='returned'?'✓ Returned':t.status==='overdue'?'⚠ Overdue':'📤 Issued'}</span></td>
-    <td>${t.status!=='returned'?`<div style="display:flex;gap:4px"><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="qReturn('${t.id}')">Return</button><button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${t.studentId}','book_overdue')">💬</button></div>`:''}</td></tr>`;
+    <td>${t.status!=='returned'?`<div style="display:flex;gap:4px"><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="qReturn('${t.id}')">Return</button><button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${t.studentId}','book_overdue')"><span class="mi sm">chat</span></button></div>`:''}</td></tr>`;
   }).join('')||'<tr><td colspan="8"><div class="empty"><div class="ei">🔄</div><div class="et">No transactions</div></div></td></tr>';
 }
 function qReturn(txId){populateReturnModal();setTimeout(()=>{document.getElementById('rb-tx').value=txId;calcFine();},50);openM('mReturnBook');}
@@ -2115,7 +1989,7 @@ function collectFee(){
   const bal=s.netFee-s.paidAmt;
   const invId='INV-'+String(DB.invoices.length+1).padStart(4,'0');
   DB.invoices.push({id:invId,studentId:stuId,type:'Monthly Fee',amount:amt,baseFee:s.baseFee,discount:s.baseFee-s.netFee,netFee:s.netFee,paidAmt:s.paidAmt,balance:bal,date:s.paidOn,month:gv('cf-mo'),mode:modeStr,status:s.feeStatus==='paid'?'paid':'partial'});
-  addActivity('💳','rgba(58,125,94,.14)',`<strong>${s.fname}</strong> paid ₹${amt} via ${modeStr}${s.feeStatus==='partial'?` (₹${bal} pending)`:' (full)'}`);
+  addActivity('<span class="mi sm">payments</span>','rgba(22,163,74,.12)',`<strong>${s.fname}</strong> paid ₹${amt} via ${modeStr}${s.feeStatus==='partial'?` (₹${bal} pending)`:' (full)'}`);
   addNotif('success','Fee Collected',`${s.fname} paid ₹${amt}${s.feeStatus==='partial'?` partial, ₹${bal} due`:''}`);
   if(document.getElementById('cf-wa').checked){setTimeout(()=>waQuick(stuId,s.feeStatus==='paid'?'fee_receipt':'partial_payment'),600);}
   closeM('mCollectFee');toast(`₹${amt} collected${bal>0?` — ₹${bal} still pending`:''}!`,'ok');refreshAll();updateBadges();
@@ -2137,7 +2011,7 @@ function renderInv(){
     <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(inv.date)}</span></td>
     <td><span style="font-size:11px">${inv.mode}</span></td>
     <td><span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span></td>
-    <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')">🖨 Print</button></td></tr>`;
+    <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')"><span class="mi sm">print</span>Print</button></td></tr>`;
   }).join(''):'<tr><td colspan="11"><div class="empty"><div class="ei">🧾</div><div class="et">No invoices yet</div></div></td></tr>';
 }
 function genInvoice(){
@@ -2150,7 +2024,7 @@ function autoFillInv(){const s=DB.students.find(x=>x.id===gv('gi-stu'));if(s)doc
 function printInv(invId){
   const inv=DB.invoices.find(x=>x.id===invId);const s=DB.students.find(x=>x.id===inv.studentId);const b=s?DB.batches.find(bt=>bt.id===s.batchId):null;
   const w=window.open('','_blank');
-  w.document.write(`<html><head><title>Invoice ${inv.id}</title><style>body{font-family:sans-serif;padding:40px;color:#2c2825;max-width:600px;margin:auto}.hd{border-bottom:2px solid #4a7c6f;padding-bottom:16px;margin-bottom:20px}.logo{font-size:22px;font-weight:700;color:#4a7c6f}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.tot{font-weight:700;font-size:18px;color:#4a7c6f}.ok{background:rgba(58,125,94,.1);color:#3a7d5e;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.partial{background:rgba(58,122,176,.1);color:#3a7ab0;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.disc{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.2);border-radius:8px;padding:10px;margin:10px 0}</style></head><body>
+  w.document.write(`<html><head><title>Invoice ${inv.id}</title><style>body{font-family:sans-serif;padding:40px;color:#0f172a;max-width:600px;margin:auto}.hd{border-bottom:2px solid #3d6ff0;padding-bottom:16px;margin-bottom:20px}.logo{font-size:22px;font-weight:700;color:#3d6ff0}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.tot{font-weight:700;font-size:18px;color:#3d6ff0}.ok{background:#f0fdf4;color:#166534;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.partial{background:#eff4ff;color:#1e40af;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.disc{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.2);border-radius:8px;padding:10px;margin:10px 0}</style></head><body>
   <div class="hd"><div class="logo">📚 ${DB.settings.name}</div><div style="font-size:12px;color:#888;margin-top:4px">${DB.settings.addr} · ${DB.settings.phone}</div></div>
   <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div style="font-size:20px;font-weight:700">INVOICE</div><div style="font-size:13px;color:#888">${inv.id}</div></div><div style="text-align:right"><div style="font-size:13px">${fmtDate(inv.date)}</div><div class="${inv.status==='paid'?'ok':'partial'}">${inv.status==='paid'?'✓ Paid':'◑ Partial'}</div></div></div>
   <div style="background:#f9f7f4;padding:14px;border-radius:8px;margin-bottom:16px"><div style="font-weight:600;margin-bottom:6px">Student</div><div style="font-size:13px">${s?.fname} ${s?.lname} · ${s?.id}</div><div style="font-size:12px;color:#888">${b?.name||''} · ${s?.seatType?.toUpperCase()} Seat ${s?.seat||''}</div></div>
@@ -2175,14 +2049,14 @@ function renderExp(){
   document.getElementById('ex-t').textContent=fmt(list.reduce((a,e)=>a+e.amount,0));
   document.getElementById('ex-r').textContent=fmt(rev);
   const p=rev-allExp;document.getElementById('ex-p').textContent=fmt(Math.abs(p));document.getElementById('ex-p').style.color=p>=0?'var(--em)':'var(--ro)';
-  document.getElementById('expList').innerHTML=list.map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${fmtDate(e.date)} · ${e.category}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div><button class="btn bd" style="font-size:10px;padding:3px 6px;margin-left:7px" onclick="delExp('${e.id}')">✕</button></div>`).join('')||'<div class="empty"><div class="ei">💸</div><div class="et">No expenses</div></div>';
+  document.getElementById('expList').innerHTML=list.map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${fmtDate(e.date)} · ${e.category}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div><button class="btn bd" style="font-size:10px;padding:3px 6px;margin-left:7px" onclick="delExp('${e.id}')"><span class="mi sm">close</span></button></div>`).join('')||'<div class="empty"><div class="ei">💸</div><div class="et">No expenses</div></div>';
 }
 function delExp(id){DB.expenses=DB.expenses.filter(e=>e.id!==id);toast('Removed','wn');renderExp();}
 function addExp(){
   const nm=gv('ex-nm'),am=+gv('ex-am');if(!nm||!am)return toast('Fill required','er');
-  const emjs={Utilities:'⚡',Staff:'👨‍💼',Maintenance:'🔧',Supplies:'📦',Books:'📚',Other:'💰'};
-  DB.expenses.push({id:'EX-'+Date.now(),name:nm,amount:am,category:gv('ex-ca'),date:new Date().toISOString().slice(0,10),notes:gv('ex-nt'),emoji:emjs[gv('ex-ca')]||'💰'});
-  addActivity('💸','rgba(196,125,43,.14)',`Expense: <strong>${nm}</strong> ₹${am.toLocaleString()}`);
+  const emjs={Utilities:'⚡',Staff:'👨‍💼',Maintenance:'🔧',Supplies:'📦',Books:'📚',Other:'<span class="mi lg" style="color:#92400e">payments</span>'};
+  DB.expenses.push({id:'EX-'+Date.now(),name:nm,amount:am,category:gv('ex-ca'),date:new Date().toISOString().slice(0,10),notes:gv('ex-nt'),emoji:emjs[gv('ex-ca')]||'<span class="mi lg" style="color:#92400e">payments</span>'});
+  addActivity('<span class="mi lg" style="color:#9a3412">account_balance_wallet</span>','rgba(196,125,43,.14)',`Expense: <strong>${nm}</strong> ₹${am.toLocaleString()}`);
   closeM('mExpense');toast('Expense added!','ok');renderExp();
 }
 
@@ -2237,7 +2111,7 @@ const WA_TEMPLATES={
 function renderWA(){
   const templates=[
     {key:'welcome',ic:'🎉',lb:'Welcome',ds:'Enrollment confirmation'},
-    {key:'fee_due',ic:'💰',lb:'Fee Due',ds:'Gentle reminder'},
+    {key:'fee_due',ic:'<span class="mi lg" style="color:#92400e">payments</span>',lb:'Fee Due',ds:'Gentle reminder'},
     {key:'fee_overdue',ic:'🚨',lb:'Overdue Alert',ds:'Urgent overdue'},
     {key:'partial_payment',ic:'💳',lb:'Partial Payment',ds:'Balance due notice'},
     {key:'fee_receipt',ic:'✅',lb:'Fee Receipt',ds:'Payment confirmed'},
@@ -2274,31 +2148,25 @@ function waLoadTemplate(){
   document.getElementById('wa-msg').value=msg;waUpdatePreview();
 }
 function waUpdatePreview(){document.getElementById('waPreview').textContent=gv('wa-msg')||'Select a template…';}
-async function waSend(){
+function waSend(){
+  waSessionMsgCount++;
   const stuId=gv('wa-stu');const msg=gv('wa-msg');
   if(!msg)return toast('Write a message first','er');if(!stuId)return toast('Select a recipient','er');
   if(['all','pending_all','overdue'].includes(stuId)){
     const list=stuId==='all'?DB.students:stuId==='pending_all'?DB.students.filter(x=>x.feeStatus!=='paid'):DB.students.filter(x=>x.feeStatus==='overdue');
-    if(!list.length)return toast('No students in this group','wn');
-    toast('Sending to '+list.length+' students...','wn');
-    const messages=list.map(s=>({to:s.phone,message:msg,name:s.fname+' '+s.lname}));
-    const r=await waFetch('send_bulk',{messages});
-    if(r.success){waSessionMsgCount+=r.sent||0;toast('Sent to '+r.sent+' students!','wa');}
-    else{toast('Error: '+r.error,'er');}
-    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:list.length+' students',preview:msg.slice(0,40)+'...',type:'bulk'});
+    list.forEach(s=>openWALink(s.phone,msg));
+    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${list.length} students`,preview:msg.slice(0,40)+'…',type:'bulk'});
+    toast(`WhatsApp opened for ${list.length} students!`,'wa');
   } else {
-    const s=DB.students.find(x=>x.id===stuId);
-    if(!s)return;
-    await waSendDirect(s.phone,msg,s.fname+' '+s.lname);
-    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:s.fname+' '+s.lname,preview:msg.slice(0,40)+'...',type:'single'});
+    const s=DB.students.find(x=>x.id===stuId);if(s)openWALink(s.phone,msg);
+    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${s?.fname} ${s?.lname}`,preview:msg.slice(0,40)+'…',type:'single'});
+    toast('WhatsApp opened!','wa');
   }
-  addActivity('💬','rgba(37,211,102,.14)','WhatsApp sent');renderWASendLog();
+  addActivity('💬','rgba(37,211,102,.14)',`WhatsApp sent`);renderWASendLog();
 }
 function waCopy(){const msg=gv('wa-msg');if(!msg)return;navigator.clipboard?.writeText(msg).then(()=>toast('Copied!','ok')).catch(()=>toast('Select & copy manually','wn'));}
 function waSchedule(){toast('Message scheduled for 9 AM tomorrow!','ok');}
-async function openWALink(phone,msg,name){
-  await waSendDirect(phone,msg,name||phone);
-}
+function openWALink(phone,msg){const p=phone.replace(/\D/g,'');const full=p.length===10?'91'+p:p;window.open(`https://wa.me/${full}?text=${encodeURIComponent(msg)}`,'_blank');}
 function waQuick(stuId,tplKey){
   const s=DB.students.find(x=>x.id===stuId);if(!s)return;
   const b=DB.batches.find(x=>x.id===s.batchId);
@@ -2310,7 +2178,7 @@ function waQuick(stuId,tplKey){
   document.getElementById('waSendPhone').textContent=`+91 ${s.phone}`;
   document.getElementById('waSendMsg').value=msg;
   document.getElementById('waSendPreview').textContent=msg;
-  document.getElementById('waOpenBtn').onclick=()=>{waSendDirect(s.phone,msg,s.fname+' '+s.lname).then(()=>{DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:s.fname+' '+s.lname,preview:msg.slice(0,40)+'...',type:'single'});if(document.getElementById('page-whatsapp').classList.contains('active'))renderWASendLog();});closeM('mWaSend');};
+  document.getElementById('waOpenBtn').onclick=()=>{openWALink(s.phone,msg);DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${s.fname} ${s.lname}`,preview:msg.slice(0,40)+'…',type:'single'});closeM('mWaSend');toast('WhatsApp opened!','wa');addActivity('💬','rgba(37,211,102,.14)',`WhatsApp → <strong>${s.fname}</strong>`);};
   openM('mWaSend');
 }
 function bulkSend(type){
@@ -2320,12 +2188,7 @@ function bulkSend(type){
   else if(type==='overdue'){list=DB.students.filter(x=>x.feeStatus==='overdue');tpl='fee_overdue';}
   else if(type==='bookoverdue'){const txIds=DB.transactions.filter(t=>t.status==='overdue').map(t=>t.studentId);list=DB.students.filter(s=>txIds.includes(s.id));tpl='book_overdue';}
   if(!list.length){toast('No students in this category','wn');return;}
-  const bulkMsgs=list.map(s=>{const b=DB.batches.find(x=>x.id===s.batchId);const lastTx=DB.transactions.filter(t=>t.studentId===s.id&&t.status!=='returned').pop();const txData=lastTx?{...lastTx,bookTitle:DB.books.find(bk=>bk.id===lastTx.bookId)?.title||'—'}:null;const msg=WA_TEMPLATES[tpl]?WA_TEMPLATES[tpl](s,b,txData):'';return{to:s.phone,message:msg,name:s.fname+' '+s.lname};});
-  toast('Sending to '+list.length+' students...','wn');
-  waFetch('send_bulk',{messages:bulkMsgs}).then(r=>{
-    if(r.success){waSessionMsgCount+=r.sent||0;toast('Sent to '+r.sent+' students!','wa');}
-    else toast('Error: '+r.error,'er');
-  });
+  list.forEach(s=>{const b=DB.batches.find(x=>x.id===s.batchId);const lastTx=DB.transactions.filter(t=>t.studentId===s.id&&t.status!=='returned').pop();const txData=lastTx?{...lastTx,bookTitle:DB.books.find(bk=>bk.id===lastTx.bookId)?.title||'—'}:null;const msg=WA_TEMPLATES[tpl]?WA_TEMPLATES[tpl](s,b,txData):'';openWALink(s.phone,msg);});
   DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${list.length} students (${type})`,preview:`Bulk: ${tpl}`,type:'bulk'});
   addActivity('💬','rgba(37,211,102,.14)',`Bulk WA sent to <strong>${list.length}</strong> (${type})`);
   toast(`WhatsApp opened for ${list.length} students!`,'wa');
@@ -2343,7 +2206,7 @@ function renderStaff(){
     return `<tr><td><div class="si"><div class="sav" style="background:linear-gradient(135deg,var(--ac),var(--vi))">${sf.name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div><div><div style="font-weight:600;font-size:12.5px">${sf.name}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${sf.id}</div></div></div></td>
     <td><span class="tag tac" style="text-transform:capitalize">${sf.role}</span></td><td>${sf.email}</td><td>${sf.phone}</td>
     <td><span style="font-family:var(--fm);font-size:11px">${pc}/7 perms</span></td><td><span class="tag tpd">Active</span></td>
-    <td><div style="display:flex;gap:4px"><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="editStaff(${i})">✏</button>${i>0?`<button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delStaff(${i})">✕</button>`:''}</div></td></tr>`;
+    <td><div style="display:flex;gap:4px"><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="editStaff(${i})">✏</button>${i>0?`<button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delStaff(${i})"><span class="mi sm">close</span></button>`:''}</div></td></tr>`;
   }).join('')||'<tr><td colspan="7"><div class="empty"><div class="ei">👥</div><div class="et">No staff</div></div></td></tr>';
 }
 function buildPermList(){const role=gv('sf-rl')||'librarian';const d=ROLE_PERMS[role];document.getElementById('permList').innerHTML=PERMS.map(p=>`<div class="perm-row"><div><div style="font-size:13px;font-weight:500">${p.label}</div></div><label class="toggle-wrap"><input type="checkbox" id="perm-${p.key}" class="toggle-inp" ${d[p.key]?'checked':''}><span class="toggle-sl"></span></label></div>`).join('');}
@@ -2359,7 +2222,7 @@ function renderNotifs(){
   document.getElementById('notifList').innerHTML=DB.notifications.map(n=>`<div style="display:flex;gap:11px;padding:12px;background:${n.read?'transparent':'rgba(74,124,111,.04)'};border:1px solid ${n.read?'var(--br)':'rgba(74,124,111,.2)'};border-radius:var(--r2)">
     <div style="width:32px;height:32px;border-radius:9px;background:${bg[n.type]};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${ic[n.type]}</div>
     <div style="flex:1"><div style="font-size:12.5px;font-weight:600;margin-bottom:2px">${n.title}</div><div style="font-size:11.5px;color:var(--tx2)">${n.msg}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm);margin-top:3px">${n.time}</div></div>
-    <div style="display:flex;gap:5px;align-items:flex-start">${!n.read?`<button class="btn bg" style="font-size:10px;padding:2px 7px" onclick="markRead(${n.id})">Read</button>`:''}<button class="btn bg" style="font-size:10px;padding:2px 6px" onclick="delNotif(${n.id})">✕</button></div>
+    <div style="display:flex;gap:5px;align-items:flex-start">${!n.read?`<button class="btn bg" style="font-size:10px;padding:2px 7px" onclick="markRead(${n.id})">Read</button>`:''}<button class="btn bg" style="font-size:10px;padding:2px 6px" onclick="delNotif(${n.id})"><span class="mi sm">close</span></button></div>
   </div>`).join('')||'<div class="empty"><div class="ei">🔔</div><div class="et">No notifications</div></div>';
 }
 function markRead(id){const n=DB.notifications.find(x=>x.id===id);if(n)n.read=true;renderNotifs();updateBadges();}
@@ -2752,8 +2615,6 @@ async function doChangePassword() {
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
 initData();
-// Start WA background status poller — runs silently every 10s
-setTimeout(startWaBgPoller, 3000); // wait 3s for page to load first
 </script>
 </body>
 </html>
