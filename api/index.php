@@ -150,6 +150,24 @@ switch ($action) {
         $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
         jsonResponse(['success' => true]);
 
+        case 'update_student':
+    if ($method !== 'POST') jsonError('Method not allowed', 405);
+    $d = getInput();
+    $id = $d['id'] ?? '';
+    if (!$id) jsonError('ID required');
+    $db->prepare("UPDATE students SET fname=?, lname=?, phone=?, email=?, course=?, addr=? WHERE id=?")
+       ->execute([
+           $d['fname']  ?? '',
+           $d['lname']  ?? '',
+           $d['phone']  ?? '',
+           $d['email']  ?? '',
+           $d['course'] ?? '',
+           $d['addr']   ?? '',
+           $id
+       ]);
+    addActivity($db, '✏️', 'rgba(74,124,111,.14)', "Profile updated → <strong>{$d['fname']} {$d['lname']}</strong>");
+    jsonResponse(['success' => true]);
+
     // ══════════════════════════════════
     // BATCHES
     // ══════════════════════════════════
