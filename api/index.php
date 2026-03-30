@@ -141,7 +141,7 @@ switch ($action) {
         addActivity($db, '👨‍🎓', 'rgba(74,124,111,.14)', "New student <strong>{$d['fname']} {$d['lname']}</strong> enrolled");
         addNotif($db, 'info', 'New Enrollment', "{$d['fname']} {$d['lname']} enrolled");
         jsonResponse(['success' => true, 'id' => $newId]);
-
+        break;
         case 'update_student':
     $d = $body;
     $stmt = $pdo->prepare("UPDATE students SET fname=?, lname=?, phone=?, email=?, course=?, addr=? WHERE id=?");
