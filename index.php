@@ -1382,17 +1382,19 @@ async function initData() {
       time: timeSince(n.created_at), read: !!+n.is_read
     }));
 
-    DB.staff = (data.staff || []).map(sf => ({
-      id: sf.id, name: sf.name, role: sf.role,
-      email: sf.email, phone: sf.phone, username: sf.username,
-      perms: {
-        students: !!+sf.perm_students, fees: !!+sf.perm_fees,
-        books: !!+sf.perm_books, expenses: !!+sf.perm_expenses,
-        reports: !!+sf.perm_reports, staff: !!+sf.perm_staff,
-        settings: !!+sf.perm_settings
-      },
-      status: sf.status
-    }));
+    if (data.staff) {
+      DB.staff = data.staff.map(sf => ({
+        id: sf.id, name: sf.name, role: sf.role,
+        email: sf.email, phone: sf.phone, username: sf.username,
+        perms: {
+          students: !!+sf.perm_students, fees: !!+sf.perm_fees,
+          books: !!+sf.perm_books, expenses: !!+sf.perm_expenses,
+          reports: !!+sf.perm_reports, staff: !!+sf.perm_staff,
+          settings: !!+sf.perm_settings
+        },
+        status: sf.status
+      }));
+    }
 
     const s = data.settings || {};
     DB.settings = {
