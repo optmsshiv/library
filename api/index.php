@@ -150,6 +150,24 @@ switch ($action) {
         $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
         jsonResponse(['success' => true]);
 
+        case 'update_student':
+    if ($method !== 'POST') jsonError('Method not allowed', 405);
+    $d = getInput();
+    $id = $d['id'] ?? '';
+    if (!$id) jsonError('ID required');
+    $db->prepare("UPDATE students SET fname=?, lname=?, phone=?, email=?, course=?, addr=? WHERE id=?")
+       ->execute([
+           $d['fname']  ?? '',
+           $d['lname']  ?? '',
+           $d['phone']  ?? '',
+           $d['email']  ?? '',
+           $d['course'] ?? '',
+           $d['addr']   ?? '',
+           $id
+       ]);
+    addActivity($db, '✏️', 'rgba(74,124,111,.14)', "Profile updated → <strong>{$d['fname']} {$d['lname']}</strong>");
+    jsonResponse(['success' => true]);
+
     // ══════════════════════════════════
     // BATCHES
     // ══════════════════════════════════
@@ -414,16 +432,8 @@ switch ($action) {
                      $d['id']]);
             }
         } else {
-            // New staff: auto-generate username from name if not provided
-            if (empty($d['username'])) {
-                $base = strtolower(preg_replace('/\s+/', '.', trim($d['name'])));
-                $base = preg_replace('/[^a-z0-9.]/', '', $base) ?: 'staff';
-                $exists = $db->prepare("SELECT COUNT(*) FROM staff WHERE username=?");
-                $exists->execute([$base]);
-                $d['username'] = $exists->fetchColumn() > 0
-                    ? $base . (int)$db->query("SELECT COUNT(*) FROM staff")->fetchColumn()
-                    : $base;
-            }
+            // New staff: require username; default password is 'Pass@1234' if none given
+            if (empty($d['username'])) jsonError('Username is required for new staff.');
             $rawPassword = !empty($d['password']) ? $d['password'] : 'Pass@1234';
             $hash = password_hash($rawPassword, PASSWORD_BCRYPT);
             $newId = 'SF-' . str_pad((int)$db->query("SELECT COUNT(*) FROM staff")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
