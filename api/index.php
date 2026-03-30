@@ -141,13 +141,7 @@ switch ($action) {
         addActivity($db, '👨‍🎓', 'rgba(74,124,111,.14)', "New student <strong>{$d['fname']} {$d['lname']}</strong> enrolled");
         addNotif($db, 'info', 'New Enrollment', "{$d['fname']} {$d['lname']} enrolled");
         jsonResponse(['success' => true, 'id' => $newId]);
-        break;
-        case 'update_student':
-    $d = $body;
-    $stmt = $pdo->prepare("UPDATE students SET fname=?, lname=?, phone=?, email=?, course=?, addr=? WHERE id=?");
-    $stmt->execute([$d['fname'], $d['lname'], $d['phone'], $d['email'], $d['course'], $d['addr'], $d['id']]);
-    echo json_encode(['success' => true]);
-    
+
     case 'delete_student':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
