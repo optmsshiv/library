@@ -1730,36 +1730,22 @@ function cancelProfileEdit() {
   openStudentProfile(profileStudentId);
 }
 
-async function saveProfileEdit() {
+function saveProfileEdit() {
   const s = DB.students.find(x => x.id === profileStudentId);
   if (!s) return;
   const get = id2 => document.getElementById(id2).textContent.trim();
-  s.fname  = get('spFname')  || s.fname;
-  s.lname  = get('spLname')  || s.lname;
-  s.phone  = get('spPhone');
-  s.email  = get('spEmail');
+  s.fname = get('spFname') || s.fname;
+  s.lname = get('spLname') || s.lname;
+  s.phone = get('spPhone');
+  s.email = get('spEmail');
   s.course = get('spCourse');
-  s.addr   = get('spAddr');
+  s.addr = get('spAddr');
   addActivity('✏', 'rgba(74,124,111,.14)', `Profile updated → <strong>${s.fname} ${s.lname}</strong>`);
   toast('Profile saved!', 'ok');
   renderStudents();
-  // Re-open in view mode immediately with local data
+  // Re-open in view mode
   profileEditMode = false;
   openStudentProfile(profileStudentId);
-  // Persist to server in background
-  try {
-    await apiPost('update_student', {
-      id:     s.id,
-      fname:  s.fname,
-      lname:  s.lname,
-      phone:  s.phone  || '',
-      email:  s.email  || '',
-      course: s.course || '',
-      addr:   s.addr   || ''
-    });
-  } catch(e) {
-    // API unavailable — changes kept in local session
-  }
 }
 
 function openAllocFromProfile() {
