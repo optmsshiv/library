@@ -1407,9 +1407,6 @@ async function initData() {
       waNum: s.wa_number || ''
     };
 
-    // Apply nav permissions for the logged-in staff member
-    if (data.me) applyNavPerms(data.me);
-
     // Build attendance map from today's data
     const attData = await apiGet('get_attendance', { date: new Date().toISOString().split('T')[0] });
     DB.attendance = attData.attendance || {};
@@ -1437,48 +1434,6 @@ function timeSince(ts) {
   if (diff < 3600) return Math.floor(diff/60) + ' min ago';
   if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
   return Math.floor(diff/86400) + ' day(s) ago';
-}
-
-// ═══ PERMISSION-BASED NAV ENFORCEMENT ═══
-function applyNavPerms(me) {
-  // Admins always see everything
-  if (me.role === 'admin') return;
-
-  // Map each nav page to its required permission key.
-  // Pages not listed here are visible to all staff.
-  const PAGE_PERM = {
-    students:        'perm_students',
-    enroll:          'perm_students',
-    seats:           'perm_students',
-    attendance:      'perm_students',
-    fees:            'perm_fees',
-    invoices:        'perm_fees',
-    books:           'perm_books',
-    transactions:    'perm_books',
-    expenses:        'perm_expenses',
-    reports:         'perm_reports',
-    analytics:       'perm_reports',
-    staff:           'perm_staff',
-    staff_attendance:'perm_staff',
-    renewal:         'perm_staff',
-    audit:           'perm_staff',
-    settings:        'perm_settings',
-  };
-
-  document.querySelectorAll('.ni[data-page]').forEach(el => {
-    const page = el.dataset.page;
-    const permKey = PAGE_PERM[page];
-    if (permKey && !+me[permKey]) {
-      el.style.display = 'none';
-    }
-  });
-
-  // Also hide empty section group headers (ns) that have no visible items
-  document.querySelectorAll('.ns').forEach(ns => {
-    const items = ns.querySelectorAll('.ni');
-    const allHidden = Array.from(items).every(i => i.style.display === 'none');
-    if (allHidden) ns.style.display = 'none';
-  });
 }
 
 // ═══ NAVIGATION ═══

@@ -66,6 +66,7 @@ switch ($action) {
         $notifications = $db->query("SELECT * FROM notifications ORDER BY created_at DESC")->fetchAll();
         $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
         $invoices = $db->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
+        $staff    = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status FROM staff ORDER BY created_at")->fetchAll();
         jsonResponse([
             'students'      => $students,
             'batches'       => $batches,
@@ -76,6 +77,7 @@ switch ($action) {
             'notifications' => $notifications,
             'settings'      => $settings,
             'invoices'      => $invoices,
+            'staff'         => $staff,
         ]);
         break;
 
@@ -149,24 +151,6 @@ switch ($action) {
         if (!$id) jsonError('ID required');
         $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
         jsonResponse(['success' => true]);
-
-        case 'update_student':
-    if ($method !== 'POST') jsonError('Method not allowed', 405);
-    $d = getInput();
-    $id = $d['id'] ?? '';
-    if (!$id) jsonError('ID required');
-    $db->prepare("UPDATE students SET fname=?, lname=?, phone=?, email=?, course=?, addr=? WHERE id=?")
-       ->execute([
-           $d['fname']  ?? '',
-           $d['lname']  ?? '',
-           $d['phone']  ?? '',
-           $d['email']  ?? '',
-           $d['course'] ?? '',
-           $d['addr']   ?? '',
-           $id
-       ]);
-    addActivity($db, '✏️', 'rgba(74,124,111,.14)', "Profile updated → <strong>{$d['fname']} {$d['lname']}</strong>");
-    jsonResponse(['success' => true]);
 
     // ══════════════════════════════════
     // BATCHES

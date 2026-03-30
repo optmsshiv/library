@@ -67,6 +67,13 @@ switch ($action) {
         $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
         $invoices = $db->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
         $staff    = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status FROM staff ORDER BY created_at")->fetchAll();
+        $meStmt   = $db->prepare("SELECT role,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings FROM staff WHERE id=? LIMIT 1");
+        $meStmt->execute([$_SESSION['staff_id']]);
+        $me = $meStmt->fetch();
+        if (!$me) {
+            // Fallback: admin gets full access
+            $me = ['role'=>'admin','perm_students'=>1,'perm_fees'=>1,'perm_books'=>1,'perm_expenses'=>1,'perm_reports'=>1,'perm_staff'=>1,'perm_settings'=>1];
+        }
         jsonResponse([
             'students'      => $students,
             'batches'       => $batches,
@@ -78,6 +85,7 @@ switch ($action) {
             'settings'      => $settings,
             'invoices'      => $invoices,
             'staff'         => $staff,
+            'me'            => $me,
         ]);
         break;
 
