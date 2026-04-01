@@ -847,7 +847,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="page" id="page-settings">
   <div class="sec-hd"><div><div class="sec-t">Settings</div></div></div>
   <div class="g2">
-    <div class="panel"><div class="ph"><div class="pt">OPTMS Tech Info</div></div><div class="pb">
+    <div class="panel"><div class="ph"><div class="pt">NAYI UDAAN LIBRARY Info</div></div><div class="pb">
       <div class="fg">
         <div class="fgi full"><label>Library Name</label><input id="s-name" value="NAYI UDAAN LIBRARY"></div>
         <div class="fgi"><label>Phone / WhatsApp</label><input id="s-phone" value="+91 97099 00158"></div>
