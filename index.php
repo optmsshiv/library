@@ -1425,26 +1425,6 @@ async function initData() {
       time: l.created_at ? l.created_at.slice(11,16) : '',
       to: l.sent_to, preview: l.preview, type: l.type
     }));
-    // ── Staff attendance for current month ──
-try {
-  const saRes = await apiGet('get_staff_attendance', {
-    month: new Date().toISOString().slice(0, 7)
-  });
-  if (saRes && saRes.attendance) {
-    Object.assign(DB.staffAtt, saRes.attendance);
-  }
-} catch (e) { /* non-fatal */ }
-
-// ── Staff salary map ──
-try {
-  const ssRes = await apiGet('get_staff_salary');
-  if (ssRes && ssRes.salaries) {
-    DB.staffSalary = {};
-    for (const [id, base] of Object.entries(ssRes.salaries)) {
-      DB.staffSalary[id] = parseFloat(base) || 0;
-    }
-  }
-} catch (e) { /* non-fatal */ }
 
   } catch(e) {
     console.error('Init failed:', e);
@@ -3038,49 +3018,31 @@ function updateRenewDate() {
     `✅ Extending by <strong>${months} month${months>1?'s':''}</strong> · New due: <strong>${base.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</strong> · Fee: <strong>₹${fee}</strong>`;
 }
 
-async function confirmRenew() {
+function confirmRenew() {
   const s = DB.students.find(x => x.id === renewStudentId);
   if (!s) return;
- 
   const newDate = document.getElementById('ren-newdate').value;
   const fee     = +document.getElementById('ren-fee').value || 0;
   const mode    = document.getElementById('ren-mode').value;
   const notes   = document.getElementById('ren-notes').value;
   const months  = +document.getElementById('ren-extend').value;
- 
-  // ── Optimistic local update (UI stays snappy) ──
-  s.dueDate = newDate;
-  s.paidAmt = (s.paidAmt || 0) + fee;
+
+  s.dueDate   = newDate;
+  s.paidAmt   = (s.paidAmt||0) + fee;
   if (s.paidAmt >= s.netFee) s.feeStatus = 'paid';
   else if (s.paidAmt > 0)    s.feeStatus = 'partial';
-  s.paidOn = new Date().toISOString().split('T')[0];
- 
-  auditLog('renewal', `Renewed ${s.fname} ${s.lname} — ${months}mo, ₹${fee} (${mode})${notes ? ' — ' + notes : ''}`);
-  addActivity('🔄', 'rgba(61,111,240,.14)', `Renewed <strong>${s.fname} ${s.lname}</strong> for ${months} month${months > 1 ? 's' : ''}`);
+  s.paidOn    = new Date().toISOString().split('T')[0];
+
+  // Log renewal to invoices
+  const invId = 'REN-' + Date.now();
+  DB.invoices.push({id:invId, studentId:s.id, type:`Renewal (${months}mo)`, amount:fee, baseFee:s.baseFee, discount:s.baseFee-s.netFee, netFee:s.netFee, paidAmt:fee, balance:0, date:new Date().toISOString().split('T')[0], month:new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}), mode, status:'paid'});
+
+  // Audit
+  auditLog('renewal', `Renewed ${s.fname} ${s.lname} — ${months}mo, ₹${fee} (${mode})${notes?' — '+notes:''}`);
+  addActivity('🔄','rgba(61,111,240,.14)',`Renewed <strong>${s.fname} ${s.lname}</strong> for ${months} month${months>1?'s':''}`);
   closeM('mRenew');
-  toast(`✅ ${s.fname} renewed for ${months} month${months > 1 ? 's' : ''}!`, 'ok');
+  toast(`✅ ${s.fname} renewed for ${months} month${months>1?'s':''}!`,'ok');
   renderRenewal(); renderStudents(); updateBadges();
- 
-  // ── Persist to DB ──────────────────────────────────────────
-  try {
-    const res = await apiPost('confirm_renew', {
-      student_id:   s.id,
-      months:       months,
-      new_due_date: newDate,
-      fee_paid:     fee,
-      mode:         mode,
-      notes:        notes,
-    });
-    if (res.error) {
-      toast('⚠ Renewal saved locally but server error: ' + res.error, 'wn');
-    } else {
-      // Reload from server so student fee_status & paid_amt are authoritative
-      await reloadDB();
-    }
-  } catch (e) {
-    toast('⚠ Renewal saved locally — could not reach server', 'wn');
-    console.error('confirm_renew API error:', e);
-  }
 }
 
 function sendRenewalWA() {
@@ -3109,43 +3071,20 @@ Thank you! 📚
   waSendDirect(s.phone, msg, s.fname+' '+s.lname);
 }
 
-async function bulkRenew() {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+function bulkRenew() {
+  const today = new Date(); today.setHours(0,0,0,0);
   const due   = DB.students.filter(s => new Date(s.dueDate) <= today);
- 
   if (!due.length) return toast('No overdue students', 'wn');
   if (!confirm(`Renew ${due.length} overdue students by 1 month?`)) return;
- 
-  // Build the new dates and apply optimistically
-  const newDueDates = {};
   due.forEach(s => {
     const d = new Date(s.dueDate) < today ? new Date() : new Date(s.dueDate);
-    d.setMonth(d.getMonth() + 1);
-    const iso = d.toISOString().split('T')[0];
-    newDueDates[s.id] = iso;
-    s.dueDate    = iso;
-    s.feeStatus  = 'pending';
+    d.setMonth(d.getMonth()+1);
+    s.dueDate = d.toISOString().split('T')[0];
+    s.feeStatus = 'pending';
   });
- 
   auditLog('renewal', `Bulk renewal — ${due.length} students extended 1 month`);
   toast(`✅ ${due.length} students renewed!`, 'ok');
   renderRenewal(); renderStudents(); updateBadges();
- 
-  // ── Persist to DB ──────────────────────────────────────────
-  try {
-    const res = await apiPost('bulk_renew', {
-      student_ids:   due.map(s => s.id),
-      new_due_dates: newDueDates,
-    });
-    if (res.error) {
-      toast('⚠ Bulk renewal saved locally but server error: ' + res.error, 'wn');
-    } else {
-      await reloadDB();
-    }
-  } catch (e) {
-    toast('⚠ Bulk renewal saved locally — could not reach server', 'wn');
-    console.error('bulk_renew API error:', e);
-  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3190,105 +3129,58 @@ function setStaffAtt(sfId, status, date, btn) {
   btn.classList.add('active');
 }
 
-async function saveStaffAtt() {
+function saveStaffAtt() {
   const date = document.getElementById('staffAttDate').value;
-  if (!date) return toast('Select a date first', 'er');
- 
-  const att = DB.staffAtt[date] || {};
- 
-  // ── Persist to DB ──────────────────────────────────────────
-  try {
-    const res = await apiPost('save_staff_attendance', {
-      date:       date,
-      attendance: att,
-    });
- 
-    if (res.error) {
-      toast('⚠ Server error: ' + res.error, 'er');
-    } else {
-      auditLog('staff', `Staff attendance saved for ${date}`);
-      toast(`✅ Attendance saved for ${date}!`, 'ok');
-      renderStaffAttSummary();
-    }
-  } catch (e) {
-    toast('⚠ Could not save attendance to server', 'er');
-    console.error('save_staff_attendance API error:', e);
-  }
+  auditLog('staff', `Staff attendance saved for ${date}`);
+  toast('✅ Attendance saved!', 'ok');
+  renderStaffAttSummary();
 }
 
 function renderStaffSalary() {
   const selEl = document.getElementById('staffSalMonth');
- 
-  // Populate months dropdown if empty
+  // Populate months if empty
   if (!selEl.options.length) {
     for (let i = 0; i < 6; i++) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
-      const val = d.toISOString().slice(0, 7);
-      const lbl = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-      selEl.appendChild(new Option(lbl, val));
+      const val = d.toISOString().slice(0,7);
+      const lbl = d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+      const opt = new Option(lbl, val);
+      selEl.appendChild(opt);
     }
   }
- 
-  const month = selEl.value || new Date().toISOString().slice(0, 7);
+  const month = selEl.value || new Date().toISOString().slice(0,7);
   let total = 0;
- 
+
   document.getElementById('staffSalList').innerHTML = DB.staff.map(sf => {
-    const base       = DB.staffSalary[sf.id] || 0;
+    const base    = DB.staffSalary[sf.id] || 0;
+    // Count working days this month
     const daysInMonth = new Date(month.split('-')[0], month.split('-')[1], 0).getDate();
-    let present = 0, absent = 0, half = 0;
- 
-    for (let d = 1; d <= daysInMonth; d++) {
-      const key  = `${month}-${String(d).padStart(2, '0')}`;
-      const stat = (DB.staffAtt[key] || {})[sf.id] || 'present';
-      if (stat === 'present')     present++;
-      else if (stat === 'absent') absent++;
-      else                        half += 0.5;
+    let present=0, absent=0, half=0;
+    for (let d=1; d<=daysInMonth; d++) {
+      const key  = `${month}-${String(d).padStart(2,'0')}`;
+      const stat = (DB.staffAtt[key]||{})[sf.id] || 'present';
+      if (stat==='present') present++;
+      else if (stat==='absent') absent++;
+      else half += 0.5;
     }
- 
-    const worked = present + half;
-    const salary = base > 0 ? Math.round((base / daysInMonth) * worked) : 0;
+    const worked  = present + half;
+    const salary  = base > 0 ? Math.round((base / daysInMonth) * worked) : 0;
     total += salary;
- 
     return `<div class="sal-row">
       <div>
         <div style="font-size:12.5px;font-weight:600">${sf.name}</div>
-        <div class="sal-days">P:${present} A:${absent} ½:${half * 2} · ${worked.toFixed(1)}/${daysInMonth} days</div>
-        ${base === 0 ? '<div style="font-size:10px;color:var(--ro)">Set salary below</div>' : ''}
+        <div class="sal-days">P:${present} A:${absent} ½:${half*2} · ${worked.toFixed(1)}/${daysInMonth} days</div>
+        ${base===0?'<div style="font-size:10px;color:var(--ro)">Set salary below</div>':''}
       </div>
       <div style="text-align:right">
-        <div class="sal-amt">${salary > 0 ? '₹' + salary.toLocaleString() : '—'}</div>
-        <input
-          type="number"
-          value="${base || ''}"
-          placeholder="Base ₹"
-          data-staff-id="${sf.id}"
-          style="width:80px;font-size:11px;padding:3px 6px;margin-top:4px;text-align:right"
-          title="Monthly base salary — saved automatically on change"
-          onchange="saveSingleSalary('${sf.id}', +this.value)"
-        >
+        <div class="sal-amt">${salary>0?'₹'+salary.toLocaleString():'—'}</div>
+        <input type="number" value="${base||''}" placeholder="Base₹" style="width:80px;font-size:11px;padding:3px 6px;margin-top:4px;text-align:right"
+          onchange="DB.staffSalary['${sf.id}']=+this.value;renderStaffSalary()" title="Monthly base salary">
       </div>
     </div>`;
   }).join('') || '<div style="color:var(--tx3);font-size:12px;padding:10px">No staff added yet</div>';
- 
-  document.getElementById('staffSalTotal').textContent = total > 0 ? '₹' + total.toLocaleString() : '₹0';
-}
 
-// ── NEW HELPER: saveSingleSalary() ───────────────────────────
-// Called by the salary input's onchange — saves one staff salary to DB
-async function saveSingleSalary(staffId, base) {
-  DB.staffSalary[staffId] = base;   // update local state
-  renderStaffSalary();              // refresh the table immediately
- 
-  try {
-    const res = await apiPost('save_staff_salary', {
-      salaries: { [staffId]: base }
-    });
-    if (res && res.error) toast('⚠ Salary save error: ' + res.error, 'wn');
-    else toast('💾 Salary saved!', 'ok');
-  } catch (e) {
-    toast('⚠ Could not save salary to server', 'er');
-    console.error('save_staff_salary error:', e);
-  }
+  document.getElementById('staffSalTotal').textContent = total > 0 ? '₹' + total.toLocaleString() : '₹0';
 }
 
 function renderStaffAttSummary() {
