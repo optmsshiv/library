@@ -717,8 +717,10 @@ switch ($action) {
          FROM activity_log
          ORDER BY created_at DESC
          LIMIT 500"
-    )->fetchAll(db::FETCH_ASSOC);
-     jsonResponse($rows);
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    jsonResponse($rows);
+    break;
     
 }
 
