@@ -494,8 +494,16 @@ switch ($action) {
     case 'save_settings':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
-        $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=? WHERE id=1")
-           ->execute([$d['name'] ?? '',$d['phone'] ?? '',$d['email'] ?? '',$d['addr'] ?? '',(int)($d['fine'] ?? 5),(int)($d['days'] ?? 14),$d['wa_number'] ?? '']);
+        // Check if ac_extra column exists; if not, skip it gracefully
+        try {
+            $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=?,ac_extra=? WHERE id=1")
+               ->execute([$d['name'] ?? '',$d['phone'] ?? '',$d['email'] ?? '',$d['addr'] ?? '',(int)($d['fine'] ?? 5),(int)($d['days'] ?? 14),$d['wa_number'] ?? '',(int)($d['ac_extra'] ?? 200)]);
+        } catch (\PDOException $e) {
+            // ac_extra column may not exist yet — fall back without it
+            $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=? WHERE id=1")
+               ->execute([$d['name'] ?? '',$d['phone'] ?? '',$d['email'] ?? '',$d['addr'] ?? '',(int)($d['fine'] ?? 5),(int)($d['days'] ?? 14),$d['wa_number'] ?? '']);
+        }
+        addActivity($db, '⚙', 'rgba(100,116,139,.14)', "Settings updated by <strong>" . htmlspecialchars($_SESSION['staff_name'] ?? 'Staff') . "</strong>");
         jsonResponse(['success' => true]);
 
     // ══════════════════════════════════
@@ -517,6 +525,38 @@ switch ($action) {
     case 'get_activities':
         $rows = $db->query("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 20")->fetchAll();
         jsonResponse($rows);
+
+    case 'get_my_dp':
+        if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
+        try {
+            $stmt = $db->prepare("SELECT dp_image FROM staff WHERE id=? LIMIT 1");
+            $stmt->execute([$_SESSION['staff_id']]);
+            $row = $stmt->fetch();
+            jsonResponse(['dp' => $row['dp_image'] ?? null]);
+        } catch (\PDOException $e) {
+            jsonResponse(['dp' => null]); // column doesn't exist yet
+        }
+
+    // ══════════════════════════════════
+    // PROFILE IMAGE (DP) UPLOAD
+    // ══════════════════════════════════
+    case 'upload_dp':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
+        if (empty($_FILES['dp'])) jsonError('No file uploaded');
+        $file = $_FILES['dp'];
+        $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
+        if (!in_array($file['type'], $allowed)) jsonError('Only JPG/PNG/GIF/WebP allowed');
+        if ($file['size'] > 2 * 1024 * 1024) jsonError('File too large (max 2MB)');
+        // Convert to base64 data URI for storage
+        $data = base64_encode(file_get_contents($file['tmp_name']));
+        $uri  = 'data:' . $file['type'] . ';base64,' . $data;
+        try {
+            $db->prepare("UPDATE staff SET dp_image=? WHERE id=?")->execute([$uri, $_SESSION['staff_id']]);
+        } catch (\PDOException $e) {
+            jsonError('dp_image column missing — run: ALTER TABLE staff ADD COLUMN dp_image TEXT NULL;');
+        }
+        jsonResponse(['success' => true, 'dp' => $uri]);
 
     default:
         jsonError('Unknown action', 404);

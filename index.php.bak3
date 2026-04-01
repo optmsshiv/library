@@ -424,7 +424,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   </nav>
   <div class="sb-foot">
     <div class="u-card">
-      <div class="u-av" id="sidebarAv"><?= $staffInitials ?></div>
+      <div class="u-av"><?= $staffInitials ?></div>
       <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
       <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')"><span class="mi sm">lock_reset</span></span>
       <a href="/logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
@@ -847,25 +847,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="page" id="page-settings">
   <div class="sec-hd"><div><div class="sec-t">Settings</div></div></div>
   <div class="g2">
-    <div>
-    <div class="panel" style="margin-bottom:14px"><div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">account_circle</span>Profile Photo</div></div><div class="pb">
-      <div style="display:flex;align-items:center;gap:18px">
-        <div style="position:relative">
-          <img id="dp-preview" src="" alt="Profile" style="display:none;width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 2px 10px rgba(61,111,240,.2)">
-          <div id="dp-placeholder" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--vi));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;border:3px solid var(--br)"><?= $staffInitials ?></div>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px"><?= $staffName ?></div>
-          <div style="font-size:11px;color:var(--tx3);margin-bottom:10px"><?= $staffRole ?> · Upload a square photo (JPG/PNG, max 2MB)</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <label style="cursor:pointer">
-              <input type="file" id="dp-file-input" accept="image/*" style="display:none" onchange="uploadDP()">
-              <div class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Photo</div>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div></div>
     <div class="panel"><div class="ph"><div class="pt">NAYI UDAAN LIBRARY Info</div></div><div class="pb">
       <div class="fg">
         <div class="fgi full"><label>Library Name</label><input id="s-name" value="NAYI UDAAN LIBRARY"></div>
@@ -882,7 +863,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}"><span class="mi sm">restart_alt</span>Reset</button>
       </div>
     </div></div>
-    </div>
     <div class="panel"><div class="ph"><div class="pt">System Stats</div></div><div class="pb" id="setStats"></div></div>
   </div>
 </div>
@@ -1432,25 +1412,6 @@ async function initData() {
 
     // Apply nav permissions for the logged-in staff member
     if (data.me) applyNavPerms(data.me);
-
-    // Load staff DP image from server if available
-    try {
-      const meDetail = await apiGet('get_my_dp');
-      if (meDetail && meDetail.dp) {
-        const av = document.getElementById('sidebarAv');
-        if (av) {
-          av.style.backgroundImage = `url(${meDetail.dp})`;
-          av.style.backgroundSize = 'cover';
-          av.style.backgroundPosition = 'center';
-          av.textContent = '';
-        }
-        const prev = document.getElementById('dp-preview');
-        const ph   = document.getElementById('dp-placeholder');
-        if (prev && ph && meDetail.dp) {
-          prev.src = meDetail.dp; prev.style.display = 'block'; ph.style.display = 'none';
-        }
-      }
-    } catch(e) { /* dp not loaded — fine */ }
 
     // Build attendance map from today's data
     const attData = await apiGet('get_attendance', { date: new Date().toISOString().split('T')[0] });
@@ -2893,26 +2854,17 @@ async function clearNotifs() {
 
 // ── SAVE SETTINGS ──
 async function saveSettings() {
-  try {
-    const res = await apiPost('save_settings', {
-      name: gv('s-name'), phone: gv('s-phone'), email: gv('s-email'),
-      addr: gv('s-addr'), fine: +gv('s-fine'), days: +gv('s-days'),
-      wa_number: gv('s-wa'), ac_extra: +gv('s-acfee')
-    });
-    if (res && res.error) return toast(res.error, 'er');
-    DB.settings.fine  = +gv('s-fine');
-    DB.settings.days  = +gv('s-days');
-    DB.settings.waNum = gv('s-wa');
-    DB.settings.name  = gv('s-name');
-    DB.settings.phone = gv('s-phone');
-    DB.settings.email = gv('s-email');
-    DB.settings.addr  = gv('s-addr');
-    DB.settings.acFee = +gv('s-acfee');
-    auditLog('settings', 'Library settings updated');
-    toast('✅ Settings saved!', 'ok');
-  } catch(e) {
-    toast('Error saving settings: ' + e.message, 'er');
-  }
+  const res = await apiPost('save_settings', {
+    name: gv('s-name'), phone: gv('s-phone'), email: gv('s-email'),
+    addr: gv('s-addr'), fine: +gv('s-fine'), days: +gv('s-days'),
+    wa_number: gv('s-wa')
+  });
+  if (res.error) return toast(res.error, 'er');
+  DB.settings.fine = +gv('s-fine');
+  DB.settings.days = +gv('s-days');
+  DB.settings.waNum = gv('s-wa');
+  DB.settings.name = gv('s-name');
+  toast('Settings saved!', 'ok');
 }
 
 // ── WA SEND LOG (persist to DB) ──
@@ -2947,44 +2899,13 @@ function renderSettings() {
   // Fill settings form from live DB
   const s = DB.settings;
   const fields = { 's-name': s.name, 's-phone': s.phone, 's-email': s.email, 
-                   's-addr': s.addr, 's-fine': s.fine || s.fine_per_day, 
-                   's-days': s.days || s.loan_days, 's-wa': s.waNum || s.wa_number,
-                   's-acfee': s.acFee || s.ac_extra || 200 };
+                   's-addr': s.addr, 's-fine': s.fine||s.fine_per_day, 
+                   's-days': s.days||s.loan_days, 's-wa': s.waNum||s.wa_number };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (el && val !== undefined) el.value = val;
   });
   _origRenderSettings();
-}
-
-// ── PROFILE IMAGE (DP) UPLOAD ──
-async function uploadDP() {
-  const input = document.getElementById('dp-file-input');
-  const file  = input?.files?.[0];
-  if (!file) return toast('Please select an image', 'er');
-  if (file.size > 2 * 1024 * 1024) return toast('Image must be under 2MB', 'er');
-  const fd = new FormData();
-  fd.append('dp', file);
-  try {
-    const r = await fetch(`${API}?action=upload_dp`, { method: 'POST', body: fd });
-    const res = await r.json();
-    if (res.error) return toast(res.error, 'er');
-    // Update sidebar avatar to show the uploaded image
-    const av = document.querySelector('.u-av');
-    if (av && res.dp) {
-      av.style.backgroundImage = `url(${res.dp})`;
-      av.style.backgroundSize  = 'cover';
-      av.style.backgroundPosition = 'center';
-      av.textContent = '';
-    }
-    // Update preview
-    const prev = document.getElementById('dp-preview');
-    if (prev && res.dp) { prev.src = res.dp; prev.style.display = 'block'; }
-    toast('✅ Profile photo updated!', 'ok');
-    auditLog('settings', 'Profile photo updated');
-  } catch(e) {
-    toast('Upload failed: ' + e.message, 'er');
-  }
 }
 
 // ═══ CHANGE PASSWORD ═══
