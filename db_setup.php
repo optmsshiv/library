@@ -9,9 +9,9 @@ session_start();
 
 // ── DB CONFIG — change these to match your server ──────────────
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'edrppymy_library');   // ← change this
-define('DB_USER', 'edrppymy_library');         // ← change this
-define('DB_PASS', '1357@Librarydatabase');     // ← change this
+define('DB_NAME', 'edrppymy_udaanlibrary');   // ← change this
+define('DB_USER', 'edrppymy_udaanlibrary');         // ← change this
+define('DB_PASS', '1234@Libraryerp');     // ← change this
 define('DB_PORT', 3306);
 // ───────────────────────────────────────────────────────────────
 
