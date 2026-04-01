@@ -9,9 +9,9 @@ session_start();
 
 // ── DB CONFIG — change these to match your server ──────────────
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'your_database_name');   // ← change this
-define('DB_USER', 'your_db_user');         // ← change this
-define('DB_PASS', 'your_db_password');     // ← change this
+define('DB_NAME', 'edrppymy_library_erp');   // ← change this
+define('DB_USER', 'edrppymy_library_erp');         // ← change this
+define('DB_PASS', '1234@Libraryerp');     // ← change this
 define('DB_PORT', 3306);
 // ───────────────────────────────────────────────────────────────
 
