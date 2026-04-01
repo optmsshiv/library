@@ -23,7 +23,7 @@ if (empty($_SESSION['staff_id'])) {
 }
 
 /* ── DB connection ── */
-require_once __DIR__ . '../includes/db.php';   // define $pdo (PDO instance)
+require_once __DIR__ . '/../db.php';   // define $pdo (PDO instance)
 // db.php example:
 // <?php
 // $pdo = new PDO('mysql:host=localhost;dbname=edrppymy_udaanlibrary;charset=utf8mb4',
