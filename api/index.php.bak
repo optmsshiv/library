@@ -489,13 +489,49 @@ switch ($action) {
     // ══════════════════════════════════
     case 'get_settings':
         $row = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
+        if (!$row) {
+            // No row yet — insert a default row so subsequent saves work
+            $db->exec("INSERT INTO settings (id,name,phone,email,addr,fine_per_day,loan_days,wa_number) VALUES (1,'','','','','5','14','')");
+            $row = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
+        }
         jsonResponse($row);
 
     case 'save_settings':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
-        $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=? WHERE id=1")
-           ->execute([$d['name'] ?? '',$d['phone'] ?? '',$d['email'] ?? '',$d['addr'] ?? '',(int)($d['fine'] ?? 5),(int)($d['days'] ?? 14),$d['wa_number'] ?? '']);
+
+        // Detect which columns actually exist in the settings table
+        $cols = [];
+        foreach ($db->query("SHOW COLUMNS FROM settings")->fetchAll() as $c) {
+            $cols[] = $c['Field'];
+        }
+
+        // Always-present fields
+        $set  = ["name=?","phone=?","email=?","addr=?","fine_per_day=?","loan_days=?","wa_number=?"];
+        $vals = [
+            $d['name']      ?? '',
+            $d['phone']     ?? '',
+            $d['email']     ?? '',
+            $d['addr']      ?? '',
+            (int)($d['fine']  ?? 5),
+            (int)($d['days']  ?? 14),
+            $d['wa_number'] ?? '',
+        ];
+
+        // AC fee — save to whichever column(s) the table actually has
+        $acVal = (int)($d['ac_fee'] ?? 200);
+        if (in_array('ac_fee',   $cols)) { $set[] = "ac_fee=?";   $vals[] = $acVal; }
+        if (in_array('ac_extra', $cols)) { $set[] = "ac_extra=?"; $vals[] = $acVal; }
+
+        // Check if row id=1 exists; if not, INSERT it first
+        $exists = $db->query("SELECT COUNT(*) FROM settings WHERE id=1")->fetchColumn();
+        if (!$exists) {
+            $db->exec("INSERT INTO settings (id) VALUES (1)");
+        }
+
+        $vals[] = 1; // WHERE id=1
+        $db->prepare("UPDATE settings SET " . implode(',', $set) . " WHERE id=?")->execute($vals);
+        addActivity($db, '⚙', 'rgba(100,116,139,.14)', "Settings updated by <strong>" . htmlspecialchars($_SESSION['staff_name'] ?? 'Staff') . "</strong>");
         jsonResponse(['success' => true]);
 
     // ══════════════════════════════════
@@ -519,113 +555,35 @@ switch ($action) {
         jsonResponse($rows);
 
     // ══════════════════════════════════
-    // RENEWALS
+    // STAFF PROFILE PHOTO (DP)
     // ══════════════════════════════════
-    case 'renew_student':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['student_id'])) jsonError('student_id required');
-
-        $stuStmt = $db->prepare("SELECT * FROM students WHERE id=?");
-        $stuStmt->execute([$d['student_id']]);
-        $s = $stuStmt->fetch();
-        if (!$s) jsonError('Student not found');
-
-        $months  = max(1, (int)($d['months']  ?? 1));
-        $amt     = (int)($d['amount']          ?? $s['net_fee']);
-        $mode    = $d['mode']                  ?? 'Cash';
-        $note    = $d['note']                  ?? '';
-        $today   = date('Y-m-d');
-        $newDue  = $d['new_due_date']          ?? date('Y-m-d', strtotime("+{$months} month"));
-        $newPaid = min($s['net_fee'], $amt);
-        $feeStatus = $newPaid >= $s['net_fee'] ? 'paid' : 'partial';
-
-        // Update student row
-        $db->prepare("UPDATE students SET paid_amt=?, fee_status=?, paid_on=?, due_date=? WHERE id=?")
-           ->execute([$newPaid, $feeStatus, $today, $newDue, $d['student_id']]);
-
-        // Write to renewals table
-        $renId = 'REN-' . str_pad(
-            (int)$db->query("SELECT COUNT(*) FROM renewals")->fetchColumn() + 1,
-            4, '0', STR_PAD_LEFT
-        );
-        $db->prepare("INSERT INTO renewals (id,student_id,amount,months,mode,note,renewed_by,renewal_date,new_due_date) VALUES (?,?,?,?,?,?,?,?,?)")
-           ->execute([$renId, $d['student_id'], $amt, $months, $mode, $note, $_SESSION['staff_id'] ?? '', $today, $newDue]);
-
-        // Create invoice
-        $invId = 'INV-' . str_pad(
-            (int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1,
-            4, '0', STR_PAD_LEFT
-        );
-        $balance = max(0, $s['net_fee'] - $newPaid);
-        $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-           ->execute([$invId, $d['student_id'], "Renewal ({$months}mo)", $amt,
-             $s['base_fee'], $s['base_fee'] - $s['net_fee'], $s['net_fee'],
-             $newPaid, $balance, $today,
-             date('F Y'), $mode, $feeStatus]);
-
-        addActivity($db, '🔄', 'rgba(61,111,240,.14)',
-            "Renewal: <strong>{$s['fname']} {$s['lname']}</strong> ₹{$amt} via {$mode} · Due: {$newDue}");
-        addNotif($db, 'success', 'Renewal Done',
-            "{$s['fname']} renewed {$months} month(s) — ₹{$amt}");
-
-        jsonResponse(['success' => true, 'renewal_id' => $renId, 'invoice_id' => $invId, 'new_due_date' => $newDue]);
-
-    // ══════════════════════════════════
-    // STAFF ATTENDANCE
-    // ══════════════════════════════════
-    case 'get_staff_attendance':
-        $date = $_GET['date'] ?? date('Y-m-d');
-        $rows = $db->prepare("SELECT staff_id, status, check_in, check_out, note FROM staff_attendance WHERE attendance_date=?");
-        $rows->execute([$date]);
-        $att = [];
-        foreach ($rows->fetchAll() as $r) $att[$r['staff_id']] = $r;
-        jsonResponse(['date' => $date, 'attendance' => $att]);
-
-    case 'save_staff_attendance':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d          = getInput();
-        $date       = $d['date']       ?? date('Y-m-d');
-        $attendance = $d['attendance'] ?? [];
-        if (empty($attendance)) jsonError('No attendance data provided');
-
-        $markedBy = $_SESSION['staff_id'] ?? '';
-        foreach ($attendance as $staffId => $info) {
-            $status   = $info['status']    ?? 'absent';
-            $checkIn  = !empty($info['check_in'])  ? $info['check_in']  : null;
-            $checkOut = !empty($info['check_out']) ? $info['check_out'] : null;
-            $note     = $info['note'] ?? '';
-            $db->prepare("
-                INSERT INTO staff_attendance (staff_id, attendance_date, status, check_in, check_out, note, marked_by)
-                VALUES (?,?,?,?,?,?,?)
-                ON DUPLICATE KEY UPDATE
-                  status=VALUES(status), check_in=VALUES(check_in),
-                  check_out=VALUES(check_out), note=VALUES(note), marked_by=VALUES(marked_by)
-            ")->execute([$staffId, $date, $status, $checkIn, $checkOut, $note, $markedBy]);
+    case 'get_my_dp':
+        if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
+        try {
+            $stmt = $db->prepare("SELECT dp_image FROM staff WHERE id=? LIMIT 1");
+            $stmt->execute([$_SESSION['staff_id']]);
+            $row = $stmt->fetch();
+            jsonResponse(['dp' => $row['dp_image'] ?? null]);
+        } catch (\PDOException $e) {
+            jsonResponse(['dp' => null]); // column doesn't exist yet — safe fallback
         }
-        addActivity($db, '🗓️', 'rgba(58,122,176,.14)',
-            "Staff attendance saved for <strong>{$date}</strong> (" . count($attendance) . " records)");
-        jsonResponse(['success' => true, 'date' => $date, 'count' => count($attendance)]);
 
-    case 'get_staff_attendance_summary':
-        $month = $_GET['month'] ?? date('Y-m');
-        $rows  = $db->prepare("
-            SELECT
-                s.id, s.name, s.role,
-                SUM(CASE WHEN sa.status='present' THEN 1 ELSE 0 END) AS present,
-                SUM(CASE WHEN sa.status='absent'  THEN 1 ELSE 0 END) AS absent,
-                SUM(CASE WHEN sa.status='half'    THEN 1 ELSE 0 END) AS half,
-                COUNT(sa.id) AS days_marked
-            FROM staff s
-            LEFT JOIN staff_attendance sa
-                ON sa.staff_id = s.id
-               AND DATE_FORMAT(sa.attendance_date,'%Y-%m') = ?
-            WHERE s.status = 'active'
-            GROUP BY s.id, s.name, s.role
-            ORDER BY s.name
-        ");
-        $rows->execute([$month]);
-        jsonResponse($rows->fetchAll());
+    case 'upload_dp':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
+        if (empty($_FILES['dp'])) jsonError('No file uploaded');
+        $file    = $_FILES['dp'];
+        $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
+        if (!in_array($file['type'], $allowed)) jsonError('Only JPG/PNG/GIF/WebP images allowed');
+        if ($file['size'] > 2 * 1024 * 1024)   jsonError('File too large — max 2MB');
+        $base64 = base64_encode(file_get_contents($file['tmp_name']));
+        $uri    = 'data:' . $file['type'] . ';base64,' . $base64;
+        try {
+            $db->prepare("UPDATE staff SET dp_image=? WHERE id=?")->execute([$uri, $_SESSION['staff_id']]);
+        } catch (\PDOException $e) {
+            jsonError('dp_image column missing. Run: ALTER TABLE staff ADD COLUMN dp_image MEDIUMTEXT NULL;');
+        }
+        jsonResponse(['success' => true, 'dp' => $uri]);
 
     default:
         jsonError('Unknown action', 404);
