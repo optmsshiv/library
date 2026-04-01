@@ -585,6 +585,118 @@ switch ($action) {
         }
         jsonResponse(['success' => true, 'dp' => $uri]);
 
+    // ══════════════════════════════════
+    // RENEWALS
+    // ══════════════════════════════════
+    case 'renew_student':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d = getInput();
+
+        // Required fields
+        $studentId = trim($d['student_id'] ?? '');
+        $amount    = (int)($d['amount']     ?? 0);
+        $months    = (int)($d['months']     ?? 1);
+        $mode      = trim($d['mode']        ?? 'Cash');
+        $note      = trim($d['note']        ?? '');
+
+        if (!$studentId)   jsonError('student_id is required');
+        if ($amount <= 0)  jsonError('amount must be greater than 0');
+        if ($months <= 0)  jsonError('months must be at least 1');
+
+        // Fetch student
+        $stuStmt = $db->prepare("SELECT * FROM students WHERE id=? LIMIT 1");
+        $stuStmt->execute([$studentId]);
+        $stu = $stuStmt->fetch();
+        if (!$stu) jsonError('Student not found');
+
+        // Calculate new due_date: extend from current due_date (or today if expired)
+        $currentDue = $stu['due_date'] ?? null;
+        if (empty($currentDue) || $currentDue === '0000-00-00') {
+            $baseTs = time();
+        } else {
+            $baseTs = max(time(), strtotime($currentDue));
+        }
+        $newDueDate = date('Y-m-d', strtotime("+{$months} months", $baseTs));
+
+        // Update student: reset fee status, paid_amt, due_date
+        $db->prepare(
+            "UPDATE students SET due_date=?, paid_amt=paid_amt+?, fee_status='paid', paid_on=? WHERE id=?"
+        )->execute([$newDueDate, $amount, date('Y-m-d'), $studentId]);
+
+        // Insert into renewals table
+        $renewId   = 'RNW-' . str_pad(
+            (int)$db->query("SELECT COUNT(*) FROM renewals")->fetchColumn() + 1,
+            4, '0', STR_PAD_LEFT
+        );
+        $renewedBy = $_SESSION['staff_name'] ?? 'Staff';
+
+        $db->prepare(
+            "INSERT INTO renewals
+                (id, student_id, amount, months, mode, note, renewed_by, renewal_date, new_due_date)
+             VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )->execute([
+            $renewId,
+            $studentId,
+            $amount,
+            $months,
+            $mode,
+            $note,
+            $renewedBy,
+            date('Y-m-d'),
+            $newDueDate,
+        ]);
+
+        // Create invoice record for this renewal
+        $invId = 'INV-' . str_pad(
+            (int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1,
+            4, '0', STR_PAD_LEFT
+        );
+        $db->prepare(
+            "INSERT INTO invoices
+                (id, student_id, type, amount, base_fee, discount, net_fee, paid_amt, balance,
+                 invoice_date, month, mode, status)
+             VALUES (?, ?, 'Renewal', ?, ?, 0, ?, ?, 0, ?, ?, ?, 'paid')"
+        )->execute([
+            $invId,
+            $studentId,
+            $amount,
+            $stu['base_fee'] ?? $amount,
+            $stu['net_fee']  ?? $amount,
+            $amount,
+            date('Y-m-d'),
+            date('F Y'),
+            $mode,
+        ]);
+
+        // Log activity & notification
+        $stuName = trim(($stu['fname'] ?? '') . ' ' . ($stu['lname'] ?? ''));
+        addActivity(
+            $db, '🔄', 'rgba(61,111,240,.14)',
+            "<strong>{$stuName}</strong> renewed for {$months} month(s) — ₹{$amount} via {$mode}. Due: {$newDueDate}"
+        );
+        addNotif(
+            $db, 'success', 'Renewal Successful',
+            "{$stuName} renewed for {$months} month(s). New due date: {$newDueDate}"
+        );
+
+        jsonResponse([
+            'success'      => true,
+            'renewal_id'   => $renewId,
+            'invoice_id'   => $invId,
+            'new_due_date' => $newDueDate,
+            'student_id'   => $studentId,
+        ]);
+
+    case 'get_renewals':
+        $rows = $db->query(
+            "SELECT r.*, s.fname, s.lname, s.color
+             FROM renewals r
+             LEFT JOIN students s ON r.student_id = s.id
+             ORDER BY r.renewal_date DESC, r.created_at DESC"
+        )->fetchAll();
+        jsonResponse($rows);
+
     default:
         jsonError('Unknown action', 404);
 }

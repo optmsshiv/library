@@ -90,22 +90,6 @@ switch ($action) {
         break;
 
     // ══════════════════════════════════
-    // Audit Bugs
-    // ══════════════════════════════════
-        case 'get_audit_log':
-    $rows = $pdo->query(
-        "SELECT id, icon, bg, text, created_at,
-                COALESCE(who, 'Admin') AS who,
-                COALESCE(type, 'other') AS type
-         FROM activity_log
-         ORDER BY created_at DESC
-         LIMIT 500"
-    )->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($rows);
-    break;
-
-
-    // ══════════════════════════════════
     // STUDENTS
     // ══════════════════════════════════
     case 'get_students':
@@ -625,12 +609,17 @@ switch ($action) {
         $stu = $stuStmt->fetch();
         if (!$stu) jsonError('Student not found');
 
-        // Calculate new due_date: extend from current due_date (or today if expired)
+        // Smart hybrid: if due_date is in the future → extend from due_date (student keeps remaining days)
+        //               if due_date is today or past → extend from today (no gap, no loss)
         $currentDue = $stu['due_date'] ?? null;
+        $todayTs    = strtotime(date('Y-m-d')); // midnight today, no time component
         if (empty($currentDue) || $currentDue === '0000-00-00') {
-            $baseTs = time();
+            // No due date set — start fresh from today
+            $baseTs = $todayTs;
         } else {
-            $baseTs = max(time(), strtotime($currentDue));
+            $dueTs = strtotime($currentDue);
+            // Only extend from due_date if it's strictly in the future
+            $baseTs = ($dueTs > $todayTs) ? $dueTs : $todayTs;
         }
         $newDueDate = date('Y-m-d', strtotime("+{$months} months", $baseTs));
 

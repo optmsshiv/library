@@ -1346,7 +1346,8 @@ let DB = {
   expenses: [], invoices: [], activities: [], notifications: [],
   settings: {name:'OPTMS Tech Study Library',phone:'+91 72820 71620',email:'admin@optms.co.in',
              addr:'Madhepura, Bihar - 852113',fine_per_day:5,loan_days:14,wa_number:'917282071620'},
-  attendance: {}, waSendLog: [], staff: []
+  attendance: {}, waSendLog: [], staff: [],
+  auditLog: []   // ✅ ADD THIS
 };
 let editBatchIdx = -1, editStaffIdx = -1;
 
@@ -1453,6 +1454,16 @@ async function initData() {
       to: l.sent_to, preview: l.preview, type: l.type
     }));
 
+    // Add this block after the waSendLog loading:
+    const auditData = await apiGet('get_audit_log');
+    DB.auditLog = (auditData || []).map(a => ({
+      id: a.id,
+      who: a.who || 'Admin',
+      type: a.type || 'other',
+      text: a.text || '',
+      time: timeSince(a.created_at),
+      ts: new Date(a.created_at).getTime()
+    }));
   } catch(e) {
     console.error('Init failed:', e);
     toast('Failed to load data from server', 'er');
