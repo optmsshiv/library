@@ -133,7 +133,7 @@ switch ($action) {
         $netFee = $baseFee - $disc;
         $colors = ['#4a7c6f','#c47d2b','#3a7ab0','#7c5cbf','#c0444f','#3a7d5e','#e67e22'];
         $color = $colors[array_rand($colors)];
-        $sql = "INSERT INTO students (id,fname,lname,phone,batch_id,seat_type,seat,base_fee,discount_type,discount_value,discount_reason,net_fee,paid_amt,fee_status,paid_on,due_date,course,color,join_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'pending',NULL,?,?,?,?)";
+        $sql = "INSERT INTO students (id,fname,lname,phone,email,addr,batch_id,seat_type,seat,base_fee,discount_type,discount_value,discount_reason,net_fee,paid_amt,fee_status,paid_on,due_date,course,color,join_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'pending',NULL,?,?,?,?)";
         $stmt = $db->prepare($sql);
         // Calculate due_date: 30 days from join date (or today)
         $joinRaw = $d['join_date'] ?? '';
@@ -142,7 +142,8 @@ switch ($action) {
         $joinDate = date('Y-m-d', $joinTs);
         $dueDate  = date('Y-m-d', strtotime('+30 days', $joinTs));
         $stmt->execute([
-            $newId, $d['fname'], $d['lname'] ?? '', $d['phone'] ?? '', $d['batch_id'],
+            $newId, $d['fname'], $d['lname'] ?? '', $d['phone'] ?? '', $d['email'] ?? '', $d['addr'] ?? '',
+            $d['batch_id'],
             $d['seat_type'] ?? 'non-ac', $d['seat'] ?? '',
             $baseFee, $discType, $discVal, $d['discount_reason'] ?? '',
             $netFee, $dueDate, $d['course'] ?? '', $color,
