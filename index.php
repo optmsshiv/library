@@ -1678,7 +1678,7 @@ function renderStudents(){
 function stuSrch(v){stuSearchVal=v;stuPage=1;renderStudents();}
 function stuFilt(f,el){stuFilterVal=f;stuPage=1;document.querySelectorAll('#stuTabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderStudents();}
 function qCollect(id){populateFeeModal(id);openM('mCollectFee');}
-function delStu(id){if(!confirm('Remove?'))return;DB.students=DB.students.filter(x=>x.id!==id);toast('Removed','wn');renderStudents();updateBadges();}
+// delStu is defined below as async (API-backed)
 // ═══ STUDENT PROFILE ═══
 let profileStudentId = null;
 let profileEditMode = false;
@@ -1841,7 +1841,7 @@ let waSessionMsgCount = 0;
 function openM_waQR() { openM('mWaQR'); initWaQR(); }
 
 function initWaQR() {
-  const num = DB.settings?.waNumber || '';
+  const num = DB.settings?.waNum || DB.settings?.wa_number || '';
   document.getElementById('waConnNum').value = num ? '+' + num : '';
   document.getElementById('waConnMsgCount').textContent = waSessionMsgCount + ' messages this session';
   generateWaQR();
@@ -1906,7 +1906,8 @@ function refreshWaQR() {
 function saveWaNumber() {
   const val = document.getElementById('waConnNum').value.replace(/\D/g, '');
   if (!val) return toast('Enter a phone number', 'er');
-  DB.settings.waNumber = val;
+  DB.settings.waNum = val;
+  DB.settings.wa_number = val;
   document.getElementById('s-wa').value = val;
   toast('WhatsApp number saved!', 'ok');
   document.getElementById('waConnBadge').className = 'wa-conn-badge wa-conn-ok';
@@ -1914,7 +1915,7 @@ function saveWaNumber() {
 }
 
 function testWaConnection() {
-  const num = DB.settings?.waNumber || '';
+  const num = DB.settings?.waNum || DB.settings?.wa_number || '';
   if (!num) return toast('Save a WhatsApp number first', 'er');
   const msg = encodeURIComponent(`Hello! This is a test message from ${DB.settings?.name || 'OPTMS Tech Library'} ERP. ✅`);
   window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
@@ -1984,23 +1985,8 @@ function editBatch(idx){
   document.getElementById('ab-fe').value=b.baseFee;document.getElementById('ab-ac').value=b.acExtra;
   openM('mAddBatch');
 }
-function saveBatch(){
-  const nm=gv('ab-nm'),st=gv('ab-st'),et=gv('ab-et'),ts=+gv('ab-ts'),fe=+gv('ab-fe'),ac=+gv('ab-ac');
-  if(!nm||!st||!et||!ts||!fe)return toast('Fill required fields','er');
-  if(editBatchIdx>=0){
-    const b=DB.batches[editBatchIdx];
-    if(ts<b.occupied)return toast('Cannot reduce below occupied','er');
-    Object.assign(b,{name:nm,startTime:st,endTime:et,total:ts,baseFee:fe,acExtra:ac});
-    toast(`"${nm}" updated!`,'ok');editBatchIdx=-1;
-  } else {
-    DB.batches.push({id:'BT-'+Date.now(),name:nm,startTime:st,endTime:et,total:ts,occupied:0,baseFee:fe,acExtra:ac});
-    addActivity('🆕','rgba(74,124,111,.14)',`Batch "<strong>${nm}</strong>" added (${ts} seats)`);
-    toast(`Batch "${nm}" created!`,'ok');
-  }
-  closeM('mAddBatch');document.getElementById('mAddBatchTitle').textContent='Add New Batch';document.getElementById('batchSaveBtn').textContent='Add Batch';editBatchIdx=-1;
-  renderSeats();populateBatchSelects();
-}
-function delBatch(idx){if(!confirm('Delete batch?'))return;DB.batches.splice(idx,1);toast('Deleted','wn');renderSeats();populateBatchSelects();}
+// saveBatch is defined below as async (API-backed)
+// delBatch is defined below as async (API-backed)
 function populateBatchSelects(){
   const opts=DB.batches.map(b=>`<option value="${b.id}">${b.name} (${fmtT(b.startTime)}–${fmtT(b.endTime)})</option>`).join('');
   ['en-bt','as-bt','attBatchF'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(id==='attBatchF')el.innerHTML=`<option value="all">All Batches</option>`+opts;else el.innerHTML=`<option value="">-- Select --</option>`+opts;});
@@ -2032,25 +2018,7 @@ document.getElementById('en-ac').addEventListener('change',calcEnrollFee);
 document.getElementById('en-disc-type').addEventListener('change',()=>applyEnrollDiscount(+gv('en-fe')));
 document.getElementById('en-disc-val').addEventListener('input',()=>applyEnrollDiscount(+gv('en-fe')));
 
-function enrollStudent(){
-  const fn=gv('en-fn'),ln=gv('en-ln'),ph=gv('en-ph'),bt=gv('en-bt'),fe=+gv('en-fe'),net=+gv('en-net-fe'),ac=gv('en-ac');
-  if(!fn||!ln||!ph||!bt||!fe)return toast('Fill required fields','er');
-  const batch=DB.batches.find(b=>b.id===bt);
-  if(batch&&batch.occupied>=batch.total)return toast(`${batch.name} is full!`,'er');
-  const id='STU-'+String(DB.students.length+1).padStart(3,'0');
-  const cols=['#3d6ff0','#d97706','#0284c7','#7c3aed','#dc2626','#16a34a'];
-  const due=new Date();due.setDate(due.getDate()+11);
-  const discType=gv('en-disc-type'),discVal=+gv('en-disc-val')||0,discReason=gv('en-disc-reason');
-  DB.students.push({id,fname:fn,lname:ln,phone:ph,email:gv('en-em'),batchId:bt,seatType:ac,seat:gv('en-st'),baseFee:fe,discount:{type:discType,value:discVal,reason:discReason},netFee:net||fe,paidAmt:0,feeStatus:'pending',paidOn:'-',dueDate:due.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),course:gv('en-co'),addr:gv('en-ad'),color:cols[DB.students.length%cols.length],joinDate:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})});
-  if(batch)batch.occupied++;DB.attendance[id]='present';
-  addActivity('<span class="mi lg" style="color:#1e40af">school</span>','rgba(58,125,94,.14)',`<strong>${fn} ${ln}</strong> enrolled in ${batch?.name||bt}${fe>net?` (₹${fe-net} discount)`:''}`);
-  addNotif('success','New Enrollment',`${fn} ${ln} enrolled`);
-  if(document.getElementById('en-wa').checked)setTimeout(()=>waQuick(id,'welcome'),600);
-  closeM('mEnroll');toast(`${fn} ${ln} enrolled${fe>net?` with ₹${fe-net} discount`:''}!`,'ok');
-  ['en-fn','en-ln','en-ph','en-em','en-bt','en-fe','en-net-fe','en-st','en-co','en-ad','en-disc-val','en-disc-reason'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  document.getElementById('en-fee-note').style.display='none';
-  refreshAll();updateBadges();
-}
+// enrollStudent is defined below as async (API-backed)
 
 // ═══ ATTENDANCE ═══
 function renderAtt(){
@@ -2073,7 +2041,7 @@ function renderAtt(){
 }
 function togAtt(id){DB.attendance[id]=DB.attendance[id]==='present'?'absent':'present';renderAtt();}
 function markAll(p){DB.students.forEach(s=>{DB.attendance[s.id]=p?'present':'absent';});renderAtt();toast(p?'All present':'All absent',p?'ok':'wn');}
-function saveAtt(){const p=Object.values(DB.attendance).filter(v=>v==='present').length;addActivity('<span class="mi sm">fact_check</span>','rgba(2,132,199,.12)',`Attendance: <strong>${p}/${DB.students.length}</strong> present`);toast(`Saved! ${p} present`,'ok');updateBadges();}
+// saveAtt is defined below as async (API-backed)
 
 // ═══ BOOKS ═══
 let bkPage=1,bkSearch='';
@@ -2098,14 +2066,7 @@ function renderBooks(){
 }
 function bkSrch(v){bkSearch=v;bkPage=1;renderBooks();}
 function openIssueFor(bkId){populateIssueModal(bkId);openM('mIssueBook');}
-function delBook(id){if(!confirm('Remove?'))return;DB.books=DB.books.filter(b=>b.id!==id);toast('Removed','wn');renderBooks();}
-function addBook(){
-  const tl=gv('bk-tl'),au=gv('bk-au'),cp=+gv('bk-cp');if(!tl||!au||!cp)return toast('Fill required','er');
-  const emjs=['📘','📙','📗','📕','📔','📒'];
-  DB.books.push({id:'BK-'+String(DB.books.length+1).padStart(3,'0'),title:tl,author:au,isbn:gv('bk-is')||'N/A',category:gv('bk-ca'),copies:cp,available:cp,shelf:gv('bk-sh')||'TBD',emoji:emjs[DB.books.length%emjs.length]});
-  addActivity('📚','rgba(58,122,176,.14)',`Book "<strong>${tl}</strong>" added`);
-  closeM('mAddBook');toast(`Added!`,'ok');renderBooks();
-}
+// addBook and delBook are defined below as async (API-backed)
 
 // ═══ TRANSACTIONS ═══
 function renderTx(){
@@ -2131,16 +2092,7 @@ function populateIssueModal(bkId){
   const today=new Date().toISOString().split('T')[0];document.getElementById('ib-id').value=today;
   const due=new Date();due.setDate(due.getDate()+DB.settings.days);document.getElementById('ib-dd').value=due.toISOString().split('T')[0];
 }
-function issueBook(){
-  const stuId=gv('ib-stu'),bkId=gv('ib-bk');if(!stuId||!bkId)return toast('Select student and book','er');
-  const bk=DB.books.find(b=>b.id===bkId);const stu=DB.students.find(s=>s.id===stuId);
-  if(bk.available<=0)return toast('No copies available!','er');bk.available--;
-  const iDate=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-  const due=new Date();due.setDate(due.getDate()+DB.settings.days);
-  DB.transactions.push({id:'TX-'+Date.now(),studentId:stuId,bookId:bkId,issueDate:iDate,dueDate:due.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),returnDate:null,fine:0,status:'issued'});
-  addActivity('📤','rgba(124,92,191,.14)',`<strong>${stu?.fname}</strong> issued "${bk.title}"`);
-  closeM('mIssueBook');toast(`"${bk.title}" issued!`,'ok');refreshAll();updateBadges();
-}
+// issueBook is defined below as async (API-backed)
 function populateReturnModal(){
   const active=DB.transactions.filter(t=>t.status!=='returned');
   document.getElementById('rb-tx').innerHTML='<option value="">-- Select --</option>'+active.map(t=>{const s=DB.students.find(x=>x.id===t.studentId);const b=DB.books.find(x=>x.id===t.bookId);return`<option value="${t.id}">${b?.emoji} ${b?.title} → ${s?.fname} (Due:${fmtDate(t.dueDate)})</option>`;}).join('');
@@ -2154,15 +2106,7 @@ function calcFine(){
   const note=document.getElementById('rb-note');
   if(fine>0){note.style.display='block';note.textContent=`⚠ ${diff} days overdue. Fine: ₹${fine} (₹${DB.settings.fine}/day)`;}else note.style.display='none';
 }
-function returnBook(){
-  const txId=gv('rb-tx'),cond=gv('rb-cd');if(!txId)return toast('Select transaction','er');
-  const tx=DB.transactions.find(t=>t.id===txId);if(!tx)return;
-  const bk=DB.books.find(b=>b.id===tx.bookId);const stu=DB.students.find(s=>s.id===tx.studentId);
-  if(cond!=='Lost')bk.available++;
-  tx.fine=+gv('rb-fn')||0;tx.status='returned';tx.returnDate=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-  addActivity('📩','rgba(58,125,94,.14)',`<strong>${stu?.fname}</strong> returned "${bk?.title}"${tx.fine>0?` Fine ₹${tx.fine}`:''}`);
-  closeM('mReturnBook');toast(`Returned!${tx.fine>0?' Fine: ₹'+tx.fine:''}`,'ok');refreshAll();updateBadges();
-}
+// returnBook is defined below as async (API-backed)
 
 // ═══ FEES ═══
 let feeFiltVal='all',feeSrchVal='';
@@ -2266,25 +2210,7 @@ function calcSplitRem(){
   document.getElementById('cf-a2').value=rem;
   document.getElementById('splitNote').textContent=`Total: ₹${tot} | Mode 1: ₹${a1} | Mode 2: ₹${rem}`;
 }
-function collectFee(){
-  const stuId=gv('cf-stu');if(!stuId)return toast('Select student','er');
-  const s=DB.students.find(x=>x.id===stuId);if(!s)return;
-  const mode=gv('cf-mode');const isSplit=mode==='split'||mode==='split2';
-  let amt,modeStr;
-  if(isSplit){const a1=+gv('cf-a1')||0;const a2=+gv('cf-a2')||0;amt=a1+a2;modeStr=`${gv('cf-m1')} ₹${a1} + ${gv('cf-m2')} ₹${a2}`;}
-  else{amt=+gv('cf-amt')||0;modeStr=mode;}
-  if(!amt)return toast('Enter amount','er');
-  const prevPaid=s.paidAmt;s.paidAmt=Math.min(s.netFee,prevPaid+amt);
-  if(s.paidAmt>=s.netFee){s.feeStatus='paid';s.paidOn=new Date().toISOString().slice(0,10);}
-  else{s.feeStatus='partial';s.paidOn=new Date().toISOString().slice(0,10);}
-  const bal=s.netFee-s.paidAmt;
-  const invId='INV-'+String(DB.invoices.length+1).padStart(4,'0');
-  DB.invoices.push({id:invId,studentId:stuId,type:'Monthly Fee',amount:amt,baseFee:s.baseFee,discount:s.baseFee-s.netFee,netFee:s.netFee,paidAmt:s.paidAmt,balance:bal,date:s.paidOn,month:gv('cf-mo'),mode:modeStr,status:s.feeStatus==='paid'?'paid':'partial'});
-  addActivity('<span class="mi sm">payments</span>','rgba(22,163,74,.12)',`<strong>${s.fname}</strong> paid ₹${amt} via ${modeStr}${s.feeStatus==='partial'?` (₹${bal} pending)`:' (full)'}`);
-  addNotif('success','Fee Collected',`${s.fname} paid ₹${amt}${s.feeStatus==='partial'?` partial, ₹${bal} due`:''}`);
-  if(document.getElementById('cf-wa').checked){setTimeout(()=>waQuick(stuId,s.feeStatus==='paid'?'fee_receipt':'partial_payment'),600);}
-  closeM('mCollectFee');toast(`₹${amt} collected${bal>0?` — ₹${bal} still pending`:''}!`,'ok');refreshAll();updateBadges();
-}
+// collectFee is defined below as async (API-backed)
 
 // ═══ INVOICES ═══
 function renderInv(){
@@ -2305,12 +2231,7 @@ function renderInv(){
     <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')"><span class="mi sm">print</span>Print</button></td></tr>`;
   }).join(''):'<tr><td colspan="11"><div class="empty"><div class="ei">🧾</div><div class="et">No invoices yet</div></div></td></tr>';
 }
-function genInvoice(){
-  const stuId=gv('gi-stu'),amt=+gv('gi-am');if(!stuId||!amt)return toast('Fill required','er');
-  const s=DB.students.find(x=>x.id===stuId);
-  DB.invoices.push({id:'INV-'+String(DB.invoices.length+1).padStart(4,'0'),studentId:stuId,type:gv('gi-tp')==='fee'?'Monthly Fee':gv('gi-tp')==='fine'?'Book Fine':'Other',amount:amt,baseFee:s?.baseFee||amt,discount:s?(s.baseFee-s.netFee):0,netFee:s?.netFee||amt,paidAmt:amt,balance:0,date:new Date().toISOString().slice(0,10),month:gv('gi-mo'),mode:'Manual',status:'paid'});
-  closeM('mGenInv');toast('Invoice generated!','ok');renderInv();
-}
+// genInvoice is defined below as async (API-backed)
 function autoFillInv(){const s=DB.students.find(x=>x.id===gv('gi-stu'));if(s)document.getElementById('gi-am').value=s.netFee;}
 function printInv(invId){
   const inv=DB.invoices.find(x=>x.id===invId);const s=DB.students.find(x=>x.id===inv.studentId);const b=s?DB.batches.find(bt=>bt.id===s.batchId):null;
@@ -2342,14 +2263,7 @@ function renderExp(){
   const p=rev-allExp;document.getElementById('ex-p').textContent=fmt(Math.abs(p));document.getElementById('ex-p').style.color=p>=0?'var(--em)':'var(--ro)';
   document.getElementById('expList').innerHTML=list.map(e=>`<div class="ei2"><div class="eic" style="background:rgba(74,124,111,.1)">${e.emoji}</div><div style="flex:1"><div class="en2">${e.name}</div><div class="ed">${fmtDate(e.date)} · ${e.category}</div></div><div class="ea ea-d">-₹${e.amount.toLocaleString()}</div><button class="btn bd" style="font-size:10px;padding:3px 6px;margin-left:7px" onclick="delExp('${e.id}')"><span class="mi sm">close</span></button></div>`).join('')||'<div class="empty"><div class="ei">💸</div><div class="et">No expenses</div></div>';
 }
-function delExp(id){DB.expenses=DB.expenses.filter(e=>e.id!==id);toast('Removed','wn');renderExp();}
-function addExp(){
-  const nm=gv('ex-nm'),am=+gv('ex-am');if(!nm||!am)return toast('Fill required','er');
-  const emjs={Utilities:'⚡',Staff:'👨‍💼',Maintenance:'🔧',Supplies:'📦',Books:'📚',Other:'<span class="mi lg" style="color:#92400e">payments</span>'};
-  DB.expenses.push({id:'EX-'+Date.now(),name:nm,amount:am,category:gv('ex-ca'),date:new Date().toISOString().slice(0,10),notes:gv('ex-nt'),emoji:emjs[gv('ex-ca')]||'<span class="mi lg" style="color:#92400e">payments</span>'});
-  addActivity('<span class="mi lg" style="color:#9a3412">account_balance_wallet</span>','rgba(196,125,43,.14)',`Expense: <strong>${nm}</strong> ₹${am.toLocaleString()}`);
-  closeM('mExpense');toast('Expense added!','ok');renderExp();
-}
+// delExp and addExp are defined below as async (API-backed)
 
 // ═══ ANALYTICS ═══
 function renderAnal(){
@@ -2522,17 +2436,15 @@ function renderNotifs(){
     <div style="display:flex;gap:5px;align-items:flex-start">${!n.read?`<button class="btn bg" style="font-size:10px;padding:2px 7px" onclick="markRead(${n.id})">Read</button>`:''}<button class="btn bg" style="font-size:10px;padding:2px 6px" onclick="delNotif(${n.id})"><span class="mi sm">close</span></button></div>
   </div>`).join('')||'<div class="empty"><div class="ei">🔔</div><div class="et">No notifications</div></div>';
 }
-function markRead(id){const n=DB.notifications.find(x=>x.id===id);if(n)n.read=true;renderNotifs();updateBadges();}
-function delNotif(id){DB.notifications=DB.notifications.filter(x=>x.id!==id);renderNotifs();updateBadges();}
-function clearNotifs(){DB.notifications=[];renderNotifs();updateBadges();toast('Cleared','ok');}
-
+// markRead, delNotif, clearNotifs are defined below as async (API-backed)
+// allocSeat is defined below as async (API-backed)
 // ═══ SETTINGS ═══
 function renderSettings(){
   const s=DB.students;
   const data=[{l:'Total Students',v:s.length},{l:'Discounts Given',v:`${s.filter(x=>x.baseFee>x.netFee).length} students (₹${s.reduce((a,x)=>a+(x.baseFee-x.netFee),0).toLocaleString()})`},{l:'Total Books',v:DB.books.reduce((a,b)=>a+b.copies,0)},{l:'Active Transactions',v:DB.transactions.filter(t=>t.status!=='returned').length},{l:'Total Batches',v:DB.batches.length},{l:'Staff Members',v:DB.staff.length},{l:'Net Profit',v:fmt(s.filter(x=>x.feeStatus==='paid').reduce((a,x)=>a+x.netFee,0)-DB.expenses.reduce((a,e)=>a+e.amount,0))}];
   document.getElementById('setStats').innerHTML=data.map(d=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)"><span style="font-size:12px;color:var(--tx2)">${d.l}</span><span style="font-weight:700;font-family:var(--fm)">${d.v}</span></div>`).join('');
 }
-function saveSettings(){DB.settings.fine=+gv('s-fine');DB.settings.days=+gv('s-days');DB.settings.waNum=gv('s-wa');DB.settings.name=gv('s-name');toast('Settings saved!','ok');}
+// saveSettings is defined below as async (API-backed)
 
 // ═══ MODALS ═══
 function openM(id){
@@ -2578,7 +2490,7 @@ function updateBadges(){
 }
 function refreshAll(){updateBadges();const active=document.querySelector('.page.active');if(active){const id=active.id.replace('page-','');renderPage(id);}else renderDash();}
 function globalSearch(v){if(!v.trim())return;const s=DB.students.find(x=>`${x.fname} ${x.lname} ${x.id}`.toLowerCase().includes(v.toLowerCase()));const bk=DB.books.find(x=>`${x.title} ${x.author}`.toLowerCase().includes(v.toLowerCase()));if(s){navTo('students');document.getElementById('stuSrchInp').value=v;stuSrch(v);}else if(bk){navTo('books');bkSrch(v);}}
-function allocSeat(){const stuId=gv('as-stu'),bId=gv('as-bt'),seat=gv('as-st');if(!stuId||!bId||!seat)return toast('Fill all','er');const s=DB.students.find(x=>x.id===stuId);if(!s)return;s.seat=seat;s.batchId=bId;const b=DB.batches.find(x=>x.id===bId);if(b&&b.occupied<b.total)b.occupied++;addActivity('🪑','rgba(196,125,43,.14)',`Seat <strong>${seat}</strong> → <strong>${s.fname}</strong>`);closeM('mAllocSeat');toast(`Seat ${seat} allocated!`,'ok');renderSeats();renderDash();}
+
 function toast(msg,type='ok'){const c=document.getElementById('toastWrap');const t=document.createElement('div');t.className=`toast ${type}`;const ic={ok:'✅',er:'❌',wn:'⚠️',wa:'💬'};t.innerHTML=`${ic[type]||''} ${msg}`;c.appendChild(t);setTimeout(()=>{t.style.animation='tOut .3s ease forwards';setTimeout(()=>t.remove(),300);},3500);}
 
 // ═══ INIT ═══
@@ -2679,6 +2591,14 @@ async function addBook() {
   if (res.error) return toast(res.error, 'er');
   closeM('mAddBook');
   toast(`"${tl}" added!`, 'ok');
+  await reloadDB();
+}
+
+async function delBook(id) {
+  if (!confirm('Remove this book?')) return;
+  const res = await apiPost('delete_book', { id });
+  if (res.error) return toast(res.error, 'er');
+  toast('Book removed', 'wn');
   await reloadDB();
 }
 
@@ -2857,13 +2777,18 @@ async function saveSettings() {
   const res = await apiPost('save_settings', {
     name: gv('s-name'), phone: gv('s-phone'), email: gv('s-email'),
     addr: gv('s-addr'), fine: +gv('s-fine'), days: +gv('s-days'),
-    wa_number: gv('s-wa')
+    ac_fee: +gv('s-acfee'), wa_number: gv('s-wa')
   });
   if (res.error) return toast(res.error, 'er');
-  DB.settings.fine = +gv('s-fine');
-  DB.settings.days = +gv('s-days');
+  DB.settings.name  = gv('s-name');
+  DB.settings.phone = gv('s-phone');
+  DB.settings.email = gv('s-email');
+  DB.settings.addr  = gv('s-addr');
+  DB.settings.fine  = +gv('s-fine');
+  DB.settings.days  = +gv('s-days');
   DB.settings.waNum = gv('s-wa');
-  DB.settings.name = gv('s-name');
+  DB.settings.wa_number = gv('s-wa');
+  addActivity('⚙', 'rgba(100,116,139,.14)', 'Settings updated');
   toast('Settings saved!', 'ok');
 }
 
@@ -2899,8 +2824,11 @@ function renderSettings() {
   // Fill settings form from live DB
   const s = DB.settings;
   const fields = { 's-name': s.name, 's-phone': s.phone, 's-email': s.email, 
-                   's-addr': s.addr, 's-fine': s.fine||s.fine_per_day, 
-                   's-days': s.days||s.loan_days, 's-wa': s.waNum||s.wa_number };
+                   's-addr': s.addr, 
+                   's-fine': s.fine ?? s.fine_per_day ?? 5, 
+                   's-days': s.days ?? s.loan_days ?? 14, 
+                   's-acfee': s.acFee ?? s.ac_extra ?? 200,
+                   's-wa': s.waNum ?? s.wa_number ?? '' };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (el && val !== undefined) el.value = val;
