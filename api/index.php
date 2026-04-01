@@ -1,697 +1,774 @@
 <?php
+/**
+ * OPTMS Tech Study Library — Backend API
+ * File  : api/index.php
+ * Place : same directory as index.php  →  api/index.php
+ *
+ * All responses are JSON.
+ * GET  requests  : api/index.php?action=xxx&param=yyy
+ * POST requests  : api/index.php?action=xxx   body: JSON
+ */
+
 session_start();
-require_once __DIR__ . '/../includes/db.php';
 
-$method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? '';
-$db = getDB();
+/* ── CORS / Content-Type ── */
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
 
-switch ($action) {
+/* ── Auth guard (skip for login action if you add one later) ── */
+if (empty($_SESSION['staff_id'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Not authenticated']);
+    exit;
+}
 
-    // ══════════════════════════════════
-    // AUTH
-    // ══════════════════════════════════
-    case 'login':
-        $d = getInput();
-        $username = trim($d['username'] ?? '');
-        $password = $d['password'] ?? '';
-        if (!$username || !$password) {
-            jsonError('Username and password are required.');
-        }
-        $stmt = $db->prepare("SELECT id, name, role, password_hash, status FROM staff WHERE username = ? LIMIT 1");
-        $stmt->execute([$username]);
-        $staff = $stmt->fetch();
-        if (!$staff || $staff['status'] !== 'active' || !password_verify($password, $staff['password_hash'])) {
-            jsonError('Invalid username or password.', 401);
-        }
-        $_SESSION['staff_id']   = $staff['id'];
-        $_SESSION['staff_name'] = $staff['name'];
-        $_SESSION['staff_role'] = $staff['role'];
-        jsonResponse(['ok' => true, 'name' => $staff['name'], 'role' => $staff['role']]);
+/* ── DB connection ── */
+require_once __DIR__ . '/../db.php';   // define $pdo (PDO instance)
+// db.php example:
+// <?php
+// $pdo = new PDO('mysql:host=localhost;dbname=edrppymy_udaanlibrary;charset=utf8mb4',
+//               'db_user', 'db_pass',
+//               [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+//                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 
-    case 'logout':
-        session_unset();
-        session_destroy();
-        jsonResponse(['ok' => true]);
+/* ── Helpers ── */
+function ok(array $data = [])  { echo json_encode(array_merge(['success' => true], $data)); exit; }
+function err(string $msg, int $code = 200) { http_response_code($code); echo json_encode(['error' => $msg]); exit; }
 
-    // ══════════════════════════════════
-    // DASHBOARD
-    // ══════════════════════════════════
+function bodyJson(): array {
+    $raw = file_get_contents('php://input');
+    return $raw ? (json_decode($raw, true) ?? []) : [];
+}
+
+function generateId(PDO $pdo, string $table, string $prefix, string $col = 'id'): string {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM `$table`");
+    $n = (int)$stmt->fetchColumn() + 1;
+    // keep bumping until unique
+    do {
+        $id = $prefix . str_pad($n, 3, '0', STR_PAD_LEFT);
+        $s  = $pdo->prepare("SELECT 1 FROM `$table` WHERE `$col` = ?");
+        $s->execute([$id]);
+        $n++;
+    } while ($s->fetchColumn());
+    return $id;
+}
+
+/* ── Route ── */
+$action = $_REQUEST['action'] ?? '';
+
+try {
+    switch ($action) {
+
+    // ════════════════════════════════════════════════════════
+    // GET — Dashboard (all tables in one round-trip)
+    // ════════════════════════════════════════════════════════
     case 'get_dashboard':
-        $students = $db->query("SELECT * FROM students")->fetchAll();
-        $today = date('Y-m-d');
-        // Auto-heal bad date values
-        foreach ($students as &$row) {
-            if (empty($row['due_date']) || $row['due_date'] === '0000-00-00') {
-                $base = (!empty($row['join_date']) && $row['join_date'] !== '0000-00-00')
-                    ? $row['join_date']
-                    : date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
-                $row['due_date'] = date('Y-m-d', strtotime('+30 days', strtotime($base)));
-                $db->prepare("UPDATE students SET due_date=? WHERE id=?")->execute([$row['due_date'], $row['id']]);
-            }
-            if (empty($row['join_date']) || $row['join_date'] === '0000-00-00') {
-                $row['join_date'] = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
-                $db->prepare("UPDATE students SET join_date=? WHERE id=?")->execute([$row['join_date'], $row['id']]);
-            }
-            if (isset($row['paid_on']) && ($row['paid_on'] === '0000-00-00' || $row['paid_on'] === '-' || $row['paid_on'] === '')) {
-                $row['paid_on'] = null;
-                $db->prepare("UPDATE students SET paid_on=NULL WHERE id=?")->execute([$row['id']]);
-            }
-            // Auto-promote to 'overdue' if due_date passed and fee not fully paid
-            if (
-                in_array($row['fee_status'], ['pending', 'partial']) &&
-                !empty($row['due_date']) &&
-                $row['due_date'] < $today
-            ) {
-                $row['fee_status'] = 'overdue';
-                $db->prepare("UPDATE students SET fee_status='overdue' WHERE id=?")->execute([$row['id']]);
-            }
-        }
-        unset($row);
-        $batches  = $db->query("SELECT * FROM batches")->fetchAll();
-        $books    = $db->query("SELECT * FROM books")->fetchAll();
-        $transactions = $db->query("SELECT * FROM transactions")->fetchAll();
-        $expenses = $db->query("SELECT * FROM expenses")->fetchAll();
-        $activities = $db->query("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 15")->fetchAll();
-        $notifications = $db->query("SELECT * FROM notifications ORDER BY created_at DESC")->fetchAll();
-        $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
-        $invoices = $db->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
-        $staff    = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status FROM staff ORDER BY created_at")->fetchAll();
-        $meStmt   = $db->prepare("SELECT role,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings FROM staff WHERE id=? LIMIT 1");
-        $meStmt->execute([$_SESSION['staff_id']]);
-        $me = $meStmt->fetch();
-        if (!$me) {
-            // Fallback: admin gets full access
-            $me = ['role'=>'admin','perm_students'=>1,'perm_fees'=>1,'perm_books'=>1,'perm_expenses'=>1,'perm_reports'=>1,'perm_staff'=>1,'perm_settings'=>1];
-        }
-        jsonResponse([
-            'students'      => $students,
-            'batches'       => $batches,
-            'books'         => $books,
-            'transactions'  => $transactions,
-            'expenses'      => $expenses,
-            'activities'    => $activities,
-            'notifications' => $notifications,
-            'settings'      => $settings,
-            'invoices'      => $invoices,
-            'staff'         => $staff,
-            'me'            => $me,
-        ]);
+        $data = [];
+
+        $data['batches']      = $pdo->query("SELECT * FROM batches ORDER BY start_time")->fetchAll();
+        $data['students']     = $pdo->query("SELECT * FROM students ORDER BY created_at DESC")->fetchAll();
+        $data['books']        = $pdo->query("SELECT * FROM books ORDER BY title")->fetchAll();
+        $data['transactions'] = $pdo->query("SELECT * FROM transactions ORDER BY created_at DESC")->fetchAll();
+        $data['expenses']     = $pdo->query("SELECT * FROM expenses ORDER BY expense_date DESC")->fetchAll();
+        $data['invoices']     = $pdo->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
+        $data['activities']   = $pdo->query("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 30")->fetchAll();
+        $data['notifications']= $pdo->query("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50")->fetchAll();
+        $data['staff']        = $pdo->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status FROM staff ORDER BY name")->fetchAll();
+        $data['settings']     = $pdo->query("SELECT * FROM settings LIMIT 1")->fetch() ?: [];
+
+        // Current staff member (for nav-perm enforcement in JS)
+        $me = $pdo->prepare("SELECT id,name,role,email,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings FROM staff WHERE id = ?");
+        $me->execute([$_SESSION['staff_id']]);
+        $data['me'] = $me->fetch() ?: null;
+
+        echo json_encode($data);
         break;
 
-    // ══════════════════════════════════
-    // STUDENTS
-    // ══════════════════════════════════
-    case 'get_students':
-        $rows = $db->query("SELECT s.*, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id=b.id ORDER BY s.created_at DESC")->fetchAll();
-        $today = date('Y-m-d');
-        // Auto-heal bad date values so frontend always gets valid data
-        foreach ($rows as &$row) {
-            // due_date: if NULL or 0000-00-00, calculate from join_date or created_at
-            if (empty($row['due_date']) || $row['due_date'] === '0000-00-00') {
-                $base = (!empty($row['join_date']) && $row['join_date'] !== '0000-00-00')
-                    ? $row['join_date']
-                    : date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
-                $row['due_date'] = date('Y-m-d', strtotime('+30 days', strtotime($base)));
-                $db->prepare("UPDATE students SET due_date=? WHERE id=?")->execute([$row['due_date'], $row['id']]);
-            }
-            // join_date: heal 0000-00-00
-            if (empty($row['join_date']) || $row['join_date'] === '0000-00-00') {
-                $row['join_date'] = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
-                $db->prepare("UPDATE students SET join_date=? WHERE id=?")->execute([$row['join_date'], $row['id']]);
-            }
-            // paid_on: normalize bad values to null
-            if (isset($row['paid_on']) && ($row['paid_on'] === '0000-00-00' || $row['paid_on'] === '-' || $row['paid_on'] === '')) {
-                $row['paid_on'] = null;
-                $db->prepare("UPDATE students SET paid_on=NULL WHERE id=?")->execute([$row['id']]);
-            }
-            // Auto-promote to 'overdue' if due_date has passed and fee is not fully paid
-            if (
-                in_array($row['fee_status'], ['pending', 'partial']) &&
-                !empty($row['due_date']) &&
-                $row['due_date'] < $today
-            ) {
-                $row['fee_status'] = 'overdue';
-                $db->prepare("UPDATE students SET fee_status='overdue' WHERE id=?")->execute([$row['id']]);
-            }
-        }
-        unset($row);
-        jsonResponse($rows);
-
-    case 'add_student':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['fname']) || empty($d['batch_id'])) jsonError('First name and batch are required');
-        $newId = 'STU-' . str_pad((int)$db->query("SELECT COUNT(*) FROM students")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
-        $baseFee = (int)($d['base_fee'] ?? 0);
-        $discType  = $d['discount_type'] ?? 'none';
-        $discVal   = (float)($d['discount_value'] ?? 0);
-        $disc = 0;
-        if ($discType === 'flat') $disc = min($discVal, $baseFee);
-        elseif ($discType === 'percent') $disc = round($baseFee * $discVal / 100);
-        $netFee = $baseFee - $disc;
-        $colors = ['#4a7c6f','#c47d2b','#3a7ab0','#7c5cbf','#c0444f','#3a7d5e','#e67e22'];
-        $color = $colors[array_rand($colors)];
-        $sql = "INSERT INTO students (id,fname,lname,phone,batch_id,seat_type,seat,base_fee,discount_type,discount_value,discount_reason,net_fee,paid_amt,fee_status,paid_on,due_date,course,color,join_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'pending',NULL,?,?,?,?)";
-        $stmt = $db->prepare($sql);
-        // Calculate due_date: 30 days from join date (or today)
-        $joinRaw = $d['join_date'] ?? '';
-        $joinTs  = $joinRaw ? strtotime($joinRaw) : time();
-        if (!$joinTs) $joinTs = time();
-        $joinDate = date('Y-m-d', $joinTs);
-        $dueDate  = date('Y-m-d', strtotime('+30 days', $joinTs));
-        $stmt->execute([
-            $newId, $d['fname'], $d['lname'] ?? '', $d['phone'] ?? '', $d['batch_id'],
-            $d['seat_type'] ?? 'non-ac', $d['seat'] ?? '',
-            $baseFee, $discType, $discVal, $d['discount_reason'] ?? '',
-            $netFee, $dueDate, $d['course'] ?? '', $color,
-            $joinDate
-        ]);
-        addActivity($db, '👨‍🎓', 'rgba(74,124,111,.14)', "New student <strong>{$d['fname']} {$d['lname']}</strong> enrolled");
-        addNotif($db, 'info', 'New Enrollment', "{$d['fname']} {$d['lname']} enrolled");
-        jsonResponse(['success' => true, 'id' => $newId]);
-
-    case 'update_student':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['id'])) jsonError('ID required');
-        $db->prepare("UPDATE students SET fname=?,lname=?,phone=?,email=?,course=?,addr=? WHERE id=?")
-           ->execute([
-               trim($d['fname'] ?? ''),
-               trim($d['lname'] ?? ''),
-               $d['phone']  ?? '',
-               $d['email']  ?? '',
-               $d['course'] ?? '',
-               $d['addr']   ?? '',
-               $d['id']
-           ]);
-        addActivity($db, '✏', 'rgba(74,124,111,.14)', "Student <strong>{$d['fname']} {$d['lname']}</strong> profile updated");
-        jsonResponse(['success' => true]);
-
-    case 'delete_student':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $id = $d['id'] ?? '';
-        if (!$id) jsonError('ID required');
-        $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // BATCHES
-    // ══════════════════════════════════
-    case 'get_batches':
-        $rows = $db->query("SELECT * FROM batches ORDER BY start_time")->fetchAll();
-        jsonResponse($rows);
-
-    case 'save_batch':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['name']) || empty($d['start_time']) || empty($d['total_seats'])) jsonError('Required fields missing');
-        $isEdit = !empty($d['id']);
-        if ($isEdit) {
-            // Check not reducing below occupied
-            $stmt2 = $db->prepare("SELECT occupied_seats FROM batches WHERE id=?");
-            $stmt2->execute([$d['id']]);
-            $row2 = $stmt2->fetch();
-            if ($row2 && (int)$d['total_seats'] < (int)$row2['occupied_seats'])
-                jsonError('Cannot reduce seats below currently occupied');
-            $db->prepare("UPDATE batches SET name=?,start_time=?,end_time=?,total_seats=?,base_fee=?,ac_extra=? WHERE id=?")
-               ->execute([$d['name'],$d['start_time'],$d['end_time'],(int)$d['total_seats'],(int)$d['base_fee'],(int)$d['ac_extra'],$d['id']]);
-        } else {
-            $newId = 'BT-' . str_pad((int)$db->query("SELECT COUNT(*) FROM batches")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
-            $db->prepare("INSERT INTO batches (id,name,start_time,end_time,total_seats,occupied_seats,base_fee,ac_extra) VALUES (?,?,?,?,?,0,?,?)")
-               ->execute([$newId,$d['name'],$d['start_time'],$d['end_time'],(int)$d['total_seats'],(int)$d['base_fee'],(int)$d['ac_extra']]);
-            addActivity($db, '🆕', 'rgba(74,124,111,.14)', "Batch \"<strong>{$d['name']}</strong>\" added");
-        }
-        jsonResponse(['success' => true]);
-
-    case 'delete_batch':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("DELETE FROM batches WHERE id=?")->execute([$d['id'] ?? '']);
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // SEATS
-    // ══════════════════════════════════
-    case 'alloc_seat':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['student_id']) || empty($d['batch_id']) || empty($d['seat'])) jsonError('All fields required');
-        $db->prepare("UPDATE students SET seat=?, batch_id=? WHERE id=?")->execute([$d['seat'], $d['batch_id'], $d['student_id']]);
-        // update occupied count
-        $db->prepare("UPDATE batches SET occupied_seats = (SELECT COUNT(*) FROM students WHERE batch_id=? AND seat IS NOT NULL AND seat != '') WHERE id=?")->execute([$d['batch_id'], $d['batch_id']]);
-        $s = $db->prepare("SELECT fname FROM students WHERE id=?")->execute([$d['student_id']]);
-        addActivity($db, '🪑', 'rgba(196,125,43,.14)', "Seat <strong>{$d['seat']}</strong> allocated");
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // BOOKS
-    // ══════════════════════════════════
-    case 'get_books':
-        $rows = $db->query("SELECT * FROM books ORDER BY created_at DESC")->fetchAll();
-        jsonResponse($rows);
-
-    case 'add_book':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['title'])) jsonError('Title required');
-        $newId = 'BK-' . str_pad((int)$db->query("SELECT COUNT(*) FROM books")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
-        $copies = (int)($d['copies'] ?? 1);
-        $db->prepare("INSERT INTO books (id,title,author,isbn,category,copies,available,shelf,emoji) VALUES (?,?,?,?,?,?,?,?,?)")
-           ->execute([$newId,$d['title'],$d['author'] ?? '',$d['isbn'] ?? '',$d['category'] ?? 'Other',$copies,$copies,$d['shelf'] ?? '','📘']);
-        addActivity($db, '📚', 'rgba(196,125,43,.14)', "Book \"<strong>{$d['title']}</strong>\" added");
-        jsonResponse(['success' => true, 'id' => $newId]);
-
-    case 'delete_book':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("DELETE FROM books WHERE id=?")->execute([$d['id'] ?? '']);
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // TRANSACTIONS
-    // ══════════════════════════════════
-    case 'issue_book':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['student_id']) || empty($d['book_id'])) jsonError('Student and book required');
-        $stmt = $db->prepare("SELECT * FROM books WHERE id=?");
-        $stmt->execute([$d['book_id']]);
-        $book = $stmt->fetch();
-        if (!$book || $book['available'] <= 0) jsonError('No copies available');
-        $newId = 'TX-' . str_pad((int)$db->query("SELECT COUNT(*) FROM transactions")->fetchColumn() + 1, 5, '0', STR_PAD_LEFT);
-        $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
-        $loanDays = $settings['loan_days'] ?? 14;
-        $issueDate = date('Y-m-d');
-        $dueDate   = date('Y-m-d', strtotime("+{$loanDays} days"));
-        $db->prepare("INSERT INTO transactions (id,student_id,book_id,issue_date,due_date,return_date,fine,status) VALUES (?,?,?,?,?,NULL,0,'issued')")
-           ->execute([$newId,$d['student_id'],$d['book_id'],$issueDate,$dueDate]);
-        $db->prepare("UPDATE books SET available=available-1 WHERE id=?")->execute([$d['book_id']]);
-        $stuStmt = $db->prepare("SELECT fname FROM students WHERE id=?");
-        $stuStmt->execute([$d['student_id']]);
-        $stu = $stuStmt->fetch();
-        addActivity($db, '📤', 'rgba(124,92,191,.14)', "<strong>{$stu['fname']}</strong> issued \"{$book['title']}\"");
-        addNotif($db, 'info', 'Book Issued', "{$stu['fname']} issued {$book['title']}");
-        jsonResponse(['success' => true, 'id' => $newId]);
-
-    case 'return_book':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['tx_id'])) jsonError('Transaction ID required');
-        $txStmt = $db->prepare("SELECT t.*, b.title, b.id as bid, s.fname FROM transactions t JOIN books b ON t.book_id=b.id JOIN students s ON t.student_id=s.id WHERE t.id=?");
-        $txStmt->execute([$d['tx_id']]);
-        $tx = $txStmt->fetch();
-        if (!$tx) jsonError('Transaction not found');
-        $fine = (int)($d['fine'] ?? 0);
-        $returnDate = date('Y-m-d');
-        $cond = $d['condition'] ?? 'Good';
-        $db->prepare("UPDATE transactions SET status='returned',return_date=?,fine=? WHERE id=?")->execute([$returnDate,$fine,$d['tx_id']]);
-        if ($cond !== 'Lost') {
-            $db->prepare("UPDATE books SET available=available+1 WHERE id=?")->execute([$tx['bid']]);
-        }
-        addActivity($db, '📩', 'rgba(58,125,94,.14)', "<strong>{$tx['fname']}</strong> returned \"{$tx['title']}\"" . ($fine > 0 ? " Fine ₹$fine" : ''));
-        addNotif($db, 'success', 'Book Returned', "{$tx['fname']} returned {$tx['title']}" . ($fine ? " — Fine ₹$fine" : ''));
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // FEES
-    // ══════════════════════════════════
-    case 'collect_fee':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['student_id']) || empty($d['amount'])) jsonError('Student and amount required');
-        $stuStmt = $db->prepare("SELECT * FROM students WHERE id=?");
-        $stuStmt->execute([$d['student_id']]);
-        $s = $stuStmt->fetch();
-        if (!$s) jsonError('Student not found');
-        $amt = (int)$d['amount'];
-        $newPaid = min($s['net_fee'], $s['paid_amt'] + $amt);
-        $feeStatus = $newPaid >= $s['net_fee'] ? 'paid' : 'partial';
-        $paidOn = date('Y-m-d');
-        // Advance due_date by 30 days from today when fully paid, otherwise keep existing
-        $newDueDate = ($feeStatus === 'paid')
-            ? date('Y-m-d', strtotime('+30 days'))
-            : $s['due_date'];
-        $db->prepare("UPDATE students SET paid_amt=?,fee_status=?,paid_on=?,due_date=? WHERE id=?")
-           ->execute([$newPaid,$feeStatus,$paidOn,$newDueDate,$d['student_id']]);
-        $balance = $s['net_fee'] - $newPaid;
-        // Create invoice
-        $invId = 'INV-' . str_pad((int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1, 4, '0', STR_PAD_LEFT);
-        $mode = $d['mode'] ?? 'Cash';
-        if (!empty($d['split_mode'])) $mode = $d['split_mode'];
-        $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-           ->execute([$invId,$d['student_id'],'Monthly Fee',$amt,$s['base_fee'],$s['base_fee']-$s['net_fee'],$s['net_fee'],$newPaid,$balance,date('Y-m-d'),$d['month'] ?? date('F Y'),$mode,$feeStatus]);
-        addActivity($db, '💳', 'rgba(58,125,94,.14)', "<strong>{$s['fname']}</strong> paid ₹{$amt} via {$mode}" . ($feeStatus==='partial' ? " (₹{$balance} pending)" : ' (full)'));
-        addNotif($db, 'success', 'Fee Collected', "{$s['fname']} paid ₹{$amt}" . ($feeStatus==='partial' ? " — partial" : ''));
-        jsonResponse(['success' => true, 'invoice_id' => $invId, 'fee_status' => $feeStatus, 'balance' => $balance]);
-
-    // ══════════════════════════════════
-    // INVOICES
-    // ══════════════════════════════════
-    case 'gen_invoice':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['student_id']) || empty($d['amount'])) jsonError('Required fields missing');
-        $stuStmt = $db->prepare("SELECT * FROM students WHERE id=?");
-        $stuStmt->execute([$d['student_id']]);
-        $s = $stuStmt->fetch();
-        if (!$s) jsonError('Student not found');
-        $invId = 'INV-' . str_pad((int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1, 4, '0', STR_PAD_LEFT);
-        $typeMap = ['fee'=>'Monthly Fee','fine'=>'Book Fine','other'=>'Other'];
-        $type = $typeMap[$d['type'] ?? 'fee'] ?? 'Monthly Fee';
-        $amt      = (int)$d['amount'];
-        $baseFee  = (int)($s['base_fee'] ?? $amt);
-        $netFee   = (int)($s['net_fee']  ?? $amt);
-        $discount = $baseFee - $netFee;
-        $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,0,?,?,?,?)")
-           ->execute([$invId,$d['student_id'],$type,$amt,$baseFee,$discount,$netFee,$amt,date('Y-m-d'),$d['month'] ?? date('F Y'),'Manual','paid']);
-        addActivity($db, '🧾', 'rgba(58,122,176,.14)', "Invoice generated for <strong>{$s['fname']} {$s['lname']}</strong> ₹{$amt}");
-        jsonResponse(['success' => true, 'id' => $invId]);
-
-    case 'get_invoices':
-        $rows = $db->query("SELECT i.*, s.fname, s.lname, s.color FROM invoices i LEFT JOIN students s ON i.student_id=s.id ORDER BY i.created_at DESC")->fetchAll();
-        foreach ($rows as &$row) {
-            if (empty($row['invoice_date']) || $row['invoice_date'] === '0000-00-00') {
-                $fixed = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
-                $row['invoice_date'] = $fixed;
-                $db->prepare("UPDATE invoices SET invoice_date=? WHERE id=?")->execute([$fixed, $row['id']]);
-            }
-        }
-        unset($row);
-        jsonResponse($rows);
-
-    // ══════════════════════════════════
-    // EXPENSES
-    // ══════════════════════════════════
-    case 'get_expenses':
-        $rows = $db->query("SELECT * FROM expenses ORDER BY created_at DESC")->fetchAll();
-        foreach ($rows as &$row) {
-            if (empty($row['expense_date']) || $row['expense_date'] === '0000-00-00') {
-                $fixed = date('Y-m-d', strtotime($row['created_at'] ?? 'now'));
-                $row['expense_date'] = $fixed;
-                $db->prepare("UPDATE expenses SET expense_date=? WHERE id=?")->execute([$fixed, $row['id']]);
-            }
-        }
-        unset($row);
-        jsonResponse($rows);
-
-    case 'add_expense':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['name']) || empty($d['amount'])) jsonError('Name and amount required');
-        $newId = 'EX-' . str_pad((int)$db->query("SELECT COUNT(*) FROM expenses")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
-        $catEmojis = ['Utilities'=>'⚡','Staff'=>'👨‍💼','Maintenance'=>'🔧','Supplies'=>'📦','Books'=>'📚','Other'=>'💸'];
-        $cat = $d['category'] ?? 'Other';
-        $emoji = $catEmojis[$cat] ?? '💸';
-        $db->prepare("INSERT INTO expenses (id,name,amount,category,expense_date,notes,emoji) VALUES (?,?,?,?,?,?,?)")
-           ->execute([$newId,$d['name'],(int)$d['amount'],$cat, !empty($d['date']) ? date('Y-m-d', strtotime($d['date'])) : date('Y-m-d'), $d['notes'] ?? '',$emoji]);
-        addActivity($db, '💸', 'rgba(212,144,47,.14)', "Expense: <strong>{$d['name']}</strong> ₹{$d['amount']}");
-        jsonResponse(['success' => true, 'id' => $newId]);
-
-    case 'delete_expense':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("DELETE FROM expenses WHERE id=?")->execute([$d['id'] ?? '']);
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // ATTENDANCE
-    // ══════════════════════════════════
+    // ════════════════════════════════════════════════════════
+    // GET — Attendance for a given date
+    // ════════════════════════════════════════════════════════
     case 'get_attendance':
         $date = $_GET['date'] ?? date('Y-m-d');
-        $rows = $db->prepare("SELECT student_id, status FROM attendance WHERE attendance_date=?");
+        $rows = $pdo->prepare("SELECT student_id, status FROM attendance WHERE attendance_date = ?");
         $rows->execute([$date]);
-        $att = [];
-        foreach ($rows->fetchAll() as $r) $att[$r['student_id']] = $r['status'];
-        jsonResponse(['date' => $date, 'attendance' => $att]);
+        $map = [];
+        foreach ($rows->fetchAll() as $r) $map[$r['student_id']] = $r['status'];
+        echo json_encode(['attendance' => $map]);
+        break;
 
-    case 'save_attendance':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $date = $d['date'] ?? date('Y-m-d');
-        $attendance = $d['attendance'] ?? [];
-        foreach ($attendance as $stuId => $status) {
-            $db->prepare("INSERT INTO attendance (student_id,attendance_date,status) VALUES (?,?,?) ON DUPLICATE KEY UPDATE status=?")->execute([$stuId,$date,$status,$status]);
-        }
-        addActivity($db, '📋', 'rgba(58,122,176,.14)', "Attendance saved for <strong>$date</strong>");
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // STAFF
-    // ══════════════════════════════════
-    case 'get_staff':
-        $rows = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status FROM staff ORDER BY created_at")->fetchAll();
-        jsonResponse($rows);
-
-    case 'save_staff':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['name']) || empty($d['role']) || empty($d['email'])) jsonError('Name, role, email required');
-        $perms = $d['perms'] ?? [];
-        $isEdit = !empty($d['id']);
-        if ($isEdit) {
-            // If a new password is provided, update it too; otherwise keep existing hash
-            if (!empty($d['password'])) {
-                $newHash = password_hash($d['password'], PASSWORD_BCRYPT);
-                $db->prepare("UPDATE staff SET name=?,role=?,email=?,phone=?,username=?,password_hash=?,perm_students=?,perm_fees=?,perm_books=?,perm_expenses=?,perm_reports=?,perm_staff=?,perm_settings=? WHERE id=?")
-                   ->execute([$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'] ?? '',
-                     $newHash,
-                     (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
-                     (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0),
-                     $d['id']]);
-            } else {
-                $db->prepare("UPDATE staff SET name=?,role=?,email=?,phone=?,username=?,perm_students=?,perm_fees=?,perm_books=?,perm_expenses=?,perm_reports=?,perm_staff=?,perm_settings=? WHERE id=?")
-                   ->execute([$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'] ?? '',
-                     (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
-                     (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0),
-                     $d['id']]);
-            }
-        } else {
-            // New staff: require username; default password is 'Pass@1234' if none given
-            if (empty($d['username'])) jsonError('Username is required for new staff.');
-            $rawPassword = !empty($d['password']) ? $d['password'] : 'Pass@1234';
-            $hash = password_hash($rawPassword, PASSWORD_BCRYPT);
-            $newId = 'SF-' . str_pad((int)$db->query("SELECT COUNT(*) FROM staff")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
-            $db->prepare("INSERT INTO staff (id,name,role,email,phone,username,password_hash,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-               ->execute([$newId,$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'],$hash,
-                 (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
-                 (int)($perms['expenses'] ?? 0),(int)($perms['reports'] ?? 0),(int)($perms['staff'] ?? 0),(int)($perms['settings'] ?? 0),
-                 'active']);
-            addActivity($db, '👥', 'rgba(74,124,111,.14)', "Staff <strong>{$d['name']}</strong> added");
-        }
-        jsonResponse(['success' => true]);
-
-    case 'delete_staff':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("DELETE FROM staff WHERE id=?")->execute([$d['id'] ?? '']);
-        jsonResponse(['success' => true]);
-
-    case 'change_password':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
-        $d = getInput();
-        $current  = $d['current_password'] ?? '';
-        $newPass  = $d['new_password'] ?? '';
-        if (strlen($newPass) < 6) jsonError('New password must be at least 6 characters.');
-        $stmt = $db->prepare("SELECT password_hash FROM staff WHERE id=? LIMIT 1");
-        $stmt->execute([$_SESSION['staff_id']]);
-        $row = $stmt->fetch();
-        if (!$row || !password_verify($current, $row['password_hash'])) {
-            jsonError('Current password is incorrect.', 403);
-        }
-        $newHash = password_hash($newPass, PASSWORD_BCRYPT);
-        $db->prepare("UPDATE staff SET password_hash=? WHERE id=?")->execute([$newHash, $_SESSION['staff_id']]);
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // NOTIFICATIONS
-    // ══════════════════════════════════
-    case 'get_notifications':
-        $rows = $db->query("SELECT * FROM notifications ORDER BY created_at DESC")->fetchAll();
-        jsonResponse($rows);
-
-    case 'mark_read':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("UPDATE notifications SET is_read=1 WHERE id=?")->execute([$d['id'] ?? 0]);
-        jsonResponse(['success' => true]);
-
-    case 'delete_notif':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("DELETE FROM notifications WHERE id=?")->execute([$d['id'] ?? 0]);
-        jsonResponse(['success' => true]);
-
-    case 'clear_notifs':
-        $db->exec("DELETE FROM notifications");
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // SETTINGS
-    // ══════════════════════════════════
-    case 'get_settings':
-        $row = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
-        jsonResponse($row);
-
-    case 'save_settings':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,ac_fee=?,wa_number=? WHERE id=1")
-           ->execute([
-               $d['name']      ?? '',
-               $d['phone']     ?? '',
-               $d['email']     ?? '',
-               $d['addr']      ?? '',
-               (int)($d['fine']   ?? 5),
-               (int)($d['days']   ?? 14),
-               (int)($d['ac_fee'] ?? 200),
-               $d['wa_number'] ?? ''
-           ]);
-        addActivity($db, '⚙', 'rgba(100,116,139,.14)', 'Library settings updated');
-        jsonResponse(['success' => true]);
-
-    // ══════════════════════════════════
-    // WA LOG
-    // ══════════════════════════════════
-    case 'log_wa':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $db->prepare("INSERT INTO wa_send_log (sent_to,preview,type) VALUES (?,?,?)")->execute([$d['to'] ?? '',$d['preview'] ?? '',$d['type'] ?? 'single']);
-        jsonResponse(['success' => true]);
-
+    // ════════════════════════════════════════════════════════
+    // GET — WA send log
+    // ════════════════════════════════════════════════════════
     case 'get_wa_log':
-        $rows = $db->query("SELECT * FROM wa_send_log ORDER BY created_at DESC LIMIT 20")->fetchAll();
-        jsonResponse($rows);
+        $rows = $pdo->query("SELECT * FROM wa_send_log ORDER BY created_at DESC LIMIT 100")->fetchAll();
+        echo json_encode($rows);
+        break;
 
-    // ══════════════════════════════════
-    // ACTIVITIES
-    // ══════════════════════════════════
-    case 'get_activities':
-        $rows = $db->query("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 20")->fetchAll();
-        jsonResponse($rows);
-
-    // ══════════════════════════════════
-    // RENEWALS
-    // ══════════════════════════════════
-    case 'renew_student':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        if (empty($d['student_id'])) jsonError('student_id required');
-
-        $stuStmt = $db->prepare("SELECT * FROM students WHERE id=?");
-        $stuStmt->execute([$d['student_id']]);
-        $s = $stuStmt->fetch();
-        if (!$s) jsonError('Student not found');
-
-        $months  = max(1, (int)($d['months']  ?? 1));
-        $amt     = (int)($d['amount']          ?? $s['net_fee']);
-        $mode    = $d['mode']                  ?? 'Cash';
-        $note    = $d['note']                  ?? '';
-        $today   = date('Y-m-d');
-        $newDue  = $d['new_due_date']          ?? date('Y-m-d', strtotime("+{$months} month"));
-        $newPaid = min($s['net_fee'], $amt);
-        $feeStatus = $newPaid >= $s['net_fee'] ? 'paid' : 'partial';
-
-        // Update student row
-        $db->prepare("UPDATE students SET paid_amt=?, fee_status=?, paid_on=?, due_date=? WHERE id=?")
-           ->execute([$newPaid, $feeStatus, $today, $newDue, $d['student_id']]);
-
-        // Write to renewals table
-        $renId = 'REN-' . str_pad(
-            (int)$db->query("SELECT COUNT(*) FROM renewals")->fetchColumn() + 1,
-            4, '0', STR_PAD_LEFT
-        );
-        $db->prepare("INSERT INTO renewals (id,student_id,amount,months,mode,note,renewed_by,renewal_date,new_due_date) VALUES (?,?,?,?,?,?,?,?,?)")
-           ->execute([$renId, $d['student_id'], $amt, $months, $mode, $note, $_SESSION['staff_id'] ?? '', $today, $newDue]);
-
-        // Create invoice
-        $invId = 'INV-' . str_pad(
-            (int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1,
-            4, '0', STR_PAD_LEFT
-        );
-        $balance = max(0, $s['net_fee'] - $newPaid);
-        $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-           ->execute([$invId, $d['student_id'], "Renewal ({$months}mo)", $amt,
-             $s['base_fee'], $s['base_fee'] - $s['net_fee'], $s['net_fee'],
-             $newPaid, $balance, $today,
-             date('F Y'), $mode, $feeStatus]);
-
-        addActivity($db, '🔄', 'rgba(61,111,240,.14)',
-            "Renewal: <strong>{$s['fname']} {$s['lname']}</strong> ₹{$amt} via {$mode} · Due: {$newDue}");
-        addNotif($db, 'success', 'Renewal Done',
-            "{$s['fname']} renewed {$months} month(s) — ₹{$amt}");
-
-        jsonResponse(['success' => true, 'renewal_id' => $renId, 'invoice_id' => $invId, 'new_due_date' => $newDue]);
-
-    // ══════════════════════════════════
-    // STAFF ATTENDANCE
-    // ══════════════════════════════════
-    case 'get_staff_attendance':
-        $date = $_GET['date'] ?? date('Y-m-d');
-        $rows = $db->prepare("SELECT staff_id, status, check_in, check_out, note FROM staff_attendance WHERE attendance_date=?");
-        $rows->execute([$date]);
-        $att = [];
-        foreach ($rows->fetchAll() as $r) $att[$r['staff_id']] = $r;
-        jsonResponse(['date' => $date, 'attendance' => $att]);
-
-    case 'save_staff_attendance':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d          = getInput();
-        $date       = $d['date']       ?? date('Y-m-d');
-        $attendance = $d['attendance'] ?? [];
-        if (empty($attendance)) jsonError('No attendance data provided');
-
-        $markedBy = $_SESSION['staff_id'] ?? '';
-        foreach ($attendance as $staffId => $info) {
-            $status   = $info['status']    ?? 'absent';
-            $checkIn  = !empty($info['check_in'])  ? $info['check_in']  : null;
-            $checkOut = !empty($info['check_out']) ? $info['check_out'] : null;
-            $note     = $info['note'] ?? '';
-            $db->prepare("
-                INSERT INTO staff_attendance (staff_id, attendance_date, status, check_in, check_out, note, marked_by)
-                VALUES (?,?,?,?,?,?,?)
-                ON DUPLICATE KEY UPDATE
-                  status=VALUES(status), check_in=VALUES(check_in),
-                  check_out=VALUES(check_out), note=VALUES(note), marked_by=VALUES(marked_by)
-            ")->execute([$staffId, $date, $status, $checkIn, $checkOut, $note, $markedBy]);
-        }
-        addActivity($db, '🗓️', 'rgba(58,122,176,.14)',
-            "Staff attendance saved for <strong>{$date}</strong> (" . count($attendance) . " records)");
-        jsonResponse(['success' => true, 'date' => $date, 'count' => count($attendance)]);
-
+    // ════════════════════════════════════════════════════════
+    // GET — Staff attendance summary (for salary page)
+    // ════════════════════════════════════════════════════════
     case 'get_staff_attendance_summary':
-        $month = $_GET['month'] ?? date('Y-m');
-        $rows  = $db->prepare("
-            SELECT
-                s.id, s.name, s.role,
-                SUM(CASE WHEN sa.status='present' THEN 1 ELSE 0 END) AS present,
-                SUM(CASE WHEN sa.status='absent'  THEN 1 ELSE 0 END) AS absent,
-                SUM(CASE WHEN sa.status='half'    THEN 1 ELSE 0 END) AS half,
-                COUNT(sa.id) AS days_marked
-            FROM staff s
-            LEFT JOIN staff_attendance sa
-                ON sa.staff_id = s.id
-               AND DATE_FORMAT(sa.attendance_date,'%Y-%m') = ?
-            WHERE s.status = 'active'
-            GROUP BY s.id, s.name, s.role
-            ORDER BY s.name
-        ");
-        $rows->execute([$month]);
-        jsonResponse($rows->fetchAll());
+        $month = $_GET['month'] ?? date('Y-m');  // format: 2026-03
+        // staff_attendance table is expected if you add staff attendance feature.
+        // If not yet created, return empty array gracefully.
+        try {
+            $rows = $pdo->prepare(
+                "SELECT sf.id,
+                        SUM(sa.status = 'present') AS present,
+                        SUM(sa.status = 'absent')  AS absent,
+                        SUM(sa.status = 'half')    AS half
+                 FROM staff sf
+                 LEFT JOIN staff_attendance sa
+                        ON sa.staff_id = sf.id AND DATE_FORMAT(sa.att_date,'%Y-%m') = ?
+                 GROUP BY sf.id"
+            );
+            $rows->execute([$month]);
+            echo json_encode($rows->fetchAll());
+        } catch (\Exception $e) {
+            echo json_encode([]);
+        }
+        break;
 
+    // ════════════════════════════════════════════════════════
+    // GET — Clear all notifications
+    // ════════════════════════════════════════════════════════
+    case 'clear_notifs':
+        $pdo->exec("DELETE FROM notifications");
+        ok();
+
+    // ════════════════════════════════════════════════════════
+    // POST — Add student
+    // ════════════════════════════════════════════════════════
+    case 'add_student': {
+        $d = bodyJson();
+        $fn    = trim($d['fname']          ?? '');
+        $ln    = trim($d['lname']          ?? '');
+        $bId   = trim($d['batch_id']       ?? '');
+        if (!$fn || !$bId) err('First name and batch are required');
+
+        // Fetch batch fee if not provided
+        $batch = null;
+        if ($bId) {
+            $bs = $pdo->prepare("SELECT * FROM batches WHERE id = ?");
+            $bs->execute([$bId]);
+            $batch = $bs->fetch();
+        }
+
+        $baseFee      = (int)($d['base_fee'] ?? ($batch['base_fee'] ?? 0));
+        $discType     = $d['discount_type']  ?? 'none';
+        $discVal      = (float)($d['discount_value'] ?? 0);
+        $discReason   = trim($d['discount_reason'] ?? '');
+
+        // Calculate net fee
+        $netFee = $baseFee;
+        if ($discType === 'flat')    $netFee = max(0, $baseFee - $discVal);
+        if ($discType === 'percent') $netFee = max(0, $baseFee - round($baseFee * $discVal / 100));
+
+        $seatType = $d['seat_type'] ?? 'non-ac';
+        if ($seatType === 'ac' && $batch) $netFee += (int)($batch['ac_extra'] ?? 0);
+
+        $joinDate = $d['join_date'] ?? date('Y-m-d');
+        // Due date = join_date + 30 days
+        $dueDate  = date('Y-m-d', strtotime($joinDate . ' +30 days'));
+
+        $colors = ['#e67e22','#c0444f','#3d6ff0','#16a34a','#7c3aed','#0284c7','#d97706','#ea580c'];
+        $color  = $colors[array_rand($colors)];
+
+        $id = generateId($pdo, 'students', 'STU-');
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO students
+             (id, fname, lname, phone, batch_id, seat_type, seat, base_fee,
+              discount_type, discount_value, discount_reason, net_fee,
+              paid_amt, fee_status, due_date, course, color, join_date)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,'pending',?,?,?,?)"
+        );
+        $stmt->execute([
+            $id, $fn, $ln,
+            $d['phone']   ?? '',
+            $bId,
+            $seatType,
+            $d['seat']    ?? '',
+            $baseFee, $discType, $discVal, $discReason, $netFee,
+            $dueDate,
+            $d['course']  ?? '',
+            $color,
+            $joinDate
+        ]);
+
+        // Log activity
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['👨‍🎓','rgba(74,124,111,.14)',"New student <strong>$fn $ln</strong> enrolled"]);
+
+        ok(['id' => $id]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Update student basic info (from profile edit)
+    // ════════════════════════════════════════════════════════
+    case 'update_student': {
+        $d = bodyJson();
+        $id = $d['id'] ?? '';
+        if (!$id) err('Student ID required');
+        $stmt = $pdo->prepare(
+            "UPDATE students SET fname=?,lname=?,phone=?,course=? WHERE id=?"
+        );
+        $stmt->execute([
+            trim($d['fname']  ?? ''),
+            trim($d['lname']  ?? ''),
+            trim($d['phone']  ?? ''),
+            trim($d['course'] ?? ''),
+            $id
+        ]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Delete student
+    // ════════════════════════════════════════════════════════
+    case 'delete_student': {
+        $d = bodyJson();
+        $id = $d['id'] ?? '';
+        if (!$id) err('ID required');
+        $pdo->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Save batch (add or edit)
+    // ════════════════════════════════════════════════════════
+    case 'save_batch': {
+        $d  = bodyJson();
+        $nm = trim($d['name']       ?? '');
+        $st = $d['start_time']      ?? '';
+        $et = $d['end_time']        ?? '';
+        $ts = (int)($d['total_seats']?? 80);
+        $fe = (int)($d['base_fee']  ?? 0);
+        $ac = (int)($d['ac_extra']  ?? 0);
+        if (!$nm || !$st || !$et || !$ts || !$fe) err('Fill all required fields');
+
+        if (!empty($d['id'])) {
+            // Edit
+            $pdo->prepare("UPDATE batches SET name=?,start_time=?,end_time=?,total_seats=?,base_fee=?,ac_extra=? WHERE id=?")
+                ->execute([$nm,$st,$et,$ts,$fe,$ac,$d['id']]);
+        } else {
+            // Add
+            $id = generateId($pdo, 'batches', 'BT-');
+            $pdo->prepare("INSERT INTO batches (id,name,start_time,end_time,total_seats,base_fee,ac_extra) VALUES (?,?,?,?,?,?,?)")
+                ->execute([$id,$nm,$st,$et,$ts,$fe,$ac]);
+            $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+                ->execute(['🆕','rgba(74,124,111,.14)',"Batch \"<strong>$nm</strong>\" added"]);
+        }
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Delete batch
+    // ════════════════════════════════════════════════════════
+    case 'delete_batch': {
+        $d = bodyJson();
+        $id = $d['id'] ?? '';
+        if (!$id) err('ID required');
+        $pdo->prepare("DELETE FROM batches WHERE id=?")->execute([$id]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Allocate seat
+    // ════════════════════════════════════════════════════════
+    case 'alloc_seat': {
+        $d     = bodyJson();
+        $stuId = $d['student_id'] ?? '';
+        $bId   = $d['batch_id']   ?? '';
+        $seat  = trim($d['seat']  ?? '');
+        if (!$stuId || !$bId || !$seat) err('Fill all fields');
+
+        // Check seat not already taken in same batch
+        $chk = $pdo->prepare("SELECT id FROM students WHERE batch_id=? AND seat=? AND id!=?");
+        $chk->execute([$bId, $seat, $stuId]);
+        if ($chk->fetch()) err("Seat $seat is already taken in this batch");
+
+        $pdo->prepare("UPDATE students SET seat=?,batch_id=? WHERE id=?")
+            ->execute([$seat, $bId, $stuId]);
+        $pdo->prepare("UPDATE batches SET occupied_seats = (SELECT COUNT(*) FROM students WHERE batch_id=? AND seat IS NOT NULL AND seat != '') WHERE id=?")
+            ->execute([$bId, $bId]);
+
+        // Activity log
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['🪑','rgba(196,125,43,.14)',"Seat <strong>$seat</strong> allocated"]);
+
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Add book
+    // ════════════════════════════════════════════════════════
+    case 'add_book': {
+        $d  = bodyJson();
+        $tl = trim($d['title'] ?? '');
+        if (!$tl) err('Title required');
+        $cp = max(1, (int)($d['copies'] ?? 1));
+        $emojis = ['📘','📙','📗','📕','📔','📒'];
+        $emoji  = $emojis[array_rand($emojis)];
+        $id = generateId($pdo, 'books', 'BK-');
+        $pdo->prepare("INSERT INTO books (id,title,author,isbn,category,copies,available,shelf,emoji) VALUES (?,?,?,?,?,?,?,?,?)")
+            ->execute([$id,$tl,$d['author']??'',$d['isbn']??'',$d['category']??'Other',$cp,$cp,$d['shelf']??'',$emoji]);
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['📚','rgba(58,122,176,.14)',"Book \"<strong>$tl</strong>\" added"]);
+        ok(['id' => $id]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Issue book
+    // ════════════════════════════════════════════════════════
+    case 'issue_book': {
+        $d     = bodyJson();
+        $stuId = $d['student_id'] ?? '';
+        $bkId  = $d['book_id']    ?? '';
+        if (!$stuId || !$bkId) err('Select student and book');
+
+        $bk = $pdo->prepare("SELECT * FROM books WHERE id=?");
+        $bk->execute([$bkId]);
+        $book = $bk->fetch();
+        if (!$book)               err('Book not found');
+        if ($book['available'] < 1) err('No copies available');
+
+        $today   = date('Y-m-d');
+        $loanDays = (int)($pdo->query("SELECT loan_days FROM settings LIMIT 1")->fetchColumn() ?: 14);
+        $dueDate  = date('Y-m-d', strtotime("+$loanDays days"));
+
+        $txId = 'TX-' . time();
+        $pdo->prepare("INSERT INTO transactions (id,student_id,book_id,issue_date,due_date,status) VALUES (?,?,?,?,?,'issued')")
+            ->execute([$txId,$stuId,$bkId,$today,$dueDate]);
+        $pdo->prepare("UPDATE books SET available = available - 1 WHERE id=?")->execute([$bkId]);
+
+        $stu = $pdo->prepare("SELECT fname FROM students WHERE id=?");
+        $stu->execute([$stuId]);
+        $name = $stu->fetchColumn() ?: 'Student';
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['📤','rgba(124,92,191,.14)',"<strong>$name</strong> issued \"{$book['title']}\""]);
+
+        ok(['id' => $txId]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Return book
+    // ════════════════════════════════════════════════════════
+    case 'return_book': {
+        $d      = bodyJson();
+        $txId   = $d['tx_id']    ?? '';
+        $fine   = (int)($d['fine'] ?? 0);
+        $cond   = $d['condition'] ?? 'Good';
+        if (!$txId) err('Transaction ID required');
+
+        $tx = $pdo->prepare("SELECT * FROM transactions WHERE id=?");
+        $tx->execute([$txId]);
+        $row = $tx->fetch();
+        if (!$row) err('Transaction not found');
+
+        $today = date('Y-m-d');
+        $pdo->prepare("UPDATE transactions SET status='returned', return_date=?, fine=? WHERE id=?")
+            ->execute([$today, $fine, $txId]);
+
+        if ($cond !== 'Lost') {
+            $pdo->prepare("UPDATE books SET available = available + 1 WHERE id=?")->execute([$row['book_id']]);
+        }
+
+        $bk = $pdo->prepare("SELECT title FROM books WHERE id=?");
+        $bk->execute([$row['book_id']]);
+        $title = $bk->fetchColumn() ?: 'Book';
+        $stu = $pdo->prepare("SELECT fname FROM students WHERE id=?");
+        $stu->execute([$row['student_id']]);
+        $name = $stu->fetchColumn() ?: 'Student';
+        $extra = $fine > 0 ? " Fine ₹$fine" : '';
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['📩','rgba(58,125,94,.14)',"<strong>$name</strong> returned \"$title\"$extra"]);
+
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Collect fee
+    // ════════════════════════════════════════════════════════
+    case 'collect_fee': {
+        $d     = bodyJson();
+        $stuId = $d['student_id'] ?? '';
+        $amt   = (int)($d['amount'] ?? 0);
+        $mode  = $d['mode']  ?? 'Cash';
+        $month = $d['month'] ?? date('F Y');
+        if (!$stuId || !$amt) err('Student and amount required');
+
+        $stu = $pdo->prepare("SELECT * FROM students WHERE id=?");
+        $stu->execute([$stuId]);
+        $s = $stu->fetch();
+        if (!$s) err('Student not found');
+
+        $newPaid = min($s['net_fee'], $s['paid_amt'] + $amt);
+        $bal     = $s['net_fee'] - $newPaid;
+        $status  = $bal <= 0 ? 'paid' : 'partial';
+        $today   = date('Y-m-d');
+
+        $pdo->prepare("UPDATE students SET paid_amt=?,fee_status=?,paid_on=? WHERE id=?")
+            ->execute([$newPaid,$status,$today,$stuId]);
+
+        // Invoice
+        $invId = generateId($pdo, 'invoices', 'INV-');
+        $pdo->prepare(
+            "INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        )->execute([
+            $invId, $stuId, 'Monthly Fee', $amt,
+            $s['base_fee'],
+            $s['base_fee'] - $s['net_fee'],
+            $s['net_fee'], $newPaid, $bal,
+            $today, $month, $mode, $status
+        ]);
+
+        // Activity + notification
+        $name = $s['fname'] . ' ' . $s['lname'];
+        $pendingText = $bal > 0 ? "(₹$bal pending)" : "(full)";
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['💳','rgba(58,125,94,.14)',"<strong>{$s['fname']}</strong> paid ₹$amt via $mode $pendingText"]);
+        $pdo->prepare("INSERT INTO notifications (type,title,msg) VALUES (?,?,?)")
+            ->execute(['success','Fee Collected',"$name paid ₹$amt — $status"]);
+
+        ok(['balance' => $bal, 'fee_status' => $status, 'invoice_id' => $invId]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Generate invoice (manual)
+    // ════════════════════════════════════════════════════════
+    case 'gen_invoice': {
+        $d     = bodyJson();
+        $stuId = $d['student_id'] ?? '';
+        $amt   = (int)($d['amount'] ?? 0);
+        if (!$stuId || !$amt) err('Fill required fields');
+
+        $stu = $pdo->prepare("SELECT * FROM students WHERE id=?");
+        $stu->execute([$stuId]);
+        $s = $stu->fetch();
+        if (!$s) err('Student not found');
+
+        $typeMap = ['fee' => 'Monthly Fee', 'fine' => 'Book Fine', 'other' => 'Other'];
+        $type    = $typeMap[$d['type'] ?? 'fee'] ?? 'Monthly Fee';
+        $month   = $d['month'] ?? date('F Y');
+        $today   = date('Y-m-d');
+
+        $invId = generateId($pdo, 'invoices', 'INV-');
+        $pdo->prepare(
+            "INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status)
+             VALUES (?,?,?,?,?,?,?,?,0,?,?,?,?)"
+        )->execute([
+            $invId,$stuId,$type,$amt,
+            $s['base_fee'], $s['base_fee']-$s['net_fee'], $s['net_fee'], $amt,
+            $today,$month,'Manual','paid'
+        ]);
+
+        ok(['id' => $invId]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Add expense
+    // ════════════════════════════════════════════════════════
+    case 'add_expense': {
+        $d  = bodyJson();
+        $nm = trim($d['name']   ?? '');
+        $am = (int)($d['amount'] ?? 0);
+        if (!$nm || !$am) err('Name and amount required');
+
+        $catEmoji = [
+            'Utilities'=>'💡','Staff'=>'👥','Maintenance'=>'🔧',
+            'Supplies'=>'📦','Books'=>'📚','Other'=>'💰'
+        ];
+        $cat   = $d['category'] ?? 'Other';
+        $emoji = $catEmoji[$cat] ?? '💰';
+        $date  = $d['date']  ?? date('Y-m-d');
+        $notes = $d['notes'] ?? '';
+
+        // Normalise date (frontend may send "28 Mar 2026" format)
+        $parsed = strtotime($date);
+        if ($parsed === false) $parsed = time();
+        $date = date('Y-m-d', $parsed);
+
+        $id = generateId($pdo, 'expenses', 'EX-');
+        $pdo->prepare("INSERT INTO expenses (id,name,amount,category,expense_date,notes,emoji) VALUES (?,?,?,?,?,?,?)")
+            ->execute([$id,$nm,$am,$cat,$date,$notes,$emoji]);
+
+        ok(['id' => $id]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Delete expense
+    // ════════════════════════════════════════════════════════
+    case 'delete_expense': {
+        $d = bodyJson();
+        $id = $d['id'] ?? '';
+        if (!$id) err('ID required');
+        $pdo->prepare("DELETE FROM expenses WHERE id=?")->execute([$id]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Save attendance (bulk upsert)
+    // ════════════════════════════════════════════════════════
+    case 'save_attendance': {
+        $d    = bodyJson();
+        $date = $d['date'] ?? date('Y-m-d');
+        $att  = $d['attendance'] ?? [];
+        if (!$att || !is_array($att)) err('No attendance data');
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO attendance (student_id,attendance_date,status) VALUES (?,?,?)
+             ON DUPLICATE KEY UPDATE status=VALUES(status)"
+        );
+        foreach ($att as $stuId => $status) {
+            if (!in_array($status,['present','absent'])) $status = 'present';
+            $stmt->execute([$stuId, $date, $status]);
+        }
+        ok(['count' => count($att)]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Save staff attendance
+    // ════════════════════════════════════════════════════════
+    case 'save_staff_attendance': {
+        $d    = bodyJson();
+        $date = $d['date'] ?? date('Y-m-d');
+        $att  = $d['attendance'] ?? [];
+
+        // Create table if missing (graceful)
+        $pdo->exec(
+            "CREATE TABLE IF NOT EXISTS `staff_attendance` (
+              `id`        INT AUTO_INCREMENT PRIMARY KEY,
+              `staff_id`  VARCHAR(30) NOT NULL,
+              `att_date`  DATE NOT NULL,
+              `status`    ENUM('present','absent','half') DEFAULT 'present',
+              UNIQUE KEY `uq_sa` (`staff_id`,`att_date`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        );
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO staff_attendance (staff_id,att_date,status) VALUES (?,?,?)
+             ON DUPLICATE KEY UPDATE status=VALUES(status)"
+        );
+        foreach ($att as $staffId => $status) {
+            if (!in_array($status,['present','absent','half'])) $status = 'present';
+            $stmt->execute([$staffId, $date, $status]);
+        }
+        ok(['count' => count($att)]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Save staff (add or edit)
+    // ════════════════════════════════════════════════════════
+    case 'save_staff': {
+        $d  = bodyJson();
+        $nm = trim($d['name']  ?? '');
+        $rl = $d['role']       ?? 'librarian';
+        $em = trim($d['email'] ?? '');
+        if (!$nm || !$em) err('Name and email required');
+
+        $ph  = $d['phone']    ?? '';
+        $un  = $d['username'] ?? strtolower(explode(' ', $nm)[0]);
+        $pw  = $d['password'] ?? '';
+        $p   = $d['perms']    ?? [];
+
+        $perms = [
+            'perm_students'  => !empty($p['students'])  ? 1 : 0,
+            'perm_fees'      => !empty($p['fees'])      ? 1 : 0,
+            'perm_books'     => !empty($p['books'])     ? 1 : 0,
+            'perm_expenses'  => !empty($p['expenses'])  ? 1 : 0,
+            'perm_reports'   => !empty($p['reports'])   ? 1 : 0,
+            'perm_staff'     => !empty($p['staff'])     ? 1 : 0,
+            'perm_settings'  => !empty($p['settings'])  ? 1 : 0,
+        ];
+
+        if (!empty($d['id'])) {
+            // Edit
+            $sets = "name=?,role=?,email=?,phone=?,perm_students=?,perm_fees=?,perm_books=?,perm_expenses=?,perm_reports=?,perm_staff=?,perm_settings=?";
+            $vals = [$nm,$rl,$em,$ph,
+                     $perms['perm_students'],$perms['perm_fees'],$perms['perm_books'],
+                     $perms['perm_expenses'],$perms['perm_reports'],$perms['perm_staff'],
+                     $perms['perm_settings']];
+            if ($pw) { $sets .= ',password_hash=?'; $vals[] = password_hash($pw, PASSWORD_BCRYPT); }
+            $vals[] = $d['id'];
+            $pdo->prepare("UPDATE staff SET $sets WHERE id=?")->execute($vals);
+            ok(['id' => $d['id']]);
+        } else {
+            // Add
+            if (!$pw) err('Password required for new staff');
+            // Check username unique
+            $cx = $pdo->prepare("SELECT 1 FROM staff WHERE username=?");
+            $cx->execute([$un]);
+            if ($cx->fetchColumn()) $un .= rand(10,99);
+
+            $id = generateId($pdo, 'staff', 'SF-');
+            $pdo->prepare(
+                "INSERT INTO staff (id,name,role,email,phone,username,password_hash,
+                 perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            )->execute([
+                $id,$nm,$rl,$em,$ph,$un,
+                password_hash($pw, PASSWORD_BCRYPT),
+                $perms['perm_students'],$perms['perm_fees'],$perms['perm_books'],
+                $perms['perm_expenses'],$perms['perm_reports'],$perms['perm_staff'],
+                $perms['perm_settings']
+            ]);
+            ok(['id' => $id]);
+        }
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Delete staff
+    // ════════════════════════════════════════════════════════
+    case 'delete_staff': {
+        $d = bodyJson();
+        $id = $d['id'] ?? '';
+        if (!$id) err('ID required');
+        if ($id === 'SF-001') err('Cannot delete the primary admin');
+        $pdo->prepare("DELETE FROM staff WHERE id=?")->execute([$id]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Change password (logged-in staff)
+    // ════════════════════════════════════════════════════════
+    case 'change_password': {
+        $d   = bodyJson();
+        $cur = $d['current_password'] ?? '';
+        $nw  = $d['new_password']     ?? '';
+        if (!$cur || !$nw) err('Fill all fields');
+        if (strlen($nw) < 6) err('Password must be 6+ characters');
+
+        $s = $pdo->prepare("SELECT password_hash FROM staff WHERE id=?");
+        $s->execute([$_SESSION['staff_id']]);
+        $row = $s->fetch();
+        if (!$row || !password_verify($cur, $row['password_hash'])) err('Current password is incorrect');
+
+        $pdo->prepare("UPDATE staff SET password_hash=? WHERE id=?")
+            ->execute([password_hash($nw, PASSWORD_BCRYPT), $_SESSION['staff_id']]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Mark notification read
+    // ════════════════════════════════════════════════════════
+    case 'mark_read': {
+        $d = bodyJson();
+        $id = (int)($d['id'] ?? 0);
+        if (!$id) err('ID required');
+        $pdo->prepare("UPDATE notifications SET is_read=1 WHERE id=?")->execute([$id]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Delete notification
+    // ════════════════════════════════════════════════════════
+    case 'delete_notif': {
+        $d = bodyJson();
+        $id = (int)($d['id'] ?? 0);
+        if (!$id) err('ID required');
+        $pdo->prepare("DELETE FROM notifications WHERE id=?")->execute([$id]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Save settings
+    // ════════════════════════════════════════════════════════
+    case 'save_settings': {
+        $d = bodyJson();
+        $pdo->prepare(
+            "UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=? WHERE id=1"
+        )->execute([
+            $d['name']      ?? '',
+            $d['phone']     ?? '',
+            $d['email']     ?? '',
+            $d['addr']      ?? '',
+            (int)($d['fine'] ?? 5),
+            (int)($d['days'] ?? 14),
+            $d['wa_number'] ?? '',
+        ]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Log WhatsApp send
+    // ════════════════════════════════════════════════════════
+    case 'log_wa': {
+        $d = bodyJson();
+        $pdo->prepare("INSERT INTO wa_send_log (sent_to,preview,type) VALUES (?,?,?)")
+            ->execute([
+                $d['to']      ?? '',
+                substr($d['preview'] ?? '', 0, 255),
+                $d['type']    ?? 'single'
+            ]);
+        ok();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // POST — Renew student
+    // ════════════════════════════════════════════════════════
+    case 'renew_student': {
+        $d      = bodyJson();
+        $stuId  = $d['student_id']  ?? '';
+        $amt    = (int)($d['amount']?? 0);
+        $months = (int)($d['months']?? 1);
+        $mode   = $d['mode']        ?? 'Cash';
+        $newDue = $d['new_due_date']?? '';
+        if (!$stuId) err('Student ID required');
+
+        $stu = $pdo->prepare("SELECT * FROM students WHERE id=?");
+        $stu->execute([$stuId]);
+        $s = $stu->fetch();
+        if (!$s) err('Student not found');
+
+        // Extend due_date
+        if (!$newDue) {
+            $base   = max(time(), strtotime($s['due_date']));
+            $newDue = date('Y-m-d', strtotime("+$months months", $base));
+        }
+
+        $newPaid  = $s['paid_amt'] + $amt;
+        $bal      = max(0, $s['net_fee'] - $newPaid);
+        $status   = $bal <= 0 ? 'paid' : ($newPaid > 0 ? 'partial' : 'pending');
+        $today    = date('Y-m-d');
+
+        $pdo->prepare("UPDATE students SET due_date=?,paid_amt=?,fee_status=?,paid_on=? WHERE id=?")
+            ->execute([$newDue, $newPaid, $status, $today, $stuId]);
+
+        // Invoice
+        $invId = generateId($pdo, 'invoices', 'INV-');
+        $monthLabel = date('F Y');
+        $pdo->prepare(
+            "INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status)
+             VALUES (?,?,?,?,?,?,?,?,0,?,?,?,?)"
+        )->execute([
+            $invId,$stuId,"Renewal ({$months}mo)",$amt,
+            $s['base_fee'], $s['base_fee']-$s['net_fee'], $s['net_fee'], $amt,
+            $today, $monthLabel, $mode, 'paid'
+        ]);
+
+        $name = $s['fname'] . ' ' . $s['lname'];
+        $pdo->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")
+            ->execute(['🔄','rgba(61,111,240,.14)',"Renewed <strong>$name</strong> for $months month(s)"]);
+        $pdo->prepare("INSERT INTO notifications (type,title,msg) VALUES (?,?,?)")
+            ->execute(['success','Renewal','Student '.$name.' renewed for '.$months.' month(s)']);
+
+        ok(['invoice_id' => $invId]);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // Fallback
+    // ════════════════════════════════════════════════════════
     default:
-        jsonError('Unknown action', 404);
-}
+        err("Unknown action: $action", 400);
+    }
 
-// ─── Helper functions ────────────────────────────
-function addActivity($db, $icon, $bg, $text) {
-    $db->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")->execute([$icon,$bg,$text]);
-    // Keep only last 50
-    $db->exec("DELETE FROM activity_log WHERE id NOT IN (SELECT id FROM (SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 50) t)");
-}
-
-function addNotif($db, $type, $title, $msg) {
-    $db->prepare("INSERT INTO notifications (type,title,msg,is_read) VALUES (?,?,?,0)")->execute([$type,$title,$msg]);
+} catch (\PDOException $e) {
+    // Never leak stack traces in production; log internally
+    error_log('[LibraryAPI] PDO Error: ' . $e->getMessage());
+    err('Database error — please try again.', 500);
+} catch (\Throwable $e) {
+    error_log('[LibraryAPI] Error: ' . $e->getMessage());
+    err('Server error — please try again.', 500);
 }
