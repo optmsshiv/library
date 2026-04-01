@@ -494,15 +494,36 @@ switch ($action) {
     case 'save_settings':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
-        // Check if ac_extra column exists; if not, skip it gracefully
-        try {
-            $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=?,ac_extra=? WHERE id=1")
-               ->execute([$d['name'] ?? '',$d['phone'] ?? '',$d['email'] ?? '',$d['addr'] ?? '',(int)($d['fine'] ?? 5),(int)($d['days'] ?? 14),$d['wa_number'] ?? '',(int)($d['ac_extra'] ?? 200)]);
-        } catch (\PDOException $e) {
-            // ac_extra column may not exist yet — fall back without it
-            $db->prepare("UPDATE settings SET name=?,phone=?,email=?,addr=?,fine_per_day=?,loan_days=?,wa_number=? WHERE id=1")
-               ->execute([$d['name'] ?? '',$d['phone'] ?? '',$d['email'] ?? '',$d['addr'] ?? '',(int)($d['fine'] ?? 5),(int)($d['days'] ?? 14),$d['wa_number'] ?? '']);
+        $acFeeVal = (int)($d['ac_fee'] ?? 200);
+
+        // Get actual column list from DB so we don't crash on missing columns
+        $cols = [];
+        foreach ($db->query("SHOW COLUMNS FROM settings")->fetchAll() as $c) {
+            $cols[] = $c['Field'];
         }
+
+        // Build SET clause dynamically based on existing columns
+        $set  = [];
+        $vals = [];
+
+        $set[] = "name=?";         $vals[] = $d['name']  ?? '';
+        $set[] = "phone=?";        $vals[] = $d['phone'] ?? '';
+        $set[] = "email=?";        $vals[] = $d['email'] ?? '';
+        $set[] = "addr=?";         $vals[] = $d['addr']  ?? '';
+        $set[] = "fine_per_day=?"; $vals[] = (int)($d['fine'] ?? 5);
+        $set[] = "loan_days=?";    $vals[] = (int)($d['days'] ?? 14);
+        $set[] = "wa_number=?";    $vals[] = $d['wa_number'] ?? '';
+
+        // Save ac_fee and/or ac_extra depending on which columns exist
+        if (in_array('ac_fee', $cols)) {
+            $set[] = "ac_fee=?"; $vals[] = $acFeeVal;
+        }
+        if (in_array('ac_extra', $cols)) {
+            $set[] = "ac_extra=?"; $vals[] = $acFeeVal;
+        }
+
+        $vals[] = 1; // WHERE id=1
+        $db->prepare("UPDATE settings SET " . implode(',', $set) . " WHERE id=?")->execute($vals);
         addActivity($db, '⚙', 'rgba(100,116,139,.14)', "Settings updated by <strong>" . htmlspecialchars($_SESSION['staff_name'] ?? 'Staff') . "</strong>");
         jsonResponse(['success' => true]);
 
@@ -534,12 +555,9 @@ switch ($action) {
             $row = $stmt->fetch();
             jsonResponse(['dp' => $row['dp_image'] ?? null]);
         } catch (\PDOException $e) {
-            jsonResponse(['dp' => null]); // column doesn't exist yet
+            jsonResponse(['dp' => null]);
         }
 
-    // ══════════════════════════════════
-    // PROFILE IMAGE (DP) UPLOAD
-    // ══════════════════════════════════
     case 'upload_dp':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         if (empty($_SESSION['staff_id'])) jsonError('Not authenticated', 401);
@@ -548,7 +566,6 @@ switch ($action) {
         $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
         if (!in_array($file['type'], $allowed)) jsonError('Only JPG/PNG/GIF/WebP allowed');
         if ($file['size'] > 2 * 1024 * 1024) jsonError('File too large (max 2MB)');
-        // Convert to base64 data URI for storage
         $data = base64_encode(file_get_contents($file['tmp_name']));
         $uri  = 'data:' . $file['type'] . ';base64,' . $data;
         try {

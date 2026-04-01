@@ -848,40 +848,45 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   <div class="sec-hd"><div><div class="sec-t">Settings</div></div></div>
   <div class="g2">
     <div>
-    <div class="panel" style="margin-bottom:14px"><div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">account_circle</span>Profile Photo</div></div><div class="pb">
-      <div style="display:flex;align-items:center;gap:18px">
-        <div style="position:relative">
-          <img id="dp-preview" src="" alt="Profile" style="display:none;width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 2px 10px rgba(61,111,240,.2)">
-          <div id="dp-placeholder" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--vi));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;border:3px solid var(--br)"><?= $staffInitials ?></div>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px"><?= $staffName ?></div>
-          <div style="font-size:11px;color:var(--tx3);margin-bottom:10px"><?= $staffRole ?> · Upload a square photo (JPG/PNG, max 2MB)</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <label style="cursor:pointer">
-              <input type="file" id="dp-file-input" accept="image/*" style="display:none" onchange="uploadDP()">
-              <div class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Photo</div>
-            </label>
+      <!-- Profile Photo Upload -->
+      <div class="panel" style="margin-bottom:14px">
+        <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">account_circle</span>Profile Photo</div></div>
+        <div class="pb">
+          <div style="display:flex;align-items:center;gap:18px">
+            <div style="position:relative;flex-shrink:0">
+              <div id="dp-placeholder" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--vi));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;border:3px solid var(--br)"><?= $staffInitials ?></div>
+              <img id="dp-preview" src="" alt="DP" style="display:none;width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 2px 10px rgba(61,111,240,.2);position:absolute;top:0;left:0">
+            </div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;margin-bottom:3px"><?= $staffName ?></div>
+              <div style="font-size:11px;color:var(--tx3);margin-bottom:10px"><?= $staffRole ?> · JPG/PNG, max 2MB</div>
+              <label style="cursor:pointer;display:inline-block">
+                <input type="file" id="dp-file-input" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="uploadDP()">
+                <span class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Photo</span>
+              </label>
+              <span id="dp-status" style="font-size:11px;color:var(--tx3);margin-left:8px"></span>
+            </div>
           </div>
         </div>
       </div>
-    </div></div>
-    <div class="panel"><div class="ph"><div class="pt">NAYI UDAAN LIBRARY Info</div></div><div class="pb">
-      <div class="fg">
-        <div class="fgi full"><label>Library Name</label><input id="s-name" value="NAYI UDAAN LIBRARY"></div>
-        <div class="fgi"><label>Phone / WhatsApp</label><input id="s-phone" value="+91 97099 00158"></div>
-        <div class="fgi"><label>Email</label><input id="s-email" value="aryanraj0158@gmail.com"></div>
-        <div class="fgi full"><label>Address</label><input id="s-addr" value="New Bypass Road, Madhepura, Bihar - 852113"></div>
-        <div class="fgi"><label>Fine Per Day (₹)</label><input id="s-fine" value="5" type="number"></div>
-        <div class="fgi"><label>Max Issue Days</label><input id="s-days" value="14" type="number"></div>
-        <div class="fgi"><label>AC Seat Extra (₹)</label><input id="s-acfee" value="200" type="number"></div>
-        <div class="fgi"><label>WhatsApp Number</label><input id="s-wa" value="919709900158"></div>
-      </div>
-      <div style="margin-top:14px;display:flex;gap:8px">
-        <button class="btn bp" onclick="saveSettings()"><span class="mi sm">save</span>Save</button>
-        <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}"><span class="mi sm">restart_alt</span>Reset</button>
-      </div>
-    </div></div>
+
+      <!-- Library Info -->
+      <div class="panel"><div class="ph"><div class="pt">NAYI UDAAN LIBRARY Info</div></div><div class="pb">
+        <div class="fg">
+          <div class="fgi full"><label>Library Name</label><input id="s-name" value="NAYI UDAAN LIBRARY"></div>
+          <div class="fgi"><label>Phone / WhatsApp</label><input id="s-phone" value="+91 97099 00158"></div>
+          <div class="fgi"><label>Email</label><input id="s-email" value="aryanraj0158@gmail.com"></div>
+          <div class="fgi full"><label>Address</label><input id="s-addr" value="New Bypass Road, Madhepura, Bihar - 852113"></div>
+          <div class="fgi"><label>Fine Per Day (₹)</label><input id="s-fine" value="5" type="number"></div>
+          <div class="fgi"><label>Max Issue Days</label><input id="s-days" value="14" type="number"></div>
+          <div class="fgi"><label>AC Seat Extra (₹)</label><input id="s-acfee" value="200" type="number"></div>
+          <div class="fgi"><label>WhatsApp Number</label><input id="s-wa" value="919709900158"></div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="btn bp" onclick="saveSettings()"><span class="mi sm">save</span>Save</button>
+          <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}"><span class="mi sm">restart_alt</span>Reset</button>
+        </div>
+      </div></div>
     </div>
     <div class="panel"><div class="ph"><div class="pt">System Stats</div></div><div class="pb" id="setStats"></div></div>
   </div>
@@ -1421,36 +1426,18 @@ async function initData() {
 
     const s = data.settings || {};
     DB.settings = {
-      name: s.name || 'OPTMS Tech Study Library',
-      phone: s.phone || '', email: s.email || '',
-      addr: s.addr || '',
-      fine: +(s.fine_per_day || 5),
-      days: +(s.loan_days || 14),
-      acFee: +(s.ac_extra || 200),
+      name:  s.name  || 'OPTMS Tech Study Library',
+      phone: s.phone || '',
+      email: s.email || '',
+      addr:  s.addr  || '',
+      fine:  +(s.fine_per_day || 5),
+      days:  +(s.loan_days    || 14),
+      acFee: +(s.ac_fee || s.ac_extra || 200),   // support both column names
       waNum: s.wa_number || ''
     };
 
     // Apply nav permissions for the logged-in staff member
     if (data.me) applyNavPerms(data.me);
-
-    // Load staff DP image from server if available
-    try {
-      const meDetail = await apiGet('get_my_dp');
-      if (meDetail && meDetail.dp) {
-        const av = document.getElementById('sidebarAv');
-        if (av) {
-          av.style.backgroundImage = `url(${meDetail.dp})`;
-          av.style.backgroundSize = 'cover';
-          av.style.backgroundPosition = 'center';
-          av.textContent = '';
-        }
-        const prev = document.getElementById('dp-preview');
-        const ph   = document.getElementById('dp-placeholder');
-        if (prev && ph && meDetail.dp) {
-          prev.src = meDetail.dp; prev.style.display = 'block'; ph.style.display = 'none';
-        }
-      }
-    } catch(e) { /* dp not loaded — fine */ }
 
     // Build attendance map from today's data
     const attData = await apiGet('get_attendance', { date: new Date().toISOString().split('T')[0] });
@@ -2894,24 +2881,31 @@ async function clearNotifs() {
 // ── SAVE SETTINGS ──
 async function saveSettings() {
   try {
-    const res = await apiPost('save_settings', {
-      name: gv('s-name'), phone: gv('s-phone'), email: gv('s-email'),
-      addr: gv('s-addr'), fine: +gv('s-fine'), days: +gv('s-days'),
-      wa_number: gv('s-wa'), ac_extra: +gv('s-acfee')
-    });
+    const payload = {
+      name:      gv('s-name'),
+      phone:     gv('s-phone'),
+      email:     gv('s-email'),
+      addr:      gv('s-addr'),
+      fine:      +gv('s-fine'),
+      days:      +gv('s-days'),
+      wa_number: gv('s-wa'),
+      ac_fee:    +gv('s-acfee')   // matches DB column; API also saves ac_extra if that column exists
+    };
+    const res = await apiPost('save_settings', payload);
     if (res && res.error) return toast(res.error, 'er');
-    DB.settings.fine  = +gv('s-fine');
-    DB.settings.days  = +gv('s-days');
-    DB.settings.waNum = gv('s-wa');
-    DB.settings.name  = gv('s-name');
-    DB.settings.phone = gv('s-phone');
-    DB.settings.email = gv('s-email');
-    DB.settings.addr  = gv('s-addr');
-    DB.settings.acFee = +gv('s-acfee');
+    // Update local DB state so the rest of the app uses the new values immediately
+    DB.settings.name  = payload.name;
+    DB.settings.phone = payload.phone;
+    DB.settings.email = payload.email;
+    DB.settings.addr  = payload.addr;
+    DB.settings.fine  = payload.fine;
+    DB.settings.days  = payload.days;
+    DB.settings.waNum = payload.wa_number;
+    DB.settings.acFee = payload.ac_fee;
     auditLog('settings', 'Library settings updated');
     toast('✅ Settings saved!', 'ok');
   } catch(e) {
-    toast('Error saving settings: ' + e.message, 'er');
+    toast('Error saving: ' + e.message, 'er');
   }
 }
 
@@ -2944,47 +2938,22 @@ function addNotif(type, title, msg) {
 // ── SETTINGS PAGE: populate from DB ──
 const _origRenderSettings = renderSettings;
 function renderSettings() {
-  // Fill settings form from live DB
   const s = DB.settings;
-  const fields = { 's-name': s.name, 's-phone': s.phone, 's-email': s.email, 
-                   's-addr': s.addr, 's-fine': s.fine || s.fine_per_day, 
-                   's-days': s.days || s.loan_days, 's-wa': s.waNum || s.wa_number,
-                   's-acfee': s.acFee || s.ac_extra || 200 };
+  const fields = {
+    's-name':  s.name,
+    's-phone': s.phone,
+    's-email': s.email,
+    's-addr':  s.addr,
+    's-fine':  s.fine  !== undefined ? s.fine  : (s.fine_per_day  || 5),
+    's-days':  s.days  !== undefined ? s.days  : (s.loan_days     || 14),
+    's-acfee': s.acFee !== undefined ? s.acFee : (s.ac_fee || s.ac_extra || 200),
+    's-wa':    s.waNum !== undefined ? s.waNum : (s.wa_number     || '')
+  };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
-    if (el && val !== undefined) el.value = val;
+    if (el && val !== undefined && val !== null) el.value = val;
   });
   _origRenderSettings();
-}
-
-// ── PROFILE IMAGE (DP) UPLOAD ──
-async function uploadDP() {
-  const input = document.getElementById('dp-file-input');
-  const file  = input?.files?.[0];
-  if (!file) return toast('Please select an image', 'er');
-  if (file.size > 2 * 1024 * 1024) return toast('Image must be under 2MB', 'er');
-  const fd = new FormData();
-  fd.append('dp', file);
-  try {
-    const r = await fetch(`${API}?action=upload_dp`, { method: 'POST', body: fd });
-    const res = await r.json();
-    if (res.error) return toast(res.error, 'er');
-    // Update sidebar avatar to show the uploaded image
-    const av = document.querySelector('.u-av');
-    if (av && res.dp) {
-      av.style.backgroundImage = `url(${res.dp})`;
-      av.style.backgroundSize  = 'cover';
-      av.style.backgroundPosition = 'center';
-      av.textContent = '';
-    }
-    // Update preview
-    const prev = document.getElementById('dp-preview');
-    if (prev && res.dp) { prev.src = res.dp; prev.style.display = 'block'; }
-    toast('✅ Profile photo updated!', 'ok');
-    auditLog('settings', 'Profile photo updated');
-  } catch(e) {
-    toast('Upload failed: ' + e.message, 'er');
-  }
 }
 
 // ═══ CHANGE PASSWORD ═══
@@ -3520,9 +3489,53 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ── PROFILE IMAGE (DP) UPLOAD ──
+async function uploadDP() {
+  const input = document.getElementById('dp-file-input');
+  const file  = input?.files?.[0];
+  if (!file) return;
+  const status = document.getElementById('dp-status');
+  if (status) status.textContent = 'Uploading…';
+  const fd = new FormData();
+  fd.append('dp', file);
+  try {
+    const r   = await fetch(`${API}?action=upload_dp`, { method: 'POST', body: fd });
+    const res = await r.json();
+    if (res.error) { if (status) status.textContent = ''; return toast(res.error, 'er'); }
+    applyDPImage(res.dp);
+    if (status) status.textContent = '✅ Saved!';
+    setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+    toast('✅ Profile photo updated!', 'ok');
+  } catch(e) {
+    if (status) status.textContent = '';
+    toast('Upload failed: ' + e.message, 'er');
+  }
+}
+
+function applyDPImage(dp) {
+  if (!dp) return;
+  // Sidebar avatar
+  const av = document.getElementById('sidebarAv');
+  if (av) { av.style.backgroundImage=`url(${dp})`; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; av.textContent=''; }
+  // Settings preview
+  const prev = document.getElementById('dp-preview');
+  const ph   = document.getElementById('dp-placeholder');
+  if (prev) { prev.src = dp; prev.style.display = 'block'; }
+  if (ph)   { ph.style.display = 'none'; }
+}
+
+// Load DP on boot
+async function loadMyDP() {
+  try {
+    const res = await apiGet('get_my_dp');
+    if (res && res.dp) applyDPImage(res.dp);
+  } catch(e) { /* dp_image column may not exist yet — safe to ignore */ }
+}
+
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
 initData();
+loadMyDP();
 </script>
 </body>
 </html>
