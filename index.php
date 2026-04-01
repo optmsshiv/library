@@ -85,8 +85,8 @@ body{font-family:var(--fb);font-size:14px;background:var(--bg);color:var(--tx);m
 .srch:focus-within{border-color:var(--ac);background:#fff}
 .srch input{background:none;border:none;outline:none;color:var(--tx);font-size:12px;width:100%;font-family:var(--fb)}
 .srch input::placeholder{color:var(--tx3)}
-.id-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 7px;background:#1e40af;border-radius:6px;font-family:var(--fm);font-size:10.5px;font-weight:700;color:#93c5fd;letter-spacing:.4px;white-space:nowrap;box-shadow:0 1px 4px rgba(30,64,175,.25);border:1px solid rgba(147,197,253,.18)}
-.id-badge .id-dot{width:6px;height:6px;border-radius:50%;background:#3b82f6;flex-shrink:0;box-shadow:0 0 0 2px rgba(59,130,246,.3)}
+.id-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 9px;background:#eff6ff;border:1.5px solid #93c5fd;border-radius:7px;font-family:var(--fm);font-size:16px;font-weight:700;color:#1d4ed8;letter-spacing:.3px;white-space:nowrap;box-shadow:0 1px 4px rgba(59,130,246,.10)}
+.id-badge .id-dot{width:7px;height:7px;border-radius:50%;background:#3b82f6;flex-shrink:0;box-shadow:0 0 0 2px rgba(59,130,246,.25)}
 
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--r2);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:var(--fb)}
 .bp{background:var(--ac);color:#fff;box-shadow:0 2px 6px rgba(61,111,240,.3)}.bp:hover{background:var(--ac2);transform:translateY(-1px)}
