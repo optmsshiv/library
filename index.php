@@ -850,26 +850,27 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div>
       <!-- Profile Photo Upload -->
       <div class="panel" style="margin-bottom:14px">
-        <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">account_circle</span>Profile Photo</div></div>
+        <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">account_circle</span>My Profile Photo</div></div>
         <div class="pb">
           <div style="display:flex;align-items:center;gap:18px">
-            <div style="position:relative;flex-shrink:0">
-              <div id="dp-placeholder" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--vi));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;border:3px solid var(--br)"><?= $staffInitials ?></div>
-              <img id="dp-preview" src="" alt="DP" style="display:none;width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 2px 10px rgba(61,111,240,.2);position:absolute;top:0;left:0">
+            <div style="position:relative;width:72px;height:72px;flex-shrink:0">
+              <div id="dp-placeholder" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--vi));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff"><?= $staffInitials ?></div>
+              <img id="dp-preview" src="" alt="" style="display:none;position:absolute;inset:0;width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--ac);box-shadow:0 2px 10px rgba(61,111,240,.25)">
             </div>
             <div style="flex:1">
-              <div style="font-size:13px;font-weight:600;margin-bottom:3px"><?= $staffName ?></div>
-              <div style="font-size:11px;color:var(--tx3);margin-bottom:10px"><?= $staffRole ?> · JPG/PNG, max 2MB</div>
-              <label style="cursor:pointer;display:inline-block">
-                <input type="file" id="dp-file-input" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="uploadDP()">
-                <span class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Photo</span>
-              </label>
-              <span id="dp-status" style="font-size:11px;color:var(--tx3);margin-left:8px"></span>
+              <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:2px"><?= $staffName ?></div>
+              <div style="font-size:11px;color:var(--tx3);margin-bottom:10px"><?= $staffRole ?> · Upload your personal photo (JPG/PNG, max 2MB)</div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <label style="cursor:pointer">
+                  <input type="file" id="dp-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadDP()">
+                  <span class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Photo</span>
+                </label>
+                <span id="dp-status" style="font-size:11px;color:var(--tx3)"></span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
       <!-- Library Info -->
       <div class="panel"><div class="ph"><div class="pt">NAYI UDAAN LIBRARY Info</div></div><div class="pb">
         <div class="fg">
@@ -877,14 +878,14 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
           <div class="fgi"><label>Phone / WhatsApp</label><input id="s-phone" value="+91 97099 00158"></div>
           <div class="fgi"><label>Email</label><input id="s-email" value="aryanraj0158@gmail.com"></div>
           <div class="fgi full"><label>Address</label><input id="s-addr" value="New Bypass Road, Madhepura, Bihar - 852113"></div>
-          <div class="fgi"><label>Fine Per Day (₹)</label><input id="s-fine" value="5" type="number"></div>
-          <div class="fgi"><label>Max Issue Days</label><input id="s-days" value="14" type="number"></div>
-          <div class="fgi"><label>AC Seat Extra (₹)</label><input id="s-acfee" value="200" type="number"></div>
+          <div class="fgi"><label>Fine Per Day (₹)</label><input id="s-fine" value="5" type="number" min="0"></div>
+          <div class="fgi"><label>Max Issue Days</label><input id="s-days" value="14" type="number" min="1"></div>
+          <div class="fgi"><label>AC Seat Extra (₹)</label><input id="s-acfee" value="200" type="number" min="0"></div>
           <div class="fgi"><label>WhatsApp Number</label><input id="s-wa" value="919709900158"></div>
         </div>
         <div style="margin-top:14px;display:flex;gap:8px">
-          <button class="btn bp" onclick="saveSettings()"><span class="mi sm">save</span>Save</button>
-          <button class="btn bd" onclick="if(confirm('Reset?')){initData();toast('Reset!','wn')}"><span class="mi sm">restart_alt</span>Reset</button>
+          <button class="btn bp" onclick="saveSettings()"><span class="mi sm">save</span>Save Settings</button>
+          <button class="btn bd" onclick="if(confirm('Reset all data?')){initData();toast('Reset!','wn')}"><span class="mi sm">restart_alt</span>Reset</button>
         </div>
       </div></div>
     </div>
@@ -1426,13 +1427,13 @@ async function initData() {
 
     const s = data.settings || {};
     DB.settings = {
-      name:  s.name  || 'OPTMS Tech Study Library',
+      name:  s.name  || '',
       phone: s.phone || '',
       email: s.email || '',
       addr:  s.addr  || '',
       fine:  +(s.fine_per_day || 5),
       days:  +(s.loan_days    || 14),
-      acFee: +(s.ac_fee || s.ac_extra || 200),   // support both column names
+      acFee: +(s.ac_fee || s.ac_extra || 200),
       waNum: s.wa_number || ''
     };
 
@@ -2889,11 +2890,11 @@ async function saveSettings() {
       fine:      +gv('s-fine'),
       days:      +gv('s-days'),
       wa_number: gv('s-wa'),
-      ac_fee:    +gv('s-acfee')   // matches DB column; API also saves ac_extra if that column exists
+      ac_fee:    +gv('s-acfee')
     };
     const res = await apiPost('save_settings', payload);
-    if (res && res.error) return toast(res.error, 'er');
-    // Update local DB state so the rest of the app uses the new values immediately
+    if (res && res.error) return toast('❌ ' + res.error, 'er');
+    // Update in-memory state immediately
     DB.settings.name  = payload.name;
     DB.settings.phone = payload.phone;
     DB.settings.email = payload.email;
@@ -2902,10 +2903,9 @@ async function saveSettings() {
     DB.settings.days  = payload.days;
     DB.settings.waNum = payload.wa_number;
     DB.settings.acFee = payload.ac_fee;
-    auditLog('settings', 'Library settings updated');
-    toast('✅ Settings saved!', 'ok');
+    toast('✅ Settings saved to database!', 'ok');
   } catch(e) {
-    toast('Error saving: ' + e.message, 'er');
+    toast('❌ Save failed: ' + e.message, 'er');
   }
 }
 
@@ -2939,19 +2939,19 @@ function addNotif(type, title, msg) {
 const _origRenderSettings = renderSettings;
 function renderSettings() {
   const s = DB.settings;
-  const fields = {
-    's-name':  s.name,
-    's-phone': s.phone,
-    's-email': s.email,
-    's-addr':  s.addr,
-    's-fine':  s.fine  !== undefined ? s.fine  : (s.fine_per_day  || 5),
-    's-days':  s.days  !== undefined ? s.days  : (s.loan_days     || 14),
-    's-acfee': s.acFee !== undefined ? s.acFee : (s.ac_fee || s.ac_extra || 200),
-    's-wa':    s.waNum !== undefined ? s.waNum : (s.wa_number     || '')
+  const map = {
+    's-name':  s.name  ?? '',
+    's-phone': s.phone ?? '',
+    's-email': s.email ?? '',
+    's-addr':  s.addr  ?? '',
+    's-fine':  s.fine  ?? 5,
+    's-days':  s.days  ?? 14,
+    's-acfee': s.acFee ?? 200,
+    's-wa':    s.waNum ?? ''
   };
-  Object.entries(fields).forEach(([id, val]) => {
+  Object.entries(map).forEach(([id, val]) => {
     const el = document.getElementById(id);
-    if (el && val !== undefined && val !== null) el.value = val;
+    if (el) el.value = val;
   });
   _origRenderSettings();
 }
@@ -3489,47 +3489,54 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── PROFILE IMAGE (DP) UPLOAD ──
-async function uploadDP() {
-  const input = document.getElementById('dp-file-input');
-  const file  = input?.files?.[0];
-  if (!file) return;
-  const status = document.getElementById('dp-status');
-  if (status) status.textContent = 'Uploading…';
-  const fd = new FormData();
-  fd.append('dp', file);
-  try {
-    const r   = await fetch(`${API}?action=upload_dp`, { method: 'POST', body: fd });
-    const res = await r.json();
-    if (res.error) { if (status) status.textContent = ''; return toast(res.error, 'er'); }
-    applyDPImage(res.dp);
-    if (status) status.textContent = '✅ Saved!';
-    setTimeout(() => { if (status) status.textContent = ''; }, 3000);
-    toast('✅ Profile photo updated!', 'ok');
-  } catch(e) {
-    if (status) status.textContent = '';
-    toast('Upload failed: ' + e.message, 'er');
-  }
-}
+// ══════════════════════════════════════════════════════════════
+// ═══ PROFILE PHOTO (DP) ═══════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 
-function applyDPImage(dp) {
+function applyDP(dp) {
   if (!dp) return;
-  // Sidebar avatar
+  // Update sidebar avatar
   const av = document.getElementById('sidebarAv');
-  if (av) { av.style.backgroundImage=`url(${dp})`; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; av.textContent=''; }
-  // Settings preview
+  if (av) {
+    av.style.cssText += ';background-image:url(' + dp + ');background-size:cover;background-position:center;';
+    av.textContent = '';
+  }
+  // Update settings preview
   const prev = document.getElementById('dp-preview');
   const ph   = document.getElementById('dp-placeholder');
   if (prev) { prev.src = dp; prev.style.display = 'block'; }
   if (ph)   { ph.style.display = 'none'; }
 }
 
-// Load DP on boot
+async function uploadDP() {
+  const input  = document.getElementById('dp-file-input');
+  const file   = input && input.files && input.files[0];
+  if (!file) return;
+  const status = document.getElementById('dp-status');
+  if (status) status.textContent = '⏳ Uploading…';
+  const fd = new FormData();
+  fd.append('dp', file);
+  try {
+    const r   = await fetch(API + '?action=upload_dp', { method: 'POST', body: fd });
+    const res = await r.json();
+    if (res && res.error) {
+      if (status) status.textContent = '';
+      return toast('❌ ' + res.error, 'er');
+    }
+    applyDP(res.dp);
+    if (status) { status.textContent = '✅ Saved!'; setTimeout(() => { status.textContent = ''; }, 3000); }
+    toast('✅ Profile photo saved!', 'ok');
+  } catch(e) {
+    if (status) status.textContent = '';
+    toast('❌ Upload error: ' + e.message, 'er');
+  }
+}
+
 async function loadMyDP() {
   try {
     const res = await apiGet('get_my_dp');
-    if (res && res.dp) applyDPImage(res.dp);
-  } catch(e) { /* dp_image column may not exist yet — safe to ignore */ }
+    if (res && res.dp) applyDP(res.dp);
+  } catch(e) { /* column may not exist yet — safe to ignore */ }
 }
 
 // ═══ BOOT ═══
