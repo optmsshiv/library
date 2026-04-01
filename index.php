@@ -849,14 +849,14 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   <div class="g2">
     <div class="panel"><div class="ph"><div class="pt">OPTMS Tech Info</div></div><div class="pb">
       <div class="fg">
-        <div class="fgi full"><label>Library Name</label><input id="s-name" value="OPTMS Tech Study Library"></div>
-        <div class="fgi"><label>Phone / WhatsApp</label><input id="s-phone" value="+91 72820 71620"></div>
-        <div class="fgi"><label>Email</label><input id="s-email" value="admin@optms.co.in"></div>
-        <div class="fgi full"><label>Address</label><input id="s-addr" value="Madhepura, Bihar - 852113"></div>
+        <div class="fgi full"><label>Library Name</label><input id="s-name" value="NAYI UDAAN LIBRARY"></div>
+        <div class="fgi"><label>Phone / WhatsApp</label><input id="s-phone" value="+91 97099 00158"></div>
+        <div class="fgi"><label>Email</label><input id="s-email" value="aryanraj0158@gmail.com"></div>
+        <div class="fgi full"><label>Address</label><input id="s-addr" value="New Bypass Road, Madhepura, Bihar - 852113"></div>
         <div class="fgi"><label>Fine Per Day (₹)</label><input id="s-fine" value="5" type="number"></div>
         <div class="fgi"><label>Max Issue Days</label><input id="s-days" value="14" type="number"></div>
         <div class="fgi"><label>AC Seat Extra (₹)</label><input id="s-acfee" value="200" type="number"></div>
-        <div class="fgi"><label>WhatsApp Number</label><input id="s-wa" value="917282071620"></div>
+        <div class="fgi"><label>WhatsApp Number</label><input id="s-wa" value="919709900158"></div>
       </div>
       <div style="margin-top:14px;display:flex;gap:8px">
         <button class="btn bp" onclick="saveSettings()"><span class="mi sm">save</span>Save</button>
