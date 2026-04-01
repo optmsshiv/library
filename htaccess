@@ -1,0 +1,19 @@
+Options -Indexes
+RewriteEngine On
+
+# Allow direct access to PHP files in root
+RewriteRule ^(db_setup|login|index|test)\.php$ - [L]
+
+# API routing
+RewriteRule ^api/(.*)$ api/index.php?action=$1 [QSA,L]
+
+# Disable ModSecurity for setup file only
+<Files "db_setup.php">
+  <IfModule mod_security2.c>
+    SecRuleEngine Off
+  </IfModule>
+  <IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+  </IfModule>
+</Files>
