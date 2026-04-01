@@ -518,6 +518,115 @@ switch ($action) {
         $rows = $db->query("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 20")->fetchAll();
         jsonResponse($rows);
 
+    // ══════════════════════════════════
+    // RENEWALS
+    // ══════════════════════════════════
+    case 'renew_student':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d = getInput();
+        if (empty($d['student_id'])) jsonError('student_id required');
+
+        $stuStmt = $db->prepare("SELECT * FROM students WHERE id=?");
+        $stuStmt->execute([$d['student_id']]);
+        $s = $stuStmt->fetch();
+        if (!$s) jsonError('Student not found');
+
+        $months  = max(1, (int)($d['months']  ?? 1));
+        $amt     = (int)($d['amount']          ?? $s['net_fee']);
+        $mode    = $d['mode']                  ?? 'Cash';
+        $note    = $d['note']                  ?? '';
+        $today   = date('Y-m-d');
+        $newDue  = $d['new_due_date']          ?? date('Y-m-d', strtotime("+{$months} month"));
+        $newPaid = min($s['net_fee'], $amt);
+        $feeStatus = $newPaid >= $s['net_fee'] ? 'paid' : 'partial';
+
+        // Update student row
+        $db->prepare("UPDATE students SET paid_amt=?, fee_status=?, paid_on=?, due_date=? WHERE id=?")
+           ->execute([$newPaid, $feeStatus, $today, $newDue, $d['student_id']]);
+
+        // Write to renewals table
+        $renId = 'REN-' . str_pad(
+            (int)$db->query("SELECT COUNT(*) FROM renewals")->fetchColumn() + 1,
+            4, '0', STR_PAD_LEFT
+        );
+        $db->prepare("INSERT INTO renewals (id,student_id,amount,months,mode,note,renewed_by,renewal_date,new_due_date) VALUES (?,?,?,?,?,?,?,?,?)")
+           ->execute([$renId, $d['student_id'], $amt, $months, $mode, $note, $_SESSION['staff_id'] ?? '', $today, $newDue]);
+
+        // Create invoice
+        $invId = 'INV-' . str_pad(
+            (int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1,
+            4, '0', STR_PAD_LEFT
+        );
+        $balance = max(0, $s['net_fee'] - $newPaid);
+        $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+           ->execute([$invId, $d['student_id'], "Renewal ({$months}mo)", $amt,
+             $s['base_fee'], $s['base_fee'] - $s['net_fee'], $s['net_fee'],
+             $newPaid, $balance, $today,
+             date('F Y'), $mode, $feeStatus]);
+
+        addActivity($db, '🔄', 'rgba(61,111,240,.14)',
+            "Renewal: <strong>{$s['fname']} {$s['lname']}</strong> ₹{$amt} via {$mode} · Due: {$newDue}");
+        addNotif($db, 'success', 'Renewal Done',
+            "{$s['fname']} renewed {$months} month(s) — ₹{$amt}");
+
+        jsonResponse(['success' => true, 'renewal_id' => $renId, 'invoice_id' => $invId, 'new_due_date' => $newDue]);
+
+    // ══════════════════════════════════
+    // STAFF ATTENDANCE
+    // ══════════════════════════════════
+    case 'get_staff_attendance':
+        $date = $_GET['date'] ?? date('Y-m-d');
+        $rows = $db->prepare("SELECT staff_id, status, check_in, check_out, note FROM staff_attendance WHERE attendance_date=?");
+        $rows->execute([$date]);
+        $att = [];
+        foreach ($rows->fetchAll() as $r) $att[$r['staff_id']] = $r;
+        jsonResponse(['date' => $date, 'attendance' => $att]);
+
+    case 'save_staff_attendance':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d          = getInput();
+        $date       = $d['date']       ?? date('Y-m-d');
+        $attendance = $d['attendance'] ?? [];
+        if (empty($attendance)) jsonError('No attendance data provided');
+
+        $markedBy = $_SESSION['staff_id'] ?? '';
+        foreach ($attendance as $staffId => $info) {
+            $status   = $info['status']    ?? 'absent';
+            $checkIn  = !empty($info['check_in'])  ? $info['check_in']  : null;
+            $checkOut = !empty($info['check_out']) ? $info['check_out'] : null;
+            $note     = $info['note'] ?? '';
+            $db->prepare("
+                INSERT INTO staff_attendance (staff_id, attendance_date, status, check_in, check_out, note, marked_by)
+                VALUES (?,?,?,?,?,?,?)
+                ON DUPLICATE KEY UPDATE
+                  status=VALUES(status), check_in=VALUES(check_in),
+                  check_out=VALUES(check_out), note=VALUES(note), marked_by=VALUES(marked_by)
+            ")->execute([$staffId, $date, $status, $checkIn, $checkOut, $note, $markedBy]);
+        }
+        addActivity($db, '🗓️', 'rgba(58,122,176,.14)',
+            "Staff attendance saved for <strong>{$date}</strong> (" . count($attendance) . " records)");
+        jsonResponse(['success' => true, 'date' => $date, 'count' => count($attendance)]);
+
+    case 'get_staff_attendance_summary':
+        $month = $_GET['month'] ?? date('Y-m');
+        $rows  = $db->prepare("
+            SELECT
+                s.id, s.name, s.role,
+                SUM(CASE WHEN sa.status='present' THEN 1 ELSE 0 END) AS present,
+                SUM(CASE WHEN sa.status='absent'  THEN 1 ELSE 0 END) AS absent,
+                SUM(CASE WHEN sa.status='half'    THEN 1 ELSE 0 END) AS half,
+                COUNT(sa.id) AS days_marked
+            FROM staff s
+            LEFT JOIN staff_attendance sa
+                ON sa.staff_id = s.id
+               AND DATE_FORMAT(sa.attendance_date,'%Y-%m') = ?
+            WHERE s.status = 'active'
+            GROUP BY s.id, s.name, s.role
+            ORDER BY s.name
+        ");
+        $rows->execute([$month]);
+        jsonResponse($rows->fetchAll());
+
     default:
         jsonError('Unknown action', 404);
 }
