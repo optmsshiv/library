@@ -703,11 +703,23 @@ switch ($action) {
         // ══════════════════════════════════
     // AUDIT LOG
     // ══════════════════════════════════
-    case 'get_audit_log':
-        $rows = $db->query(
-            "SELECT id, icon, bg, text, created_at FROM activity_log ORDER BY created_at DESC LIMIT 500"
-        )->fetchAll();
-        jsonResponse($rows);
+   //case 'get_audit_log':
+   //    $rows = $db->query(
+   //        "SELECT id, icon, bg, text, created_at FROM activity_log ORDER BY created_at DESC LIMIT 500"
+   //    )->fetchAll();
+   //    jsonResponse($rows);
+
+   case 'get_audit_log':
+    $rows = $db->query(
+        "SELECT id, icon, bg, text, created_at,
+                COALESCE(who, 'Admin') AS who,
+                COALESCE(type, 'other') AS type
+         FROM activity_log
+         ORDER BY created_at DESC
+         LIMIT 500"
+    )->fetchAll(db::FETCH_ASSOC);
+     jsonResponse($rows);
+    
 }
 
 // ─── Helper functions ────────────────────────────
