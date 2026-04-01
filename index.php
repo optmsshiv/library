@@ -1454,7 +1454,7 @@ async function initData() {
       to: l.sent_to, preview: l.preview, type: l.type
     }));
 
-    // Add this block after the waSendLog loading:
+        // Add this block after the waSendLog loading:
     const auditData = await apiGet('get_audit_log');
     DB.auditLog = (auditData || []).map(a => ({
       id: a.id,

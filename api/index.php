@@ -90,22 +90,6 @@ switch ($action) {
         break;
 
     // ══════════════════════════════════
-    // Audit Bugs
-    // ══════════════════════════════════
-        case 'get_audit_log':
-    $rows = $pdo->query(
-        "SELECT id, icon, bg, text, created_at,
-                COALESCE(who, 'Admin') AS who,
-                COALESCE(type, 'other') AS type
-         FROM activity_log
-         ORDER BY created_at DESC
-         LIMIT 500"
-    )->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($rows);
-    break;
-
-
-    // ══════════════════════════════════
     // STUDENTS
     // ══════════════════════════════════
     case 'get_students':
@@ -715,13 +699,22 @@ switch ($action) {
 
     default:
         jsonError('Unknown action', 404);
+
+        // ══════════════════════════════════
+    // AUDIT LOG
+    // ══════════════════════════════════
+    case 'get_audit_log':
+        $rows = $db->query(
+            "SELECT id, icon, bg, text, created_at FROM activity_log ORDER BY created_at DESC LIMIT 500"
+        )->fetchAll();
+        jsonResponse($rows);
 }
 
 // ─── Helper functions ────────────────────────────
 function addActivity($db, $icon, $bg, $text) {
     $db->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")->execute([$icon,$bg,$text]);
     // Keep only last 50
-    $db->exec("DELETE FROM activity_log WHERE id NOT IN (SELECT id FROM (SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 50) t)");
+    $db->exec("DELETE FROM activity_log WHERE id NOT IN (SELECT id FROM (SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 500) t)");
 }
 
 function addNotif($db, $type, $title, $msg) {
