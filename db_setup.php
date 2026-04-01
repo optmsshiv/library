@@ -12,7 +12,6 @@ define('DB_HOST', 'localhost');
 define('DB_NAME', 'edrppymy_library_erp');   // ← change this
 define('DB_USER', 'edrppymy_library_erp');         // ← change this
 define('DB_PASS', '1234@Libraryerp');     // ← change this
-define('DB_PORT', 3306);
 // ───────────────────────────────────────────────────────────────
 
 $step        = 'check';   // check | form | done | error
@@ -25,7 +24,7 @@ $successMsg  = '';
 // ── 1. TEST DB CONNECTION ───────────────────────────────────────
 try {
     $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
         DB_USER, DB_PASS,
         [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
