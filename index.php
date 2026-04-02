@@ -2434,6 +2434,7 @@ function renderFees(){
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
       </div></td>
     </tr>${renewRow}`;
+  }).join('')||'<tr><td colspan="11"><div class="empty"><div class="ei">💰</div><div class="et">No records</div></div></td></tr>';
   document.getElementById('feePagI').textContent=`${list.length} records`;
 }
 function feeFilt(f,el){feeFiltVal=f;document.querySelectorAll('#feeTabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderFees();}
