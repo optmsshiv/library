@@ -2379,20 +2379,47 @@ function renderFees(){
   document.getElementById('b-fee').textContent=pend.length+od.length+partial.length;
   let list=s.filter(x=>(feeFiltVal==='all'||x.feeStatus===feeFiltVal)&&(!feeSrchVal||`${x.fname} ${x.lname} ${x.id}`.toLowerCase().includes(feeSrchVal.toLowerCase())));
   document.getElementById('feeTable').innerHTML=list.map(x=>{
-    const bal=x.netFee-x.paidAmt;const pctPaid=Math.round(x.paidAmt/x.netFee*100);
+    // ── Renewal data ──
+    const stuRenewals=DB.invoices.filter(i=>i.studentId===x.id&&i.type&&i.type.startsWith('Renewal'));
+    const renewCount=stuRenewals.length;
+    const lastRenew=stuRenewals[0]||null; // most recent renewal (invoices sorted desc)
+    const totalRenewAmt=stuRenewals.reduce((a,i)=>a+i.paidAmt,0);
+    // ── Monthly fee data ──
+    const monthlyInvs=DB.invoices.filter(i=>i.studentId===x.id&&i.type==='Monthly Fee').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const curPaid=monthlyInvs.length?monthlyInvs[0].paidAmt:x.paidAmt;
+    const curBal=monthlyInvs.length?monthlyInvs[0].balance:(x.netFee-x.paidAmt);
+    const pctPaid=x.netFee>0?Math.round(curPaid/x.netFee*100):0;
     const discTxt=x.baseFee>x.netFee?`<div><span class="tag tor" style="font-size:9px">🎁 ₹${x.baseFee-x.netFee}</span><div style="font-size:9px;color:var(--tx3)">${x.discount?.reason||''}</div></div>`:'<span style="color:var(--tx3)">—</span>';
     const partialBar=x.feeStatus==='partial'?`<div class="fee-partial-wrap"><div class="fee-partial-bar"><div class="fee-partial-fill" style="width:${pctPaid}%"></div></div><div style="font-size:9px;color:var(--tx3);font-family:var(--fm)">${pctPaid}% paid</div></div>`:'';
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
-    // Renewal info from invoices
-    const stuRenewals=DB.invoices.filter(i=>i.studentId===x.id&&i.type&&i.type.startsWith('Renewal'));
-    const renewCount=stuRenewals.length;
-    const renewBadge=renewCount>0?`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(61,111,240,.1);color:var(--ac);border:1px solid rgba(61,111,240,.25);border-radius:5px;font-size:9px;font-weight:700;padding:1px 6px;font-family:var(--fm);margin-top:3px">🔄 Renewed ×${renewCount}</span>`:'';
-    // Current cycle paid = latest monthly fee invoice paid_amt
-    const monthlyInvs=DB.invoices.filter(i=>i.studentId===x.id&&i.type==='Monthly Fee').sort((a,b)=>b.date?.localeCompare(a.date));
-    const curPaid=monthlyInvs.length?monthlyInvs[0].paidAmt:x.paidAmt;
-    const curBal=monthlyInvs.length?monthlyInvs[0].balance:bal;
+    // ── Renewal sub-row style ──
+    const RS='background:rgba(61,111,240,.04);border-top:1px dashed rgba(61,111,240,.2)';
+    const RL='font-size:9.5px;color:var(--ac);font-family:var(--fm);font-weight:600';
+    const RV='font-size:9.5px;color:var(--ac);font-family:var(--fm);font-weight:700';
+    const renewRow=renewCount>0?`
+    <tr style="${RS}">
+      <td style="padding:4px 13px 6px 13px">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:13px">🔄</span>
+          <div>
+            <span style="${RL}">Renewal ×${renewCount}</span>
+            <span style="font-size:9px;color:var(--tx3);margin-left:4px">${lastRenew?fmtDate(lastRenew.date):''}</span>
+          </div>
+        </div>
+      </td>
+      <td style="padding:4px 13px 6px"><span style="font-size:9px;color:var(--tx3)">—</span></td>
+      <td style="padding:4px 13px 6px"><span style="${RV}">₹${lastRenew?lastRenew.amount:0}</span><div style="font-size:9px;color:var(--tx3)">per renewal</div></td>
+      <td style="padding:4px 13px 6px"><span style="font-size:9px;color:var(--tx3)">—</span></td>
+      <td style="padding:4px 13px 6px"><span style="${RV}">₹${lastRenew?lastRenew.netFee:0}</span><div style="font-size:9px;color:var(--tx3)">renewal fee</div></td>
+      <td style="padding:4px 13px 6px"><span style="${RV}">₹${totalRenewAmt}</span><div style="font-size:9px;color:var(--tx3)">total renewed</div></td>
+      <td style="padding:4px 13px 6px"><span style="color:var(--em);font-size:11px">✓ Clear</span></td>
+      <td style="padding:4px 13px 6px"><span style="font-size:9px;color:var(--tx3)">${lastRenew?fmtDate(lastRenew.date):'—'}</span></td>
+      <td style="padding:4px 13px 6px"><span class="tag trt" style="font-size:9px">🔄 Renewed</span></td>
+      <td style="padding:4px 13px 6px"><span style="font-size:9px;color:var(--ac);font-family:var(--fm)">${fmtDate(x.dueDate)}</span></td>
+      <td style="padding:4px 13px 6px"><span style="font-size:9px;color:var(--tx3)">—</span></td>
+    </tr>`:'';
     return `<tr class="${rowClass}">
-      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${x.id}</div>${renewBadge}</div></div></td>
+      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${x.id}</div></div></div></td>
       <td>${bTag(x.batchId)}</td>
       <td><span style="font-family:var(--fm)">₹${x.baseFee}</span></td>
       <td>${discTxt}</td>
@@ -2406,8 +2433,7 @@ function renderFees(){
         ${x.feeStatus!=='paid'?`<button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="qCollect('${x.id}')">Collect</button>`:'<span style="color:var(--em);font-size:11px">✓</span>'}
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
       </div></td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="11"><div class="empty"><div class="ei">💰</div><div class="et">No records</div></div></td></tr>';
+    </tr>${renewRow}`;
   document.getElementById('feePagI').textContent=`${list.length} records`;
 }
 function feeFilt(f,el){feeFiltVal=f;document.querySelectorAll('#feeTabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderFees();}
