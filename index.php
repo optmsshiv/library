@@ -1599,7 +1599,7 @@ function renderDash(){
   const partial=s.filter(x=>x.feeStatus==='partial');
   const pending=s.filter(x=>x.feeStatus==='pending');
   const overdue=s.filter(x=>x.feeStatus==='overdue');
-  const totalRev=paid.reduce((a,x)=>a+x.netFee,0)+partial.reduce((a,x)=>a+x.paidAmt,0);
+  const totalRev=DB.invoices.reduce((a,i)=>a+i.paidAmt,0);
   const totalExp=DB.expenses.reduce((a,e)=>a+e.amount,0);
   const issTx=DB.transactions.filter(t=>t.status!=='returned');
   const odTx=DB.transactions.filter(t=>t.status==='overdue');
@@ -2537,7 +2537,7 @@ function printInv(invId){
 function renderExp(){
   const cf=document.getElementById('exCatF')?.value||'all';
   const list=DB.expenses.filter(e=>cf==='all'||e.category===cf);
-  const rev=DB.students.filter(x=>x.feeStatus==='paid').reduce((a,x)=>a+x.netFee,0)+DB.students.filter(x=>x.feeStatus==='partial').reduce((a,x)=>a+x.paidAmt,0);
+  const rev=DB.invoices.reduce((a,i)=>a+i.paidAmt,0);
   const allExp=DB.expenses.reduce((a,e)=>a+e.amount,0);
   document.getElementById('ex-t').textContent=fmt(list.reduce((a,e)=>a+e.amount,0));
   document.getElementById('ex-r').textContent=fmt(rev);
@@ -2556,7 +2556,7 @@ function addExp(){
 // ═══ ANALYTICS ═══
 function renderAnal(){
   const s=DB.students;const paid=s.filter(x=>x.feeStatus==='paid');
-  const rev=paid.reduce((a,x)=>a+x.netFee,0)+s.filter(x=>x.feeStatus==='partial').reduce((a,x)=>a+x.paidAmt,0);
+  const rev=DB.invoices.reduce((a,i)=>a+i.paidAmt,0);
   const iss=DB.transactions.filter(t=>t.status!=='returned');const od=DB.transactions.filter(t=>t.status==='overdue');
   const bks=DB.books.reduce((a,b)=>a+b.copies,0);const prs=Object.values(DB.attendance).filter(v=>v==='present').length;
   document.getElementById('analCards').innerHTML=`
@@ -2577,7 +2577,7 @@ function genReport(type){
   document.getElementById('rptTitle').textContent=titles[type];
   const s=DB.students;const paid=s.filter(x=>x.feeStatus==='paid');
   let html='';
-  if(type==='monthly'){const rev=paid.reduce((a,x)=>a+x.netFee,0);const exp=DB.expenses.reduce((a,e)=>a+e.amount,0);html=`<div class="g3" style="margin-bottom:16px"><div class="sc" style="--ca:var(--em)"><div class="s-lb">Revenue</div><div class="s-vl" style="color:var(--em)">${fmt(rev)}</div></div><div class="sc" style="--ca:var(--ro)"><div class="s-lb">Expenses</div><div class="s-vl" style="color:var(--ro)">${fmt(exp)}</div></div><div class="sc" style="--ca:var(--ac)"><div class="s-lb">Profit</div><div class="s-vl">${fmt(rev-exp)}</div></div></div>`;}
+  if(type==='monthly'){const rev=DB.invoices.reduce((a,i)=>a+i.paidAmt,0);const exp=DB.expenses.reduce((a,e)=>a+e.amount,0);html=`<div class="g3" style="margin-bottom:16px"><div class="sc" style="--ca:var(--em)"><div class="s-lb">Revenue</div><div class="s-vl" style="color:var(--em)">${fmt(rev)}</div></div><div class="sc" style="--ca:var(--ro)"><div class="s-lb">Expenses</div><div class="s-vl" style="color:var(--ro)">${fmt(exp)}</div></div><div class="sc" style="--ca:var(--ac)"><div class="s-lb">Profit</div><div class="s-vl">${fmt(rev-exp)}</div></div></div>`;}
   else{
     const map={fee:['Student','Batch','Base Fee','Discount','Net Fee','Paid','Balance','Status'],student:['ID','Name','Batch','Seat','Type','Course'],attendance:['Student','Batch','Status'],expense:['Name','Category','Amount','Date'],books:['Book','Author','Category','Available']};
     const rows={fee:s.map(x=>[`${x.fname} ${x.lname}`,batchName(x.batchId),`₹${x.baseFee}`,x.baseFee>x.netFee?`₹${x.baseFee-x.netFee} (${x.discount?.reason||''})`:'-',`₹${x.netFee}`,`₹${x.paidAmt}`,`₹${x.netFee-x.paidAmt}`,x.feeStatus]),student:s.map(x=>[x.id,`${x.fname} ${x.lname}`,batchName(x.batchId),x.seat||'—',x.seatType.toUpperCase(),x.course]),attendance:s.map(x=>[`${x.fname} ${x.lname}`,batchName(x.batchId),DB.attendance[x.id]||'absent']),expense:DB.expenses.map(e=>[e.name,e.category,`₹${e.amount.toLocaleString()}`,e.date]),books:DB.books.map(b=>[b.title,b.author,b.category,`${b.available}/${b.copies}`])};
@@ -2729,7 +2729,7 @@ function delNotif(id){DB.notifications=DB.notifications.filter(x=>x.id!==id);ren
 function clearNotifs(){DB.notifications=[];renderNotifs();updateBadges();toast('Cleared','ok');}
 
 // ═══ SETTINGS ═══
-function renderSettingsStats(){
+function renderSettings(){
   const s=DB.students;
   const data=[{l:'Total Students',v:s.length},{l:'Discounts Given',v:`${s.filter(x=>x.baseFee>x.netFee).length} students (₹${s.reduce((a,x)=>a+(x.baseFee-x.netFee),0).toLocaleString()})`},{l:'Total Books',v:DB.books.reduce((a,b)=>a+b.copies,0)},{l:'Active Transactions',v:DB.transactions.filter(t=>t.status!=='returned').length},{l:'Total Batches',v:DB.batches.length},{l:'Staff Members',v:DB.staff.length},{l:'Net Profit',v:fmt(s.filter(x=>x.feeStatus==='paid').reduce((a,x)=>a+x.netFee,0)-DB.expenses.reduce((a,e)=>a+e.amount,0))}];
   document.getElementById('setStats').innerHTML=data.map(d=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)"><span style="font-size:12px;color:var(--tx2)">${d.l}</span><span style="font-weight:700;font-family:var(--fm)">${d.v}</span></div>`).join('');
@@ -3111,6 +3111,7 @@ function addNotif(type, title, msg) {
 }
 
 // ── SETTINGS PAGE: populate from DB ──
+const _origRenderSettings = renderSettings;
 function renderSettings() {
   const s = DB.settings;
   const map = {
@@ -3127,7 +3128,7 @@ function renderSettings() {
     const el = document.getElementById(id);
     if (el) el.value = val;
   });
-  renderSettingsStats();
+  _origRenderSettings();
 }
 
 // ═══ CHANGE PASSWORD ═══
