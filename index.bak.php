@@ -382,10 +382,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 .stats-grid,.qa-gr{grid-template-columns:repeat(2,1fr)}
 .gm,.g2,.g3,.g4,.al-row{grid-template-columns:1fr}
 #dashBatchCards{grid-template-columns:repeat(2,1fr) !important}
-#dashRowA{grid-template-columns:1fr 1fr !important}
-}
-@media(max-width:768px){
-#dashRowA{grid-template-columns:1fr !important}
 }
 </style>
 </head>
@@ -431,7 +427,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
       <div class="u-av" id="sidebarAv"><?= $staffInitials ?></div>
       <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
       <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')"><span class="mi sm">lock_reset</span></span>
-      <a href="/logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
+      <span title="Logout" onclick="doLogout()" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></span>
     </div>
   </div>
 </div>
@@ -455,8 +451,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="page active" id="page-dashboard">
   <div class="al-row" id="dashAlerts"></div>
   <div class="stats-grid" id="dashStats"></div>
-
-  <!-- Quick Actions -->
   <div class="qa-gr">
     <div class="qa-b" onclick="openM('mEnroll')"><div class="qa-ic" style="background:var(--c-blue)"><span class="mi lg" style="color:var(--ac)">person_add</span></div><div class="qa-lb">New<br>Enroll</div></div>
     <div class="qa-b" onclick="openM('mCollectFee')"><div class="qa-ic" style="background:var(--c-green)"><span class="mi lg" style="color:var(--em)">payments</span></div><div class="qa-lb">Collect<br>Fee</div></div>
@@ -467,109 +461,66 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div class="qa-b" onclick="openM('mExpense')"><div class="qa-ic" style="background:var(--c-orange)"><span class="mi lg" style="color:var(--or)">account_balance_wallet</span></div><div class="qa-lb">Add<br>Expense</div></div>
     <div class="qa-b" onclick="navTo('whatsapp')"><div class="qa-ic" style="background:var(--c-teal)"><span class="mi lg" style="color:var(--wa2)">chat</span></div><div class="qa-lb">WhatsApp</div></div>
   </div>
-
-  <!-- ROW A: Live Activity + Revenue Split + Calendar — 3 columns horizontal -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px" id="dashRowA">
-
-    <!-- Live Activity Feed -->
-    <div class="panel" style="margin-bottom:0;display:flex;flex-direction:column">
-      <div class="ph" style="padding:11px 16px">
-        <div class="pt" style="display:flex;align-items:center;gap:7px">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--em);display:inline-block;box-shadow:0 0 0 3px rgba(22,163,74,.2);animation:pulseDue 1.5s infinite"></span>
-          Live Activity
-        </div>
-        <span style="font-size:9.5px;color:var(--tx3);font-family:var(--fm)" id="liveActTime">Just now</span>
-      </div>
-      <div id="dashLiveAct" style="flex:1;overflow-y:auto;max-height:280px;padding:6px 0"></div>
-    </div>
-
-    <!-- Revenue Split — donut + weekly bars -->
-    <div class="panel" style="margin-bottom:0">
-      <div class="ph" style="padding:11px 16px"><div class="pt">Revenue Split</div><span style="font-size:9.5px;color:var(--tx3);font-family:var(--fm)">This Month</span></div>
-      <div class="dn-wrap" style="padding:14px 16px 10px">
-        <svg width="88" height="88" viewBox="0 0 88 88">
-          <circle cx="44" cy="44" r="34" fill="none" stroke="var(--sf2)" stroke-width="11"/>
-          <circle cx="44" cy="44" r="34" fill="none" stroke="var(--ac)"  stroke-width="11" id="donutArc1" stroke-dasharray="0 214" stroke-dashoffset="0" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg);transition:stroke-dasharray .8s ease"/>
-          <circle cx="44" cy="44" r="34" fill="none" stroke="var(--gd)"  stroke-width="11" id="donutArc2" stroke-dasharray="0 214" stroke-dashoffset="0" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg);transition:stroke-dasharray .8s ease .1s"/>
-          <circle cx="44" cy="44" r="34" fill="none" stroke="var(--ro)"  stroke-width="11" id="donutArc3" stroke-dasharray="0 214" stroke-dashoffset="0" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg);transition:stroke-dasharray .8s ease .2s"/>
-          <circle cx="44" cy="44" r="34" fill="none" stroke="var(--em)"  stroke-width="11" id="donutArc4" stroke-dasharray="0 214" stroke-dashoffset="0" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg);transition:stroke-dasharray .8s ease .3s"/>
-          <text x="44" y="41" text-anchor="middle" fill="var(--tx)" font-size="7.5" font-weight="700" font-family="DM Serif Display" id="donutC">₹0</text>
-          <text x="44" y="51" text-anchor="middle" fill="var(--tx3)" font-size="6" font-family="JetBrains Mono,monospace" id="donutSub">collected</text>
-        </svg>
-        <div class="dn-leg" style="gap:8px">
-          <div class="dli"><div class="dld" style="background:var(--ac)"></div><span class="dll">Paid Full</span><span class="dlv" id="revPct1">0%</span></div>
-          <div class="dli"><div class="dld" style="background:var(--gd)"></div><span class="dll">Partial</span><span class="dlv" id="revPct2">0%</span></div>
-          <div class="dli"><div class="dld" style="background:var(--ro)"></div><span class="dll">Overdue</span><span class="dlv" id="revPct3">0%</span></div>
-          <div class="dli"><div class="dld" style="background:var(--em)"></div><span class="dll">Pending</span><span class="dlv" id="revPct4">0%</span></div>
-        </div>
-      </div>
-      <div style="padding:0 16px 14px">
-        <div style="font-size:9px;color:var(--tx3);font-family:var(--fm);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Weekly Collection</div>
-        <div style="display:flex;align-items:flex-end;gap:3px;height:48px" id="weekChart"></div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx3);font-family:var(--fm);margin-top:3px"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>
-      </div>
-    </div>
-
-    <!-- Calendar -->
-    <div class="panel" style="margin-bottom:0">
-      <div class="ph" style="padding:11px 16px">
-        <div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:4px">calendar_month</span><span id="calTitle"></span></div>
-        <div style="display:flex;gap:4px">
-          <button class="btn bg" style="font-size:11px;padding:3px 8px" id="calPrev">‹</button>
-          <button class="btn bg" style="font-size:11px;padding:3px 8px" id="calNext">›</button>
-        </div>
-      </div>
-      <div class="pb" style="padding:12px 14px">
-        <div class="mcal" id="miniCal"></div>
-        <!-- Due date legend -->
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px" id="calDueLegend"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ROW B: Batch Seat Availability + Fee Overview — horizontal -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-
-    <!-- Batch-wise Seat Availability -->
-    <div>
-      <div class="sec-hd" style="margin-bottom:10px">
-        <div><div class="sec-t">Batch Seat Availability</div><div class="sec-s">Live occupancy per batch</div></div>
-        <button class="btn bg" onclick="navTo('seats')" style="font-size:11px"><span class="mi sm">event_seat</span>Manage</button>
-      </div>
-      <div id="dashBatchCards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
-    </div>
-
-    <!-- Fee Overview -->
-    <div>
-      <div class="sec-hd" style="margin-bottom:10px">
-        <div><div class="sec-t">Fee Overview</div><div class="sec-s">Current month collection status</div></div>
-        <button class="btn bg" onclick="navTo('fees')" style="font-size:11px">Details →</button>
-      </div>
-      <div id="dashFeeOv"></div>
-    </div>
-  </div>
-
-  <!-- ROW C: Recent Students Table — full width -->
+  <!-- Row 1: Batch-wise Seat Availability — full width -->
   <div style="margin-bottom:16px">
-    <div class="sec-hd" style="margin-bottom:10px">
-      <div><div class="sec-t">Recent Students & Fee Status</div></div>
-      <button class="btn bg" onclick="navTo('students')" style="font-size:11px">All →</button>
-    </div>
-    <div class="panel" style="margin-bottom:0">
-      <div class="tw" style="max-height:340px;overflow-y:auto"><table>
-        <thead><tr style="position:sticky;top:0;z-index:2"><th>Student</th><th>Batch</th><th>Seat</th><th>Fee</th><th>Paid</th><th>Balance</th><th>Status</th><th>Msg</th></tr></thead>
-        <tbody id="dashStuTable"></tbody>
-      </table></div>
+    <div class="sec-hd"><div><div class="sec-t">Batch-wise Seat Availability</div><div class="sec-s">Live occupancy · <span style="color:var(--gd);font-weight:600">● Pending</span> · <span style="color:var(--ro);font-weight:600">● Overdue</span></div></div><button class="btn bg" onclick="navTo('seats')" style="font-size:11px"><span class="mi sm">event_seat</span>Manage</button></div>
+    <div id="dashBatchCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
+  </div>
+  <!-- Row 2: Recent Students (full width, scrollable) + Expense Tracker -->
+  <div class="g2" style="margin-bottom:16px">
+    <div style="grid-column:1/-1">
+      <div class="sec-hd"><div><div class="sec-t">Recent Students & Fee Status</div></div><button class="btn bg" onclick="navTo('students')" style="font-size:11px">All →</button></div>
+      <div class="panel" style="margin-bottom:0">
+        <div class="tw" style="max-height:420px;overflow-y:auto"><table>
+          <thead><tr style="position:sticky;top:0;z-index:2"><th>Student</th><th>Batch</th><th>Seat</th><th>Fee</th><th>Paid</th><th>Balance</th><th>Status</th><th>Msg</th></tr></thead>
+          <tbody id="dashStuTable"></tbody>
+        </table></div>
+      </div>
     </div>
   </div>
-
-  <!-- ROW D: Expense Tracker — full width -->
-  <div>
-    <div class="sec-hd" style="margin-bottom:10px">
-      <div><div class="sec-t">Expense Tracker</div><div class="sec-s">Monthly outflows by category</div></div>
-      <button class="btn bg" onclick="openM('mExpense')" style="font-size:11px">+ Add</button>
+  <!-- Row 3: Fee Overview + Revenue Split (side by side) + Expense Tracker -->
+  <div class="g2" style="margin-bottom:16px">
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="sec-hd"><div><div class="sec-t">Fee Overview</div></div><button class="btn bg" onclick="navTo('fees')" style="font-size:11px">Details →</button></div>
+      <div id="dashFeeOv" style="flex:1"></div>
     </div>
-    <div class="panel" id="dashExpTracker"></div>
+    <!-- Revenue split donut -->
+    <div class="panel" style="margin-bottom:0">
+        <div class="ph"><div class="pt">Revenue Split</div><span style="font-size:10px;color:var(--tx3);font-family:var(--fm)">This Month</span></div>
+        <div class="dn-wrap">
+          <svg width="84" height="84" viewBox="0 0 84 84">
+            <circle cx="42" cy="42" r="32" fill="none" stroke="var(--sf2)" stroke-width="10"/>
+            <circle cx="42" cy="42" r="32" fill="none" stroke="var(--ac)" stroke-width="10" stroke-dasharray="121 80" stroke-dashoffset="0" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg)"/>
+            <circle cx="42" cy="42" r="32" fill="none" stroke="var(--gd)" stroke-width="10" stroke-dasharray="50 151" stroke-dashoffset="-121" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg)"/>
+            <circle cx="42" cy="42" r="32" fill="none" stroke="var(--em)" stroke-width="10" stroke-dasharray="30 171" stroke-dashoffset="-171" stroke-linecap="round" style="transform-origin:center;transform:rotate(-90deg)"/>
+            <text x="42" y="45" text-anchor="middle" fill="var(--tx)" font-size="8.5" font-weight="700" font-family="DM Serif Display" id="donutC">₹0</text>
+          </svg>
+          <div class="dn-leg">
+            <div class="dli"><div class="dld" style="background:var(--ac)"></div><span class="dll">Seat Fees</span><span class="dlv">60%</span></div>
+            <div class="dli"><div class="dld" style="background:var(--gd)"></div><span class="dll">Late Fines</span><span class="dlv">25%</span></div>
+            <div class="dli"><div class="dld" style="background:var(--em)"></div><span class="dll">Others</span><span class="dlv">15%</span></div>
+          </div>
+        </div>
+        <div style="padding:0 17px 14px">
+          <div style="font-size:9.5px;color:var(--tx3);font-family:var(--fm);margin-bottom:6px">WEEKLY COLLECTION</div>
+          <div style="display:flex;align-items:flex-end;gap:4px;height:44px" id="weekChart"></div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx3);font-family:var(--fm);margin-top:4px"><span>W1</span><span>W2</span><span>W3</span><span>W4</span></div>
+        </div>
+      </div>
+    </div>
+  <!-- Row 4: Expense Tracker + Calendar -->
+  <div class="g2">
+    <div>
+      <div class="sec-hd"><div><div class="sec-t">Expense Tracker</div><div class="sec-s">Monthly outflows by category</div></div><button class="btn bg" onclick="openM('mExpense')" style="font-size:11px">+ Add</button></div>
+      <div class="panel" id="dashExpTracker"></div>
+    </div>
+    <div class="panel" style="margin-bottom:0">
+      <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">calendar_month</span>Calendar</div><div style="display:flex;gap:5px"><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calPrev">‹</button><button class="btn bg" style="font-size:11px;padding:3px 7px" id="calNext">›</button></div></div>
+      <div class="pb" style="padding-top:10px">
+        <div style="text-align:center;font-size:11.5px;font-weight:600;margin-bottom:8px;font-family:var(--fm)" id="calTitle"></div>
+        <div class="mcal" id="miniCal"></div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -1652,8 +1603,10 @@ function renderDash(){
     </div>`;
   });
   document.getElementById('dashBatchCards').innerHTML=batchHTML;
-  // In the new layout the batch grid is inside a 50% column — always 2 cols
-  document.getElementById('dashBatchCards').style.gridTemplateColumns = 'repeat(2,1fr)';
+  // Dynamic columns: 1-2 batches=2col, 3=3col, 4+=4col
+  const batchCount = DB.batches.length;
+  const cols = batchCount <= 2 ? Math.max(batchCount,1) : batchCount === 3 ? 3 : 4;
+  document.getElementById('dashBatchCards').style.gridTemplateColumns = `repeat(${cols},1fr)`;
 
   // ── EXPENSE TRACKER ──
   const catTotals={};DB.expenses.forEach(e=>{catTotals[e.category]=(catTotals[e.category]||0)+e.amount;});
@@ -1697,142 +1650,27 @@ function renderDash(){
     </tr>`;
   }).join('');
 
-  // ── LIVE ACTIVITY FEED ──
-  const actEl = document.getElementById('dashLiveAct');
-  if (actEl) {
-    if (DB.activities.length === 0) {
-      actEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tx3);font-size:12px">No recent activity</div>';
-    } else {
-      actEl.innerHTML = DB.activities.slice(0,12).map((a,i) => `
-        <div class="act-it" style="padding:8px 16px;animation:fuUp .3s ease ${i*0.04}s both">
-          <div class="act-d" style="background:${a.bg||'rgba(61,111,240,.1)'}">${a.icon||'📌'}</div>
-          <div style="flex:1;min-width:0">
-            <div class="act-tx" style="font-size:11.5px;line-height:1.4">${a.text}</div>
-            <div class="act-tm">${a.time||'Just now'}</div>
-          </div>
-        </div>`).join('');
-    }
-    document.getElementById('liveActTime').textContent =
-      DB.activities.length ? DB.activities[0].time || 'Just now' : '—';
-  }
-
-  // ── REAL DONUT — calculated from actual data ──
-  const totalStudents = s.length || 1;
-  const paidAmt   = paid.reduce((a,x)=>a+x.netFee,0);
-  const partialAmt= partial.reduce((a,x)=>a+x.paidAmt,0);
-  const overdueAmt= overdue.reduce((a,x)=>a+x.netFee,0);
-  const pendingAmt= pending.reduce((a,x)=>a+x.netFee,0);
-  const grandTotal= paidAmt + partialAmt + overdueAmt + pendingAmt || 1;
-  const circ = 2 * Math.PI * 34; // circumference for r=34
-
-  function arcDash(pct, offset) {
-    const len = circ * pct;
-    return { dash: `${len.toFixed(1)} ${(circ-len).toFixed(1)}`, offset: (-offset).toFixed(1) };
-  }
-  const p1=paidAmt/grandTotal, p2=partialAmt/grandTotal,
-        p3=overdueAmt/grandTotal, p4=pendingAmt/grandTotal;
-  const off1=0, off2=circ*p1, off3=circ*(p1+p2), off4=circ*(p1+p2+p3);
-
-  const a1=arcDash(p1,off1),a2=arcDash(p2,off2),a3=arcDash(p3,off3),a4=arcDash(p4,off4);
-  const setArc = (id,d,o) => { const el=document.getElementById(id); if(el){el.setAttribute('stroke-dasharray',d.dash);el.setAttribute('stroke-dashoffset',o);} };
-  setArc('donutArc1',a1,a1.offset);
-  setArc('donutArc2',a2,a2.offset);
-  setArc('donutArc3',a3,a3.offset);
-  setArc('donutArc4',a4,a4.offset);
-  document.getElementById('donutC').textContent = fmt(totalRev);
-  document.getElementById('donutSub').textContent = 'collected';
-  const pct = (v,t) => t>0?Math.round(v/t*100)+'%':'0%';
-  const setSafe=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  setSafe('revPct1', pct(paidAmt,grandTotal));
-  setSafe('revPct2', pct(partialAmt,grandTotal));
-  setSafe('revPct3', pct(overdueAmt,grandTotal));
-  setSafe('revPct4', pct(pendingAmt,grandTotal));
-
-  // ── WEEKLY CHART — last 4 weeks from invoices ──
-  const now = new Date();
-  const weekTotals = [0,0,0,0];
-  DB.invoices.forEach(inv => {
-    const d = new Date(inv.date);
-    const diffDays = Math.floor((now - d) / 86400000);
-    const wk = Math.floor(diffDays / 7);
-    if (wk >= 0 && wk < 4) weekTotals[3 - wk] += (inv.amount || 0);
-  });
-  if (weekTotals.every(v=>v===0)) weekTotals[3] = totalRev;
-  const wMax = Math.max(...weekTotals, 1);
-  document.getElementById('weekChart').innerHTML = weekTotals.map((v,i) =>
-    `<div class="cbar" style="flex:1;height:${Math.round(v/wMax*100)}%;background:var(--ac);opacity:${i===3?1:.5};border-radius:3px 3px 0 0"><div class="tt">₹${v.toLocaleString()}</div></div>`
-  ).join('');
-
+  // Donut + weekly chart
+  document.getElementById('donutC').textContent=fmt(totalRev);
+  const wData=[38000,52000,34000,totalRev>0?totalRev:60000];
+  const wMax=Math.max(...wData,1);
+  document.getElementById('weekChart').innerHTML=wData.map((v,i)=>`<div class="cbar" style="flex:1;height:${Math.round(v/wMax*100)}%;background:var(--ac);opacity:${i===3?1:.55};border-radius:3px 3px 0 0"><div class="tt">₹${v.toLocaleString()}</div></div>`).join('');
   renderCal();
 }
 
 function renderCal(){
-  const d = calDate;
-  const titleEl = document.getElementById('calTitle');
-  if (titleEl) titleEl.textContent = d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
-  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-  let h = days.map(day=>`<div class="cal-dl">${day}</div>`).join('');
-  const first = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
-  for(let i=0;i<first;i++) h+=`<div class="cal-d empty"></div>`;
-  const dim  = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
-  const today = new Date(); today.setHours(0,0,0,0);
-
-  // Build a map: day → students due that day
-  const dueMap = {};
-  DB.students.forEach(s => {
-    if (!s.dueDate) return;
-    const dd = new Date(s.dueDate);
-    if (dd.getFullYear()===d.getFullYear() && dd.getMonth()===d.getMonth()) {
-      const day = dd.getDate();
-      if (!dueMap[day]) dueMap[day] = [];
-      dueMap[day].push(s);
-    }
-  });
-
-  for(let i=1;i<=dim;i++){
-    const thisDate = new Date(d.getFullYear(), d.getMonth(), i);
-    thisDate.setHours(0,0,0,0);
-    const isToday = thisDate.getTime() === today.getTime();
-    const hasDue  = dueMap[i] && dueMap[i].length > 0;
-    const hasOD   = hasDue && dueMap[i].some(s=>s.feeStatus==='overdue');
-    let cls = isToday ? 'today' : '';
-    let extra = '';
-    if (hasDue && !isToday) {
-      cls = hasOD ? 'event' : 'event';
-      const dotColor = hasOD ? 'var(--ro)' : 'var(--gd)';
-      extra = `<span style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${dotColor}"></span>`;
-    }
-    h += `<div class="cal-d ${cls}" style="position:relative" title="${hasDue?dueMap[i].map(s=>s.fname+' '+s.lname).join(', '):''}">${i}${extra}</div>`;
-  }
-  const calEl = document.getElementById('miniCal');
-  if (calEl) calEl.innerHTML = h;
-
-  // Upcoming due dates legend (next 5 students due this month)
-  const legEl = document.getElementById('calDueLegend');
-  if (legEl) {
-    const upcoming = DB.students
-      .filter(s=>s.dueDate)
-      .map(s=>({s, dd:new Date(s.dueDate)}))
-      .filter(({dd})=>dd>=today)
-      .sort((a,b)=>a.dd-b.dd)
-      .slice(0,4);
-    legEl.innerHTML = upcoming.length
-      ? upcoming.map(({s,dd})=>{
-          const diff = Math.round((dd-today)/86400000);
-          const col  = diff===0?'var(--ro)':diff<=3?'var(--or)':diff<=7?'var(--gd)':'var(--tx3)';
-          return `<div style="display:flex;align-items:center;gap:7px;font-size:10.5px">
-            <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0"></div>
-            <span style="flex:1;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.fname} ${s.lname}</span>
-            <span style="font-family:var(--fm);font-size:9.5px;color:${col};font-weight:700;white-space:nowrap">${diff===0?'Today':diff===1?'Tomorrow':'in '+diff+'d'}</span>
-          </div>`;
-        }).join('')
-      : '<div style="font-size:11px;color:var(--tx3)">No upcoming dues</div>';
-  }
-
-  const prevBtn = document.getElementById('calPrev');
-  const nextBtn = document.getElementById('calNext');
-  if (prevBtn) prevBtn.onclick = ()=>{calDate=new Date(calDate.getFullYear(),calDate.getMonth()-1,1);renderCal();};
-  if (nextBtn) nextBtn.onclick = ()=>{calDate=new Date(calDate.getFullYear(),calDate.getMonth()+1,1);renderCal();};
+  const d=calDate;
+  document.getElementById('calTitle').textContent=d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  const days=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let h=days.map(d=>`<div class="cal-dl">${d}</div>`).join('');
+  const first=new Date(d.getFullYear(),d.getMonth(),1).getDay();
+  for(let i=0;i<first;i++) h+=`<div class="cal-d empty">-</div>`;
+  const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  const events=[1,5,11,15,20,24,31];
+  for(let i=1;i<=dim;i++){const cls=i===20&&d.getMonth()===2?'today':events.includes(i)?'event':'';h+=`<div class="cal-d ${cls}">${i}</div>`;}
+  document.getElementById('miniCal').innerHTML=h;
+  document.getElementById('calPrev').onclick=()=>{calDate=new Date(calDate.getFullYear(),calDate.getMonth()-1,1);renderCal();};
+  document.getElementById('calNext').onclick=()=>{calDate=new Date(calDate.getFullYear(),calDate.getMonth()+1,1);renderCal();};
 }
 
 // ═══ STUDENTS ═══
@@ -3584,18 +3422,6 @@ function auditLog(type, text) {
 const _origAddActivity = addActivity;
 window.addActivity = function(icon, bg, text) {
   _origAddActivity(icon, bg, text);
-  // Refresh live activity panel if dashboard is visible
-  const actEl = document.getElementById('dashLiveAct');
-  if (actEl && document.getElementById('page-dashboard').classList.contains('active')) {
-    actEl.innerHTML = DB.activities.slice(0,12).map((a,i) =>
-      `<div class="act-it" style="padding:8px 16px;animation:fuUp .25s ease both">
-        <div class="act-d" style="background:${a.bg||'rgba(61,111,240,.1)'}">${a.icon||'📌'}</div>
-        <div style="flex:1;min-width:0"><div class="act-tx" style="font-size:11.5px">${a.text}</div>
-        <div class="act-tm">${a.time||'Just now'}</div></div>
-      </div>`).join('');
-    const timeEl = document.getElementById('liveActTime');
-    if (timeEl && DB.activities.length) timeEl.textContent = DB.activities[0].time || 'Just now';
-  }
   const type = icon==='💬'?'whatsapp':icon==='💰'||icon==='🧾'?'fee':icon==='📚'||icon==='🔄'?'book':icon==='🆕'||icon==='✏'?'student':icon==='⚙'?'settings':'other';
   DB.auditLog.unshift({ id:Date.now(), who:'<?= $staffName ?>', type, text:text.replace(/<[^>]+>/g,''), time:new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}), ts:Date.now() });
   if (DB.auditLog.length>500) DB.auditLog=DB.auditLog.slice(0,500);
@@ -3723,6 +3549,37 @@ async function loadMyDP() {
     if (res && res.dp) applyDP(res.dp);
   } catch(e) { /* column may not exist yet — safe to ignore */ }
 }
+
+// ═══ LOGOUT ═══
+function doLogout() {
+  if (!confirm('Logout from the system?')) return;
+  window._loggingOut = true;
+
+  // keepalive: true tells Chrome to complete this request even after navigation.
+  // sendBeacon is a guaranteed fire-and-forget fallback (Chrome-safe).
+  try {
+    navigator.sendBeacon('api/index.php?action=logout');
+  } catch(e) {
+    try {
+      fetch('api/index.php?action=logout', { method: 'POST', keepalive: true });
+    } catch(e2) { /* ignore */ }
+  }
+
+  // Small delay lets the beacon fire before we navigate
+  setTimeout(() => window.location.replace('/login.php'), 100);
+}
+
+// Intercept all fetch calls — if a 401 comes back, redirect to login
+const _origFetch = window.fetch;
+window.fetch = async function(...args) {
+  if (window._loggingOut) return new Response('{}', { status: 200 });
+  const res = await _origFetch(...args);
+  if (res.status === 401) {
+    window._loggingOut = true;
+    window.location.replace('/login.php');
+  }
+  return res;
+};
 
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
