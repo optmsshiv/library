@@ -1589,8 +1589,6 @@ document.querySelectorAll('.ni[data-page]').forEach(el=>{
 function renderPage(p){
   const map={dashboard:renderDash,students:renderStudents,seats:renderSeats,attendance:renderAtt,books:renderBooks,transactions:renderTx,fees:renderFees,invoices:renderInv,expenses:renderExp,analytics:renderAnal,whatsapp:renderWA,staff:renderStaff,staff_attendance:renderStaffAtt,renewal:renderRenewal,audit:renderAudit,notifications:renderNotifs,settings:renderSettings};
   if(map[p])map[p]();
-  // Re-apply DP after every render — reloadDB() repaints the sidebar which wipes the photo
-  _applyDPToAvatar();
 }
 
 // ═══ DASHBOARD ═══
@@ -3101,8 +3099,6 @@ async function reloadDB() {
     const id = active.id.replace('page-', '');
     renderPage(id);
   }
-  // Always re-apply photo after a full DB reload — initData() can repaint the sidebar
-  _applyDPToAvatar();
 }
 
 // ── OVERRIDE addActivity / addNotif to be no-ops (server handles them) ──
@@ -3684,33 +3680,14 @@ if ('serviceWorker' in navigator) {
 // ═══ PROFILE PHOTO (DP) ═══════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
 
-// Persist the DP URL so it survives re-renders triggered by reloadDB()
-let _cachedDP = null;
-
-function _applyDPToAvatar() {
-  if (!_cachedDP) return;
-  const av = document.getElementById('sidebarAv');
-  if (!av) return;
-  // Use individual properties — never cssText += which gets wiped on re-render
-  av.style.backgroundImage    = 'url(' + _cachedDP + ')';
-  av.style.backgroundSize     = 'cover';
-  av.style.backgroundPosition = 'center';
-  av.style.backgroundRepeat   = 'no-repeat';
-  av.style.color              = 'transparent'; // hide initials behind photo
-  // Validate the URL; if broken, revert gracefully to initials
-  const probe = new Image();
-  probe.onerror = () => {
-    _cachedDP = null;
-    av.style.backgroundImage = '';
-    av.style.color           = '';
-  };
-  probe.src = _cachedDP;
-}
-
 function applyDP(dp) {
   if (!dp) return;
-  _cachedDP = dp;
-  _applyDPToAvatar();
+  // Update sidebar avatar
+  const av = document.getElementById('sidebarAv');
+  if (av) {
+    av.style.cssText += ';background-image:url(' + dp + ');background-size:cover;background-position:center;';
+    av.textContent = '';
+  }
   // Update settings preview
   const prev = document.getElementById('dp-preview');
   const ph   = document.getElementById('dp-placeholder');
@@ -3751,12 +3728,8 @@ async function loadMyDP() {
 
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
-// Await initData before loadMyDP to prevent a race condition where
-// loadMyDP applies the photo but initData() repaints the avatar immediately after, wiping it.
-(async () => {
-  await initData();
-  await loadMyDP();
-})();
+initData();
+loadMyDP();
 </script>
 </body>
 </html>
