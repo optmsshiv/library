@@ -14,6 +14,6 @@ if (ini_get('session.use_cookies')) {
 }
 
 // Redirect to login page — use absolute path to avoid any ambiguity
-header('Location: login.php');
+header('Location: ./login.php');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 exit;
