@@ -152,24 +152,6 @@ switch ($action) {
         addNotif($db, 'info', 'New Enrollment', "{$d['fname']} {$d['lname']} enrolled");
         jsonResponse(['success' => true, 'id' => $newId]);
 
-    case 'update_student':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $id = $d['id'] ?? '';
-        if (!$id) jsonError('ID required');
-        $db->prepare(
-            "UPDATE students SET fname=?, lname=?, phone=?, email=?, course=?, addr=? WHERE id=?"
-        )->execute([
-            $d['fname']  ?? '',
-            $d['lname']  ?? '',
-            $d['phone']  ?? '',
-            $d['email']  ?? '',
-            $d['course'] ?? '',
-            $d['addr']   ?? '',
-            $id
-        ]);
-        jsonResponse(['success' => true]);
-
     case 'delete_student':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
@@ -715,24 +697,31 @@ switch ($action) {
         )->fetchAll();
         jsonResponse($rows);
 
-    // ══════════════════════════════════
-    // AUDIT LOG
-    // ══════════════════════════════════
-    case 'get_audit_log':
-        $rows = $db->query(
-            "SELECT id, icon, bg, text, created_at,
-                    COALESCE(who, 'Admin') AS who,
-                    COALESCE(type, 'other') AS type
-             FROM activity_log
-             ORDER BY created_at DESC
-             LIMIT 500"
-        )->fetchAll(PDO::FETCH_ASSOC);
-        jsonResponse($rows);
-        break;
-
     default:
         jsonError('Unknown action', 404);
 
+        // ══════════════════════════════════
+    // AUDIT LOG
+    // ══════════════════════════════════
+   //case 'get_audit_log':
+   //    $rows = $db->query(
+   //        "SELECT id, icon, bg, text, created_at FROM activity_log ORDER BY created_at DESC LIMIT 500"
+   //    )->fetchAll();
+   //    jsonResponse($rows);
+
+   case 'get_audit_log':
+    $rows = $db->query(
+        "SELECT id, icon, bg, text, created_at,
+                COALESCE(who, 'Admin') AS who,
+                COALESCE(type, 'other') AS type
+         FROM activity_log
+         ORDER BY created_at DESC
+         LIMIT 500"
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    jsonResponse($rows);
+    break;
+    
 }
 
 // ─── Helper functions ────────────────────────────
