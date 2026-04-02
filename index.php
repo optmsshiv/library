@@ -2372,7 +2372,7 @@ function renderFees(){
   const s=DB.students;
   const paid=s.filter(x=>x.feeStatus==='paid');const partial=s.filter(x=>x.feeStatus==='partial');
   const pend=s.filter(x=>x.feeStatus==='pending');const od=s.filter(x=>x.feeStatus==='overdue');
-  document.getElementById('fc-c').textContent=fmt(paid.reduce((a,x)=>a+x.netFee,0));document.getElementById('fc-cm').textContent=`${paid.length} fully paid`;
+  document.getElementById('fc-c').textContent=fmt(DB.invoices.reduce((a,i)=>a+i.paidAmt,0));document.getElementById('fc-cm').textContent=`${paid.length} fully paid`;
   document.getElementById('fc-pp').textContent=partial.length;document.getElementById('fc-ppm').textContent=`₹${partial.reduce((a,x)=>a+(x.netFee-x.paidAmt),0).toLocaleString()} balance due`;
   document.getElementById('fc-p').textContent=fmt(pend.reduce((a,x)=>a+x.netFee,0));document.getElementById('fc-pm').textContent=`${pend.length} students`;
   document.getElementById('fc-o').textContent=fmt(od.reduce((a,x)=>a+x.netFee,0));document.getElementById('fc-om').textContent=`${od.length} students (>7 days)`;
