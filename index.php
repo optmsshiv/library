@@ -56,7 +56,7 @@ $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(e
   --sh2:0 8px 32px rgba(15,23,42,.12),0 2px 8px rgba(15,23,42,.06);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--fb);font-size:14px;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;line-height:1.6}
+body{font-family:var(--fb);font-size:16px;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;line-height:1.6}
 
 .sb{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--sf);border-right:1px solid var(--br);display:flex;flex-direction:column;z-index:200;box-shadow:var(--sh)}
 .sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--br)}
