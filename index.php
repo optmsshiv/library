@@ -2383,14 +2383,22 @@ function renderFees(){
     const discTxt=x.baseFee>x.netFee?`<div><span class="tag tor" style="font-size:9px">🎁 ₹${x.baseFee-x.netFee}</span><div style="font-size:9px;color:var(--tx3)">${x.discount?.reason||''}</div></div>`:'<span style="color:var(--tx3)">—</span>';
     const partialBar=x.feeStatus==='partial'?`<div class="fee-partial-wrap"><div class="fee-partial-bar"><div class="fee-partial-fill" style="width:${pctPaid}%"></div></div><div style="font-size:9px;color:var(--tx3);font-family:var(--fm)">${pctPaid}% paid</div></div>`:'';
     const rowClass=x.feeStatus==='overdue'?'fee-due-row':x.feeStatus==='partial'||x.feeStatus==='pending'?'fee-partial-row':'';
+    // Renewal info from invoices
+    const stuRenewals=DB.invoices.filter(i=>i.studentId===x.id&&i.type&&i.type.startsWith('Renewal'));
+    const renewCount=stuRenewals.length;
+    const renewBadge=renewCount>0?`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(61,111,240,.1);color:var(--ac);border:1px solid rgba(61,111,240,.25);border-radius:5px;font-size:9px;font-weight:700;padding:1px 6px;font-family:var(--fm);margin-top:3px">🔄 Renewed ×${renewCount}</span>`:'';
+    // Current cycle paid = latest monthly fee invoice paid_amt
+    const monthlyInvs=DB.invoices.filter(i=>i.studentId===x.id&&i.type==='Monthly Fee').sort((a,b)=>b.date?.localeCompare(a.date));
+    const curPaid=monthlyInvs.length?monthlyInvs[0].paidAmt:x.paidAmt;
+    const curBal=monthlyInvs.length?monthlyInvs[0].balance:bal;
     return `<tr class="${rowClass}">
-      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${x.id}</div></div></div></td>
+      <td><div class="si"><div class="sav" style="background:${x.color}">${x.fname[0]+x.lname[0]}</div><div><div style="font-weight:600;font-size:12.5px;cursor:pointer;color:var(--ac)" onclick="openStudentProfile('${x.id}')">${x.fname} ${x.lname}</div><div style="font-size:10px;color:var(--tx3);font-family:var(--fm)">${x.id}</div>${renewBadge}</div></div></td>
       <td>${bTag(x.batchId)}</td>
       <td><span style="font-family:var(--fm)">₹${x.baseFee}</span></td>
       <td>${discTxt}</td>
       <td><span style="font-family:var(--fm);font-weight:700;color:var(--em)">₹${x.netFee}</span></td>
-      <td><div><span style="font-family:var(--fm);font-weight:700;color:var(--em)">₹${x.paidAmt}</span>${partialBar}</div></td>
-      <td>${bal>0?`<div style="display:flex;align-items:center;gap:4px"><span class="fee-bal-badge">₹${bal} DUE</span></div>`:`<span style="color:var(--em);font-size:12px">✓ Clear</span>`}</td>
+      <td><div><span style="font-family:var(--fm);font-weight:700;color:var(--em)">₹${curPaid}</span>${partialBar}</div></td>
+      <td>${curBal>0?`<div style="display:flex;align-items:center;gap:4px"><span class="fee-bal-badge">₹${curBal} DUE</span></div>`:`<span style="color:var(--em);font-size:12px">✓ Clear</span>`}</td>
       <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(x.paidOn)}</span></td>
       <td><span class="tag ${x.feeStatus==='paid'?'tpd':x.feeStatus==='partial'?'tpart':x.feeStatus==='pending'?'tpn':'tod'}">${x.feeStatus==='paid'?'✓ Paid':x.feeStatus==='partial'?'◑ Partial':x.feeStatus==='pending'?'⏳ Pending':'🚨 Overdue'}</span></td>
       <td><span style="font-size:10.5px;font-family:var(--fm);color:${x.feeStatus==='overdue'?'var(--ro)':x.feeStatus==='pending'?'var(--gd)':'var(--tx3)'}">${fmtDate(x.dueDate)}</span></td>
