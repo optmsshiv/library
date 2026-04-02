@@ -2481,7 +2481,7 @@ function collectFee(){
   else{s.feeStatus='partial';s.paidOn=new Date().toISOString().slice(0,10);}
   const bal=s.netFee-s.paidAmt;
   const invId='INV-'+String(DB.invoices.length+1).padStart(4,'0');
-  DB.invoices.push({id:invId,studentId:stuId,type:'Monthly Fee',amount:amt,baseFee:s.baseFee,discount:s.baseFee-s.netFee,netFee:s.netFee,paidAmt:s.paidAmt,balance:bal,date:s.paidOn,month:gv('cf-mo'),mode:modeStr,status:s.feeStatus==='paid'?'paid':'partial'});
+  DB.invoices.push({id:invId,studentId:stuId,type:'Monthly Fee',amount:amt,baseFee:s.baseFee,discount:s.baseFee-s.netFee,netFee:s.netFee,paidAmt:amt,balance:bal,date:s.paidOn,month:gv('cf-mo'),mode:modeStr,status:s.feeStatus==='paid'?'paid':'partial'});
   addActivity('<span class="mi sm">payments</span>','rgba(22,163,74,.12)',`<strong>${s.fname}</strong> paid ₹${amt} via ${modeStr}${s.feeStatus==='partial'?` (₹${bal} pending)`:' (full)'}`);
   addNotif('success','Fee Collected',`${s.fname} paid ₹${amt}${s.feeStatus==='partial'?` partial, ₹${bal} due`:''}`);
   if(document.getElementById('cf-wa').checked){setTimeout(()=>waQuick(stuId,s.feeStatus==='paid'?'fee_receipt':'partial_payment'),600);}
