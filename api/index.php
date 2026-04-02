@@ -124,7 +124,9 @@ switch ($action) {
         $d = getInput();
         if (empty($d['fname']) || empty($d['batch_id'])) jsonError('First name and batch are required');
         try {
-            $newId = 'STU-' . str_pad((int)$db->query("SELECT COUNT(*) FROM students")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
+            $lastId = $db->query("SELECT id FROM students ORDER BY created_at DESC LIMIT 1")->fetchColumn();
+            $lastNum = $lastId ? (int)substr($lastId, 4) : 0;
+            $newId = 'STU-' . str_pad($lastNum + 1, 3, '0', STR_PAD_LEFT);
             $baseFee = (int)($d['base_fee'] ?? 0);
             $discType  = $d['discount_type'] ?? 'none';
             $discVal   = (float)($d['discount_value'] ?? 0);
@@ -244,7 +246,9 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
         if (empty($d['title'])) jsonError('Title required');
-        $newId = 'BK-' . str_pad((int)$db->query("SELECT COUNT(*) FROM books")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
+        $lastBkId = $db->query("SELECT id FROM books ORDER BY id DESC LIMIT 1")->fetchColumn();
+        $lastBkNum = $lastBkId ? (int)substr($lastBkId, 3) : 0;
+        $newId = 'BK-' . str_pad($lastBkNum + 1, 3, '0', STR_PAD_LEFT);
         $copies = (int)($d['copies'] ?? 1);
         $db->prepare("INSERT INTO books (id,title,author,isbn,category,copies,available,shelf,emoji) VALUES (?,?,?,?,?,?,?,?,?)")
            ->execute([$newId,$d['title'],$d['author'] ?? '',$d['isbn'] ?? '',$d['category'] ?? 'Other',$copies,$copies,$d['shelf'] ?? '','📘']);
@@ -321,7 +325,9 @@ switch ($action) {
         $db->prepare("UPDATE students SET paid_amt=?,fee_status=?,paid_on=? WHERE id=?")->execute([$newPaid,$feeStatus,$paidOn,$d['student_id']]);
         $balance = $s['net_fee'] - $newPaid;
         // Create invoice
-        $invId = 'INV-' . str_pad((int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1, 4, '0', STR_PAD_LEFT);
+        $lastInvId = $db->query("SELECT id FROM invoices ORDER BY created_at DESC LIMIT 1")->fetchColumn();
+        $lastInvNum = $lastInvId ? (int)substr($lastInvId, 4) : 0;
+        $invId = 'INV-' . str_pad($lastInvNum + 1, 4, '0', STR_PAD_LEFT);
         $mode = $d['mode'] ?? 'Cash';
         if (!empty($d['split_mode'])) $mode = $d['split_mode'];
         $db->prepare("INSERT INTO invoices (id,student_id,type,amount,base_fee,discount,net_fee,paid_amt,balance,invoice_date,month,mode,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
@@ -340,7 +346,9 @@ switch ($action) {
         $stuStmt = $db->prepare("SELECT * FROM students WHERE id=?");
         $stuStmt->execute([$d['student_id']]);
         $s = $stuStmt->fetch();
-        $invId = 'INV-' . str_pad((int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1, 4, '0', STR_PAD_LEFT);
+        $lastInvId2 = $db->query("SELECT id FROM invoices ORDER BY created_at DESC LIMIT 1")->fetchColumn();
+        $lastInvNum2 = $lastInvId2 ? (int)substr($lastInvId2, 4) : 0;
+        $invId = 'INV-' . str_pad($lastInvNum2 + 1, 4, '0', STR_PAD_LEFT);
         $typeMap = ['fee'=>'Monthly Fee','fine'=>'Book Fine','other'=>'Other'];
         $type = $typeMap[$d['type'] ?? 'fee'] ?? 'Monthly Fee';
         $amt = (int)$d['amount'];
@@ -379,7 +387,9 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Method not allowed', 405);
         $d = getInput();
         if (empty($d['name']) || empty($d['amount'])) jsonError('Name and amount required');
-        $newId = 'EX-' . str_pad((int)$db->query("SELECT COUNT(*) FROM expenses")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
+        $lastExId = $db->query("SELECT id FROM expenses ORDER BY id DESC LIMIT 1")->fetchColumn();
+        $lastExNum = $lastExId ? (int)substr($lastExId, 3) : 0;
+        $newId = 'EX-' . str_pad($lastExNum + 1, 3, '0', STR_PAD_LEFT);
         $catEmojis = ['Utilities'=>'⚡','Staff'=>'👨‍💼','Maintenance'=>'🔧','Supplies'=>'📦','Books'=>'📚','Other'=>'💸'];
         $cat = $d['category'] ?? 'Other';
         $emoji = $catEmojis[$cat] ?? '💸';
@@ -451,7 +461,9 @@ switch ($action) {
             if (empty($d['username'])) jsonError('Username is required for new staff.');
             $rawPassword = !empty($d['password']) ? $d['password'] : 'Pass@1234';
             $hash = password_hash($rawPassword, PASSWORD_BCRYPT);
-            $newId = 'SF-' . str_pad((int)$db->query("SELECT COUNT(*) FROM staff")->fetchColumn() + 1, 3, '0', STR_PAD_LEFT);
+            $lastSfId = $db->query("SELECT id FROM staff ORDER BY id DESC LIMIT 1")->fetchColumn();
+            $lastSfNum = $lastSfId ? (int)substr($lastSfId, 3) : 0;
+            $newId = 'SF-' . str_pad($lastSfNum + 1, 3, '0', STR_PAD_LEFT);
             $db->prepare("INSERT INTO staff (id,name,role,email,phone,username,password_hash,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
                ->execute([$newId,$d['name'],$d['role'],$d['email'],$d['phone'] ?? '',$d['username'],$hash,
                  (int)($perms['students'] ?? 0),(int)($perms['fees'] ?? 0),(int)($perms['books'] ?? 0),
@@ -647,10 +659,9 @@ switch ($action) {
         )->execute([$newDueDate, $amount, date('Y-m-d'), $studentId]);
 
         // Insert into renewals table
-        $renewId   = 'RNW-' . str_pad(
-            (int)$db->query("SELECT COUNT(*) FROM renewals")->fetchColumn() + 1,
-            4, '0', STR_PAD_LEFT
-        );
+        $lastRnwId = $db->query("SELECT id FROM renewals ORDER BY created_at DESC LIMIT 1")->fetchColumn();
+        $lastRnwNum = $lastRnwId ? (int)substr($lastRnwId, 4) : 0;
+        $renewId = 'RNW-' . str_pad($lastRnwNum + 1, 4, '0', STR_PAD_LEFT);
         $renewedBy = $_SESSION['staff_name'] ?? 'Staff';
 
         $db->prepare(
@@ -671,10 +682,9 @@ switch ($action) {
         ]);
 
         // Create invoice record for this renewal
-        $invId = 'INV-' . str_pad(
-            (int)$db->query("SELECT COUNT(*) FROM invoices")->fetchColumn() + 1,
-            4, '0', STR_PAD_LEFT
-        );
+        $lastInvIdR = $db->query("SELECT id FROM invoices ORDER BY created_at DESC LIMIT 1")->fetchColumn();
+        $lastInvNumR = $lastInvIdR ? (int)substr($lastInvIdR, 4) : 0;
+        $invId = 'INV-' . str_pad($lastInvNumR + 1, 4, '0', STR_PAD_LEFT);
         $db->prepare(
             "INSERT INTO invoices
                 (id, student_id, type, amount, base_fee, discount, net_fee, paid_amt, balance,
