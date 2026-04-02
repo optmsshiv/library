@@ -1379,13 +1379,7 @@ const API = 'api/index.php';
 async function apiGet(action, params = {}) {
   const qs = new URLSearchParams({ action, ...params }).toString();
   const r = await fetch(`${API}?${qs}`);
-  const text = await r.text();
-  if (!text || !text.trim()) throw new Error(`Empty response from server for action: ${action}`);
-  let json;
-  try { json = JSON.parse(text); }
-  catch(e) { throw new Error(`Bad JSON from server (${action}): ${text.slice(0,120)}`); }
-  if (json && json.error) throw new Error(`API error (${action}): ${json.error}`);
-  return json;
+  return r.json();
 }
 
 async function apiPost(action, data = {}) {
@@ -1394,13 +1388,7 @@ async function apiPost(action, data = {}) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
-  const text = await r.text();
-  if (!text || !text.trim()) throw new Error(`Empty response from server for action: ${action}`);
-  let json;
-  try { json = JSON.parse(text); }
-  catch(e) { throw new Error(`Bad JSON from server (${action}): ${text.slice(0,120)}`); }
-  if (json && json.error) throw new Error(`API error (${action}): ${json.error}`);
-  return json;
+  return r.json();
 }
 
 // ═══ DB STATE ═══
@@ -1418,9 +1406,6 @@ let editBatchIdx = -1, editStaffIdx = -1;
 async function initData() {
   try {
     const data = await apiGet('get_dashboard');
-    if (!data || typeof data !== 'object' || Array.isArray(data)) {
-      throw new Error('get_dashboard returned unexpected data: ' + JSON.stringify(data).slice(0,100));
-    }
 
     // Map DB columns to JS camelCase used throughout the app
     DB.batches = (data.batches || []).map(b => ({
@@ -1514,15 +1499,15 @@ async function initData() {
     DB.students.forEach(st => { if (!DB.attendance[st.id]) DB.attendance[st.id] = 'present'; });
 
     // WA log
-    const waLog = await apiGet('get_wa_log').catch(() => []);
-    DB.waSendLog = (Array.isArray(waLog) ? waLog : []).map(l => ({
+    const waLog = await apiGet('get_wa_log');
+    DB.waSendLog = (waLog || []).map(l => ({
       time: l.created_at ? l.created_at.slice(11,16) : '',
       to: l.sent_to, preview: l.preview, type: l.type
     }));
 
         // Add this block after the waSendLog loading:
-    const auditData = await apiGet('get_audit_log').catch(() => []);
-    DB.auditLog = (Array.isArray(auditData) ? auditData : []).map(a => ({
+    const auditData = await apiGet('get_audit_log');
+    DB.auditLog = (auditData || []).map(a => ({
       id: a.id,
       who: a.who || 'Admin',
       type: a.type || 'other',
@@ -1532,7 +1517,7 @@ async function initData() {
     }));
   } catch(e) {
     console.error('Init failed:', e);
-    toast('Init error: ' + e.message, 'er');
+    toast('Failed to load data from server', 'er');
   }
   refreshAll();
 }
@@ -1604,8 +1589,6 @@ document.querySelectorAll('.ni[data-page]').forEach(el=>{
 function renderPage(p){
   const map={dashboard:renderDash,students:renderStudents,seats:renderSeats,attendance:renderAtt,books:renderBooks,transactions:renderTx,fees:renderFees,invoices:renderInv,expenses:renderExp,analytics:renderAnal,whatsapp:renderWA,staff:renderStaff,staff_attendance:renderStaffAtt,renewal:renderRenewal,audit:renderAudit,notifications:renderNotifs,settings:renderSettings};
   if(map[p])map[p]();
-  // Re-apply DP after every render — reloadDB() repaints the sidebar which wipes the photo
-  _applyDPToAvatar();
 }
 
 // ═══ DASHBOARD ═══
@@ -3116,8 +3099,6 @@ async function reloadDB() {
     const id = active.id.replace('page-', '');
     renderPage(id);
   }
-  // Always re-apply photo after a full DB reload — initData() can repaint the sidebar
-  _applyDPToAvatar();
 }
 
 // ── OVERRIDE addActivity / addNotif to be no-ops (server handles them) ──
@@ -3699,33 +3680,14 @@ if ('serviceWorker' in navigator) {
 // ═══ PROFILE PHOTO (DP) ═══════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
 
-// Persist the DP URL so it survives re-renders triggered by reloadDB()
-let _cachedDP = null;
-
-function _applyDPToAvatar() {
-  if (!_cachedDP) return;
-  const av = document.getElementById('sidebarAv');
-  if (!av) return;
-  // Use individual properties — never cssText += which gets wiped on re-render
-  av.style.backgroundImage    = 'url(' + _cachedDP + ')';
-  av.style.backgroundSize     = 'cover';
-  av.style.backgroundPosition = 'center';
-  av.style.backgroundRepeat   = 'no-repeat';
-  av.style.color              = 'transparent'; // hide initials behind photo
-  // Validate the URL; if broken, revert gracefully to initials
-  const probe = new Image();
-  probe.onerror = () => {
-    _cachedDP = null;
-    av.style.backgroundImage = '';
-    av.style.color           = '';
-  };
-  probe.src = _cachedDP;
-}
-
 function applyDP(dp) {
   if (!dp) return;
-  _cachedDP = dp;
-  _applyDPToAvatar();
+  // Update sidebar avatar
+  const av = document.getElementById('sidebarAv');
+  if (av) {
+    av.style.cssText += ';background-image:url(' + dp + ');background-size:cover;background-position:center;';
+    av.textContent = '';
+  }
   // Update settings preview
   const prev = document.getElementById('dp-preview');
   const ph   = document.getElementById('dp-placeholder');
@@ -3766,12 +3728,8 @@ async function loadMyDP() {
 
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
-// Await initData before loadMyDP to prevent a race condition where
-// loadMyDP applies the photo but initData() repaints the avatar immediately after, wiping it.
-(async () => {
-  await initData();
-  await loadMyDP();
-})();
+initData();
+loadMyDP();
 </script>
 </body>
 </html>
