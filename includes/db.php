@@ -7,6 +7,14 @@ define('DB_USER', 'edrppymy_udaanlibrary');       // Change to your MySQL userna
 define('DB_PASS', '1234@Libraryerp');           // Change to your MySQL password
 define('DB_CHARSET', 'utf8mb4');
 
+//function getInput(): array {
+//    $raw = file_get_contents('php://input');
+//    if ($raw) {
+//        $decoded = json_decode($raw, true);
+//        if (is_array($decoded)) return $decoded;
+//    }
+//    return $_POST ?: [];
+//}
 function getDB() {
     static $pdo = null;
     if ($pdo === null) {
