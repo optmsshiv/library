@@ -3551,16 +3551,22 @@ async function loadMyDP() {
 }
 
 // ═══ LOGOUT ═══
-async function doLogout() {
+function doLogout() {
   if (!confirm('Logout from the system?')) return;
-  // Disable further API calls by pointing API to a dead end
   window._loggingOut = true;
+
+  // keepalive: true tells Chrome to complete this request even after navigation.
+  // sendBeacon is a guaranteed fire-and-forget fallback (Chrome-safe).
   try {
-    // Call the API logout to destroy the server-side session
-    await fetch('api/index.php?action=logout', { method: 'POST' });
-  } catch(e) { /* ignore network errors — still redirect */ }
-  // Hard redirect — bypasses any SPA routing
-  window.location.replace('/login.php');
+    navigator.sendBeacon('api/index.php?action=logout');
+  } catch(e) {
+    try {
+      fetch('api/index.php?action=logout', { method: 'POST', keepalive: true });
+    } catch(e2) { /* ignore */ }
+  }
+
+  // Small delay lets the beacon fire before we navigate
+  setTimeout(() => window.location.replace('/login.php'), 100);
 }
 
 // Intercept all fetch calls — if a 401 comes back, redirect to login
