@@ -1,6 +1,53 @@
 <?php
+// ── Must be FIRST: catch every fatal/exception and return JSON ──
+ini_set('display_errors', '0');          // never leak HTML errors into JSON
+error_reporting(E_ALL);
+
+set_exception_handler(function (Throwable $e) {
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode([
+        'error'   => 'Server error: ' . $e->getMessage(),
+        'file'    => basename($e->getFile()),
+        'line'    => $e->getLine(),
+    ]);
+    exit;
+});
+
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (!headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode([
+            'error' => 'Fatal PHP error: ' . $err['message'],
+            'file'  => basename($err['file']),
+            'line'  => $err['line'],
+        ]);
+    }
+});
+
 session_start();
+
+// ── Load DB — wrap so a bad db.php gives a clean JSON error ────
+if (!file_exists(__DIR__ . '/../includes/db.php')) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'db.php not found at: ' . realpath(__DIR__ . '/../includes/')]);
+    exit;
+}
 require_once __DIR__ . '/../includes/db.php';
+
+if (!function_exists('getDB')) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'getDB() function missing — check your db.php']);
+    exit;
+}
 
 // ─── Core helpers ─────────────────────────────────────────────
 function jsonResponse($data, int $code = 200): never {
@@ -50,7 +97,22 @@ function addNotif($db, $type, $title, $msg): void {
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
-$db     = getDB();
+
+// Always send JSON content-type so browser never sees an empty body
+header('Content-Type: application/json; charset=utf-8');
+
+try {
+    $db = getDB();
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+    exit;
+}
+if (!$db) {
+    http_response_code(500);
+    echo json_encode(['error' => 'getDB() returned null — check db.php credentials']);
+    exit;
+}
 
 // Guard: all actions except login require an active session
 $publicActions = ['login'];
@@ -58,6 +120,7 @@ if (!in_array($action, $publicActions) && empty($_SESSION['staff_id'])) {
     jsonError('Not authenticated', 401);
 }
 
+try {
 switch ($action) {
 
     // ══════════════════════════════════
@@ -868,4 +931,12 @@ switch ($action) {
 
     default:
         jsonError('Unknown action: ' . htmlspecialchars($action), 404);
+}
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        'error' => 'Unexpected error: ' . $e->getMessage(),
+        'file'  => basename($e->getFile()),
+        'line'  => $e->getLine(),
+    ]);
 }
