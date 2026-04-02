@@ -1,9 +1,11 @@
 <?php
 session_start();
+
 if (empty($_SESSION['staff_id'])) {
-    header('Location: login.php');
+    header('Location: ./login.php');
     exit;
 }
+
 $staffName = htmlspecialchars($_SESSION['staff_name'] ?? 'Admin');
 $staffRole = htmlspecialchars(ucfirst($_SESSION['staff_role'] ?? 'staff'));
 $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(explode(' ', $_SESSION['staff_name'] ?? 'A'), 0, 2))));
