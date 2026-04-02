@@ -2764,7 +2764,7 @@ function delNotif(id){DB.notifications=DB.notifications.filter(x=>x.id!==id);ren
 function clearNotifs(){DB.notifications=[];renderNotifs();updateBadges();toast('Cleared','ok');}
 
 // ═══ SETTINGS ═══
-function renderSettings(){
+function renderSettingsStats(){
   const s=DB.students;
   const data=[{l:'Total Students',v:s.length},{l:'Discounts Given',v:`${s.filter(x=>x.baseFee>x.netFee).length} students (₹${s.reduce((a,x)=>a+(x.baseFee-x.netFee),0).toLocaleString()})`},{l:'Total Books',v:DB.books.reduce((a,b)=>a+b.copies,0)},{l:'Active Transactions',v:DB.transactions.filter(t=>t.status!=='returned').length},{l:'Total Batches',v:DB.batches.length},{l:'Staff Members',v:DB.staff.length},{l:'Net Profit',v:fmt(s.filter(x=>x.feeStatus==='paid').reduce((a,x)=>a+x.netFee,0)-DB.expenses.reduce((a,e)=>a+e.amount,0))}];
   document.getElementById('setStats').innerHTML=data.map(d=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)"><span style="font-size:12px;color:var(--tx2)">${d.l}</span><span style="font-weight:700;font-family:var(--fm)">${d.v}</span></div>`).join('');
@@ -3146,7 +3146,6 @@ function addNotif(type, title, msg) {
 }
 
 // ── SETTINGS PAGE: populate from DB ──
-const _origRenderSettings = renderSettings;
 function renderSettings() {
   const s = DB.settings;
   const map = {
@@ -3163,7 +3162,7 @@ function renderSettings() {
     const el = document.getElementById(id);
     if (el) el.value = val;
   });
-  _origRenderSettings();
+  renderSettingsStats();
 }
 
 // ═══ CHANGE PASSWORD ═══
