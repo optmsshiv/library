@@ -427,7 +427,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
       <div class="u-av" id="sidebarAv"><?= $staffInitials ?></div>
       <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
       <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')"><span class="mi sm">lock_reset</span></span>
-      <a href="/logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
+      <span title="Logout" onclick="doLogout()" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></span>
     </div>
   </div>
 </div>
@@ -3549,6 +3549,31 @@ async function loadMyDP() {
     if (res && res.dp) applyDP(res.dp);
   } catch(e) { /* column may not exist yet — safe to ignore */ }
 }
+
+// ═══ LOGOUT ═══
+async function doLogout() {
+  if (!confirm('Logout from the system?')) return;
+  // Disable further API calls by pointing API to a dead end
+  window._loggingOut = true;
+  try {
+    // Call the API logout to destroy the server-side session
+    await fetch('api/index.php?action=logout', { method: 'POST' });
+  } catch(e) { /* ignore network errors — still redirect */ }
+  // Hard redirect — bypasses any SPA routing
+  window.location.replace('/login.php');
+}
+
+// Intercept all fetch calls — if a 401 comes back, redirect to login
+const _origFetch = window.fetch;
+window.fetch = async function(...args) {
+  if (window._loggingOut) return new Response('{}', { status: 200 });
+  const res = await _origFetch(...args);
+  if (res.status === 401) {
+    window._loggingOut = true;
+    window.location.replace('/login.php');
+  }
+  return res;
+};
 
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
