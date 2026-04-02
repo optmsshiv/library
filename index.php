@@ -52,7 +52,7 @@ $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(e
   --c-teal:#f0fdfa;--ct:#99f6e4;
   --fd:'DM Serif Display',serif;
   --fb:'Inter',sans-serif;
-  --fm:'Roboto Mono',monospace;
+  --fm:'JetBrains Mono',monospace;
   --r:14px;--r2:9px;
   --sh:0 1px 4px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05);
   --sh2:0 8px 32px rgba(15,23,42,.12),0 2px 8px rgba(15,23,42,.06);
