@@ -49,49 +49,57 @@ if (!function_exists('getDB')) {
     exit;
 }
 
-// ─── Core helpers ─────────────────────────────────────────────
-function jsonResponse($data, int $code = 200): never {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-function jsonError(string $msg, int $code = 400): never {
-    jsonResponse(['error' => $msg], $code);
-}
-
-function getInput(): array {
-    $raw = file_get_contents('php://input');
-    if ($raw) {
-        $decoded = json_decode($raw, true);
-        if (is_array($decoded)) return $decoded;
+// ─── Core helpers (guarded so db.php can also define them) ────
+if (!function_exists('jsonResponse')) {
+    function jsonResponse($data, int $code = 200): never {
+        http_response_code($code);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
     }
-    return $_POST ?: [];
 }
 
-function addActivity($db, $icon, $bg, $text): void {
-    $who  = $_SESSION['staff_name'] ?? 'System';
-    // Derive a short type keyword from the icon for audit filtering
-    $typeMap = ['💳'=>'fee','👨‍🎓'=>'student','📚'=>'book','👥'=>'staff',
-                '💬'=>'whatsapp','⚙'=>'settings','🔄'=>'renewal',
-                '📤'=>'book','📩'=>'book','💸'=>'expenses','📋'=>'attendance'];
-    $type = $typeMap[$icon] ?? 'other';
-    $db->prepare(
-        "INSERT INTO activity_log (icon, bg, text, who, type) VALUES (?, ?, ?, ?, ?)"
-    )->execute([$icon, $bg, $text, $who, $type]);
-    // Keep only last 500 entries
-    $db->exec(
-        "DELETE FROM activity_log WHERE id NOT IN (
-            SELECT id FROM (SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 500) t
-         )"
-    );
+if (!function_exists('jsonError')) {
+    function jsonError(string $msg, int $code = 400): never {
+        jsonResponse(['error' => $msg], $code);
+    }
 }
 
-function addNotif($db, $type, $title, $msg): void {
-    $db->prepare(
-        "INSERT INTO notifications (type, title, msg, is_read) VALUES (?, ?, ?, 0)"
-    )->execute([$type, $title, $msg]);
+if (!function_exists('getInput')) {
+    function getInput(): array {
+        $raw = file_get_contents('php://input');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) return $decoded;
+        }
+        return $_POST ?: [];
+    }
+}
+
+if (!function_exists('addActivity')) {
+    function addActivity($db, $icon, $bg, $text): void {
+        $who     = $_SESSION['staff_name'] ?? 'System';
+        $typeMap = ['💳'=>'fee','👨‍🎓'=>'student','📚'=>'book','👥'=>'staff',
+                    '💬'=>'whatsapp','⚙'=>'settings','🔄'=>'renewal',
+                    '📤'=>'book','📩'=>'book','💸'=>'expenses','📋'=>'attendance'];
+        $type = $typeMap[$icon] ?? 'other';
+        $db->prepare(
+            "INSERT INTO activity_log (icon, bg, text, who, type) VALUES (?, ?, ?, ?, ?)"
+        )->execute([$icon, $bg, $text, $who, $type]);
+        $db->exec(
+            "DELETE FROM activity_log WHERE id NOT IN (
+                SELECT id FROM (SELECT id FROM activity_log ORDER BY created_at DESC LIMIT 500) t
+             )"
+        );
+    }
+}
+
+if (!function_exists('addNotif')) {
+    function addNotif($db, $type, $title, $msg): void {
+        $db->prepare(
+            "INSERT INTO notifications (type, title, msg, is_read) VALUES (?, ?, ?, 0)"
+        )->execute([$type, $title, $msg]);
+    }
 }
 // ──────────────────────────────────────────────────────────────
 
