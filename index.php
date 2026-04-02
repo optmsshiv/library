@@ -2,7 +2,7 @@
 session_start();
 
 if (empty($_SESSION['staff_id'])) {
-    header('Location: ./login.php');
+    header('Location: /login.php');
     exit;
 }
 
