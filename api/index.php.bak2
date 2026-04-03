@@ -969,6 +969,22 @@ switch ($action) {
             $batch = $bStmt->fetch();
         }
         // Get recent attendance (last 10 days)
+        // Ensure student_attendance table exists before querying it
+        $db->exec("CREATE TABLE IF NOT EXISTS student_attendance (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            student_id VARCHAR(32) NOT NULL,
+            date DATE NOT NULL,
+            status VARCHAR(16) NOT NULL DEFAULT 'present',
+            check_in TIME NULL,
+            check_out TIME NULL,
+            is_late TINYINT(1) DEFAULT 0,
+            late_minutes INT DEFAULT 0,
+            marked_by VARCHAR(64) DEFAULT 'qr_scan',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_student_date (student_id, date)
+        )");
+        
+        // Get recent attendance (last 10 days)
         $attStmt = $db->prepare("SELECT * FROM student_attendance WHERE student_id=? ORDER BY date DESC LIMIT 10");
         $attStmt->execute([$studentId]);
         $recentAtt = $attStmt->fetchAll();
