@@ -8,7 +8,7 @@ if (empty($_SESSION['staff_id'])) {
 
 $staffName = htmlspecialchars($_SESSION['staff_name'] ?? 'Admin');
 $staffRole = htmlspecialchars(ucfirst($_SESSION['staff_role'] ?? 'staff'));
-$staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(explode(' ', $_SESSION['staff_name'] ?? 'A'), 0, 2))));
+$staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0] ?? '', array_filter(array_slice(explode(' ', $_SESSION['staff_name'] ?? 'A'), 0, 2)))));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1534,7 +1534,7 @@ async function initData() {
       fine:  +(s.fine_per_day || 5),
       days:  +(s.loan_days    || 14),
       acFee: +(s.ac_fee || s.ac_extra || 200),
-      waNum: s.wa_number || '',
+      waNumber: s.wa_number || '',
       logoUrl: s.logo_url || ''
     };
     // Apply logo and library name to sidebar immediately on load
@@ -2556,26 +2556,6 @@ function calcSplitRem(){
   document.getElementById('cf-a2').value=rem;
   document.getElementById('splitNote').textContent=`Total: ₹${tot} | Mode 1: ₹${a1} | Mode 2: ₹${rem}`;
 }
-function collectFee(){
-  const stuId=gv('cf-stu');if(!stuId)return toast('Select student','er');
-  const s=DB.students.find(x=>x.id===stuId);if(!s)return;
-  const mode=gv('cf-mode');const isSplit=mode==='split'||mode==='split2';
-  let amt,modeStr;
-  if(isSplit){const a1=+gv('cf-a1')||0;const a2=+gv('cf-a2')||0;amt=a1+a2;modeStr=`${gv('cf-m1')} ₹${a1} + ${gv('cf-m2')} ₹${a2}`;}
-  else{amt=+gv('cf-amt')||0;modeStr=mode;}
-  if(!amt)return toast('Enter amount','er');
-  const prevPaid=s.paidAmt;s.paidAmt=Math.min(s.netFee,prevPaid+amt);
-  if(s.paidAmt>=s.netFee){s.feeStatus='paid';s.paidOn=new Date().toISOString().slice(0,10);}
-  else{s.feeStatus='partial';s.paidOn=new Date().toISOString().slice(0,10);}
-  const bal=s.netFee-s.paidAmt;
-  const invId='INV-'+String(DB.invoices.length+1).padStart(4,'0');
-  DB.invoices.push({id:invId,studentId:stuId,type:'Monthly Fee',amount:amt,baseFee:s.baseFee,discount:s.baseFee-s.netFee,netFee:s.netFee,paidAmt:amt,balance:bal,date:s.paidOn,month:gv('cf-mo'),mode:modeStr,status:s.feeStatus==='paid'?'paid':'partial'});
-  addActivity('<span class="mi sm">payments</span>','rgba(22,163,74,.12)',`<strong>${s.fname}</strong> paid ₹${amt} via ${modeStr}${s.feeStatus==='partial'?` (₹${bal} pending)`:' (full)'}`);
-  addNotif('success','Fee Collected',`${s.fname} paid ₹${amt}${s.feeStatus==='partial'?` partial, ₹${bal} due`:''}`);
-  if(document.getElementById('cf-wa').checked){setTimeout(()=>waQuick(stuId,s.feeStatus==='paid'?'fee_receipt':'partial_payment'),600);}
-  closeM('mCollectFee');toast(`₹${amt} collected${bal>0?` — ₹${bal} still pending`:''}!`,'ok');refreshAll();updateBadges();
-}
-
 // ═══ INVOICES ═══
 function renderInv(){
   document.getElementById('invCount').textContent=`${DB.invoices.length} invoice(s)`;
@@ -2600,12 +2580,6 @@ function renderInv(){
     <td><span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span></td>
     <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')"><span class="mi sm">print</span>Print</button></td></tr>`;
   }).join(''):'<tr><td colspan="11"><div class="empty"><div class="ei">🧾</div><div class="et">No invoices yet</div></div></td></tr>';
-}
-function genInvoice(){
-  const stuId=gv('gi-stu'),amt=+gv('gi-am');if(!stuId||!amt)return toast('Fill required','er');
-  const s=DB.students.find(x=>x.id===stuId);
-  DB.invoices.push({id:'INV-'+String(DB.invoices.length+1).padStart(4,'0'),studentId:stuId,type:gv('gi-tp')==='fee'?'Monthly Fee':gv('gi-tp')==='fine'?'Book Fine':'Other',amount:amt,baseFee:s?.baseFee||amt,discount:s?(s.baseFee-s.netFee):0,netFee:s?.netFee||amt,paidAmt:amt,balance:0,date:new Date().toISOString().slice(0,10),month:gv('gi-mo'),mode:'Manual',status:'paid'});
-  closeM('mGenInv');toast('Invoice generated!','ok');renderInv();
 }
 function autoFillInv(){const s=DB.students.find(x=>x.id===gv('gi-stu'));if(s)document.getElementById('gi-am').value=s.netFee;}
 function printInv(invId){
@@ -2753,7 +2727,7 @@ function waSend(){
     toast(`WhatsApp opened for ${list.length} students!`,'wa');
   } else {
     const s=DB.students.find(x=>x.id===stuId);if(s)openWALink(s.phone,msg);
-    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:`${s?.fname} ${s?.lname}`,preview:msg.slice(0,40)+'…',type:'single'});
+    DB.waSendLog.push({time:new Date().toLocaleTimeString(),to:s?`${s.fname} ${s.lname}`:'Unknown',preview:msg.slice(0,40)+'…',type:'single'});
     toast('WhatsApp opened!','wa');
   }
   addActivity('💬','rgba(37,211,102,.14)',`WhatsApp sent`);renderWASendLog();
@@ -2761,6 +2735,7 @@ function waSend(){
 function waCopy(){const msg=gv('wa-msg');if(!msg)return;navigator.clipboard?.writeText(msg).then(()=>toast('Copied!','ok')).catch(()=>toast('Select & copy manually','wn'));}
 function waSchedule(){toast('Message scheduled for 9 AM tomorrow!','ok');}
 function openWALink(phone,msg){const p=phone.replace(/\D/g,'');const full=p.length===10?'91'+p:p;window.open(`https://wa.me/${full}?text=${encodeURIComponent(msg)}`,'_blank');}
+function waSendDirect(phone,msg,name){openWALink(phone,msg);waSessionMsgCount++;DB.waSendLog.unshift({time:new Date().toLocaleTimeString(),to:name||phone,preview:msg.slice(0,40)+'…',type:'single'});renderWASendLog();}
 function waQuick(stuId,tplKey){
   const s=DB.students.find(x=>x.id===stuId);if(!s)return;
   const b=DB.batches.find(x=>x.id===s.batchId);
@@ -2829,7 +2804,7 @@ function renderSettingsStats(){
   const data=[{l:'Total Students',v:s.length},{l:'Discounts Given',v:`${s.filter(x=>x.baseFee>x.netFee).length} students (₹${s.reduce((a,x)=>a+(x.baseFee-x.netFee),0).toLocaleString()})`},{l:'Total Books',v:DB.books.reduce((a,b)=>a+b.copies,0)},{l:'Active Transactions',v:DB.transactions.filter(t=>t.status!=='returned').length},{l:'Total Batches',v:DB.batches.length},{l:'Staff Members',v:DB.staff.length},{l:'Net Profit',v:fmt(s.filter(x=>x.feeStatus==='paid').reduce((a,x)=>a+x.netFee,0)-DB.expenses.reduce((a,e)=>a+e.amount,0))}];
   document.getElementById('setStats').innerHTML=data.map(d=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)"><span style="font-size:12px;color:var(--tx2)">${d.l}</span><span style="font-weight:700;font-family:var(--fm)">${d.v}</span></div>`).join('');
 }
-function saveSettings(){DB.settings.fine=+gv('s-fine');DB.settings.days=+gv('s-days');DB.settings.waNum=gv('s-wa');DB.settings.name=gv('s-name');toast('Settings saved!','ok');}
+function saveSettings(){DB.settings.fine=+gv('s-fine');DB.settings.days=+gv('s-days');DB.settings.waNumber=gv('s-wa');DB.settings.name=gv('s-name');toast('Settings saved!','ok');}
 
 // ═══ MODALS ═══
 function openM(id){
@@ -2875,7 +2850,6 @@ function updateBadges(){
 }
 function refreshAll(){updateBadges();const active=document.querySelector('.page.active');if(active){const id=active.id.replace('page-','');renderPage(id);}else renderDash();}
 function globalSearch(v){if(!v.trim())return;const s=DB.students.find(x=>`${x.fname} ${x.lname} ${x.id}`.toLowerCase().includes(v.toLowerCase()));const bk=DB.books.find(x=>`${x.title} ${x.author}`.toLowerCase().includes(v.toLowerCase()));if(s){navTo('students');document.getElementById('stuSrchInp').value=v;stuSrch(v);}else if(bk){navTo('books');bkSrch(v);}}
-function allocSeat(){const stuId=gv('as-stu'),bId=gv('as-bt'),seat=gv('as-st');if(!stuId||!bId||!seat)return toast('Fill all','er');const s=DB.students.find(x=>x.id===stuId);if(!s)return;s.seat=seat;s.batchId=bId;const b=DB.batches.find(x=>x.id===bId);if(b&&b.occupied<b.total)b.occupied++;addActivity('🪑','rgba(196,125,43,.14)',`Seat <strong>${seat}</strong> → <strong>${s.fname}</strong>`);closeM('mAllocSeat');toast(`Seat ${seat} allocated!`,'ok');renderSeats();renderDash();}
 function toast(msg,type='ok'){const c=document.getElementById('toastWrap');const t=document.createElement('div');t.className=`toast ${type}`;const ic={ok:'✅',er:'❌',wn:'⚠️',wa:'💬'};t.innerHTML=`${ic[type]||''} ${msg}`;c.appendChild(t);setTimeout(()=>{t.style.animation='tOut .3s ease forwards';setTimeout(()=>t.remove(),300);},3500);}
 
 // ── PRO LOGOUT SLIDE-OUT TOAST ──
@@ -3215,7 +3189,7 @@ async function saveSettings() {
     DB.settings.addr  = payload.addr;
     DB.settings.fine  = payload.fine;
     DB.settings.days  = payload.days;
-    DB.settings.waNum = payload.wa_number;
+    DB.settings.waNumber = payload.wa_number;
     DB.settings.acFee = payload.ac_fee;
     toast('✅ Settings saved to database!', 'ok');
   } catch(e) {
@@ -3260,7 +3234,7 @@ function renderSettings() {
     's-fine':  s.fine  ?? 5,
     's-days':  s.days  ?? 14,
     's-acfee': s.acFee ?? 200,
-    's-wa':    s.waNum ?? ''
+    's-wa':    s.waNumber ?? ''
   };
   Object.entries(map).forEach(([id, val]) => {
     const el = document.getElementById(id);
@@ -3368,7 +3342,7 @@ function openRenewModal(id) {
   document.getElementById('ren-fee').value = s.netFee;
   document.getElementById('ren-extend').value = '1';
   updateRenewDate();
-  document.getElementById('ren-extend').addEventListener('change', updateRenewDate);
+  document.getElementById('ren-extend').onchange = updateRenewDate;
   openM('mRenew');
 }
 
