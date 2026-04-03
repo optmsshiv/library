@@ -1,26 +1,20 @@
 <?php
-// ── Always return JSON — never let PHP HTML errors reach the client ──
-ob_start();
-
-set_exception_handler(function(Throwable $e) {
-    ob_clean();
-    http_response_code(500);
-    header('Content-Type: application/json');
-    echo json_encode(['error' => $e->getMessage()]);
-    exit;
-});
-
-set_error_handler(function(int $errno, string $errstr, string $file, int $line): bool {
-    throw new \ErrorException($errstr, $errno, $errno, $file, $line);
-});
-
 // ── Database Configuration ──
+// Update these values to match your server
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'edrppymy_udaanlibrary');
-define('DB_USER', 'edrppymy_udaanlibrary');
-define('DB_PASS', '1234@Libraryerp');
+define('DB_USER', 'edrppymy_udaanlibrary');       // Change to your MySQL username
+define('DB_PASS', '1234@Libraryerp');           // Change to your MySQL password
 define('DB_CHARSET', 'utf8mb4');
 
+//function getInput(): array {
+//    $raw = file_get_contents('php://input');
+//    if ($raw) {
+//        $decoded = json_decode($raw, true);
+//        if (is_array($decoded)) return $decoded;
+//    }
+//    return $_POST ?: [];
+//}
 function getDB() {
     static $pdo = null;
     if ($pdo === null) {
@@ -33,9 +27,7 @@ function getDB() {
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (\PDOException $e) {
-            ob_clean();
             http_response_code(500);
-            header('Content-Type: application/json');
             echo json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]);
             exit;
         }
@@ -44,7 +36,6 @@ function getDB() {
 }
 
 function jsonResponse($data, $code = 200) {
-    ob_clean();
     http_response_code($code);
     header('Content-Type: application/json');
     echo json_encode($data);
@@ -66,7 +57,7 @@ function generateId($prefix, $table, $col = 'id') {
     return $prefix . '-' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
 }
 
-// CORS headers
+// CORS headers for dev
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');

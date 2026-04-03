@@ -1545,29 +1545,35 @@ async function initData() {
     // Apply nav permissions for the logged-in staff member
     if (data.me) applyNavPerms(data.me);
 
-    // Build attendance map from today's data
-    const attData = await apiGet('get_attendance', { date: new Date().toISOString().split('T')[0] });
-    DB.attendance = attData.attendance || {};
-    // Default present for any student not in attendance
+    // Build attendance map from today's data — isolated so failure doesn't kill init
+    try {
+      const attData = await apiGet('get_attendance', { date: new Date().toISOString().split('T')[0] });
+      DB.attendance = attData.attendance || {};
+    } catch(e) { console.warn('get_attendance failed:', e); }
     DB.students.forEach(st => { if (!DB.attendance[st.id]) DB.attendance[st.id] = 'present'; });
 
     // WA log
-    const waLog = await apiGet('get_wa_log');
-    DB.waSendLog = (waLog || []).map(l => ({
-      time: l.created_at ? l.created_at.slice(11,16) : '',
-      to: l.sent_to, preview: l.preview, type: l.type
-    }));
+    try {
+      const waLog = await apiGet('get_wa_log');
+      DB.waSendLog = (Array.isArray(waLog) ? waLog : []).map(l => ({
+        time: l.created_at ? l.created_at.slice(11,16) : '',
+        to: l.sent_to, preview: l.preview, type: l.type
+      }));
+    } catch(e) { console.warn('get_wa_log failed:', e); }
 
-        // Add this block after the waSendLog loading:
-    const auditData = await apiGet('get_audit_log');
-    DB.auditLog = (auditData || []).map(a => ({
-      id: a.id,
-      who: a.who || 'Admin',
-      type: a.type || 'other',
-      text: a.text || '',
-      time: timeSince(a.created_at),
-      ts: new Date(a.created_at).getTime()
-    }));
+    // Audit log
+    try {
+      const auditData = await apiGet('get_audit_log');
+      DB.auditLog = (Array.isArray(auditData) ? auditData : []).map(a => ({
+        id: a.id,
+        who: a.who || 'Admin',
+        type: a.type || 'other',
+        text: a.text || '',
+        time: timeSince(a.created_at),
+        ts: new Date(a.created_at).getTime()
+      }));
+    } catch(e) { console.warn('get_audit_log failed:', e); }
+
   } catch(e) {
     console.error('Init failed:', e);
     toast('Failed to load data from server', 'er');
@@ -2567,12 +2573,7 @@ function renderInv(){
       ?(deleted
         ?`<span style="font-family:var(--fm);font-size:11px;color:var(--tx3)">₹${inv.balance}</span>`
         :`<span class="fee-bal-badge">₹${inv.balance}</span>`)
-      :(deleted
-        ?`<span style="font-size:11px;color:var(--tx3)">—</span>`
-        :`<span style="color:var(--em);font-size:11px">✓</span>`);
-    const statusCell=deleted
-      ?`<span class="tag" style="background:#f1f5f9;color:var(--tx3);border:1px solid var(--br)">🗑 Deleted</span>`
-      :`<span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span>`;
+      :`<span style="color:var(--em);font-size:11px">✓</span>`;
     return `<tr style="${deleted?'opacity:.72':''}"><td><span style="font-family:var(--fm);font-weight:700;color:var(--ac)">${inv.id}</span></td>
     <td>${s?`<div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span>${s.fname} ${s.lname}</span></div>`:deleted?`<span style="font-size:11px;color:var(--tx3);font-style:italic">Deleted Student</span>`:'—'}</td>
     <td><span class="tag tac" style="font-size:9px">${inv.type}</span></td>
@@ -2582,7 +2583,7 @@ function renderInv(){
     <td>${balCell}</td>
     <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(inv.date)}</span></td>
     <td><span style="font-size:11px">${inv.mode}</span></td>
-    <td>${statusCell}</td>
+    <td><span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span></td>
     <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')"><span class="mi sm">print</span>Print</button></td></tr>`;
   }).join(''):'<tr><td colspan="11"><div class="empty"><div class="ei">🧾</div><div class="et">No invoices yet</div></div></td></tr>';
 }

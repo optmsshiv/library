@@ -66,7 +66,7 @@ switch ($action) {
         $notifications = $db->query("SELECT * FROM notifications ORDER BY created_at DESC")->fetchAll();
         $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
         $invoices = $db->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
-        $staff    = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status,COALESCE(base_salary,0) AS base_salary FROM staff ORDER BY created_at")->fetchAll();
+        $staff    = $db->query("SELECT s.id,s.name,s.role,s.email,s.phone,s.username,s.perm_students,s.perm_fees,s.perm_books,s.perm_expenses,s.perm_reports,s.perm_staff,s.perm_settings,s.status,COALESCE(ss.base_monthly,0) AS base_salary FROM staff s LEFT JOIN staff_salary ss ON ss.staff_id=s.id ORDER BY s.created_at")->fetchAll();
         $meStmt   = $db->prepare("SELECT role,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings FROM staff WHERE id=? LIMIT 1");
         $meStmt->execute([$_SESSION['staff_id']]);
         $me = $meStmt->fetch();
@@ -768,10 +768,12 @@ switch ($action) {
     // AUDIT LOG
     // ══════════════════════════════════
     case 'get_audit_log':
+        // Check which columns exist so we don't crash on older schemas
+        $alCols  = array_column($db->query("SHOW COLUMNS FROM activity_log")->fetchAll(), 'Field');
+        $whoSel  = in_array('who',  $alCols) ? "COALESCE(who,'Admin') AS who"  : "'Admin' AS who";
+        $typeSel = in_array('type', $alCols) ? "COALESCE(type,'other') AS type" : "'other' AS type";
         $rows = $db->query(
-            "SELECT id, icon, bg, text, created_at,
-                    COALESCE(who, 'Admin') AS who,
-                    COALESCE(type, 'other') AS type
+            "SELECT id, icon, bg, text, created_at, $whoSel, $typeSel
              FROM activity_log
              ORDER BY created_at DESC
              LIMIT 500"
@@ -857,22 +859,22 @@ switch ($action) {
         jsonResponse($stmt->fetchAll());
 
     // ══════════════════════════════════
-    // STAFF SALARY
+    // STAFF SALARY (uses staff_salary table: staff_id, base_monthly, updated_at)
     // ══════════════════════════════════
     case 'save_salary':
         if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $salaries = $d['salaries'] ?? []; // { "SF-001": 30000, "SF-002": 25000 }
+        $d        = getInput();
+        $salaries = $d['salaries'] ?? []; // { "SF-001": 30000, ... }
         if (empty($salaries) || !is_array($salaries)) jsonError('salaries object required');
-        // Ensure column exists
-        try {
-            $db->exec("ALTER TABLE staff ADD COLUMN IF NOT EXISTS base_salary INT NOT NULL DEFAULT 0");
-        } catch (\PDOException $e) { /* column may already exist */ }
-        $stmt = $db->prepare("UPDATE staff SET base_salary=? WHERE id=?");
+        $stmt = $db->prepare(
+            "INSERT INTO staff_salary (staff_id, base_monthly, updated_at)
+             VALUES (?, ?, NOW())
+             ON DUPLICATE KEY UPDATE base_monthly=?, updated_at=NOW()"
+        );
         $count = 0;
         foreach ($salaries as $sfId => $amount) {
             $amount = max(0, (int)$amount);
-            $stmt->execute([$amount, $sfId]);
+            $stmt->execute([$sfId, $amount, $amount]);
             $count++;
         }
         $who = $_SESSION['staff_name'] ?? 'Staff';
@@ -880,13 +882,9 @@ switch ($action) {
         jsonResponse(['success' => true, 'count' => $count]);
 
     case 'get_salary':
-        // Ensure column exists
-        try {
-            $db->exec("ALTER TABLE staff ADD COLUMN IF NOT EXISTS base_salary INT NOT NULL DEFAULT 0");
-        } catch (\PDOException $e) { /* column may already exist */ }
-        $rows = $db->query("SELECT id, COALESCE(base_salary,0) AS base_salary FROM staff")->fetchAll();
+        $rows     = $db->query("SELECT staff_id, base_monthly FROM staff_salary")->fetchAll();
         $salaries = [];
-        foreach ($rows as $r) $salaries[$r['id']] = (int)$r['base_salary'];
+        foreach ($rows as $r) $salaries[$r['staff_id']] = (int)$r['base_monthly'];
         jsonResponse(['salaries' => $salaries]);
 
     default:
