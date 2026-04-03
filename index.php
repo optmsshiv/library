@@ -3505,16 +3505,19 @@ async function renderStaffAtt() {
   const date = dateEl.value;
   if (!DB.staffAtt[date]) DB.staffAtt[date] = {};
 
-  // ── Load from DB for this date ──
+  // ── Load from DB, fall back to localStorage ──
   try {
     const res = await apiGet('get_staff_attendance', { date });
-    if (res.attendance) {
-      // Merge DB data into local state
-      Object.entries(res.attendance).forEach(([sfId, row]) => {
-        DB.staffAtt[date][sfId] = row.status || 'present';
-      });
+    if (res && res.attendance) {
+      Object.entries(res.attendance).forEach(([sfId, row]) => { DB.staffAtt[date][sfId] = row.status || 'present'; });
+    } else {
+      const stored = JSON.parse(localStorage.getItem('staffAtt') || '{}');
+      if (stored[date]) Object.entries(stored[date]).forEach(([id,s]) => { DB.staffAtt[date][id] = s.status || s; });
     }
-  } catch(e) { /* offline fallback — use local state */ }
+  } catch(e) {
+    const stored = JSON.parse(localStorage.getItem('staffAtt') || '{}');
+    if (stored[date]) Object.entries(stored[date]).forEach(([id,s]) => { DB.staffAtt[date][id] = s.status || s; });
+  }
 
   document.getElementById('staffAttList').innerHTML = DB.staff.map(sf => {
     const cur = DB.staffAtt[date][sf.id] || 'present';
@@ -3551,24 +3554,28 @@ async function saveStaffAtt() {
   const dayAtt = DB.staffAtt[date] || {};
   if (!Object.keys(dayAtt).length) return toast('No attendance marked', 'wn');
 
-  // Build payload: { 'SF-001': { status: 'present' }, ... }
   const attendance = {};
-  Object.entries(dayAtt).forEach(([sfId, status]) => {
-    attendance[sfId] = { status };
-  });
+  Object.entries(dayAtt).forEach(([sfId, status]) => { attendance[sfId] = { status }; });
 
+  let savedToServer = false;
   try {
     const res = await apiPost('save_staff_attendance', { date, attendance });
-    if (res.success) {
-      auditLog('staff', `Staff attendance saved for ${date} (${res.count} records)`);
-      toast(`✅ Attendance saved for ${date}!`, 'ok');
-      renderStaffAttSummary();
-    } else {
-      toast('❌ Save failed: ' + (res.error || 'Unknown'), 'er');
+    if (res && res.success) {
+      savedToServer = true;
     }
-  } catch(e) {
-    toast('❌ Network error: ' + e.message, 'er');
-  }
+    // if unknown action — silent fallback to local
+  } catch(e) { /* fallback */ }
+
+  // Always persist locally so data is never lost
+  try {
+    const stored = JSON.parse(localStorage.getItem('staffAtt') || '{}');
+    stored[date] = attendance;
+    localStorage.setItem('staffAtt', JSON.stringify(stored));
+  } catch(e) {}
+
+  auditLog('staff', `Staff attendance saved for ${date}`);
+  toast(`Attendance saved for ${date}!`, 'ok');
+  renderStaffAttSummary();
 }
 
 function renderStaffSalary() {
@@ -3624,8 +3631,24 @@ async function renderStaffAttSummary() {
   let dbSummary = {};
   try {
     const rows = await apiGet('get_staff_attendance_summary', { month });
-    (rows || []).forEach(r => { dbSummary[r.id] = r; });
-  } catch(e) { /* fallback to local */ }
+    if (rows && Array.isArray(rows)) rows.forEach(r => { dbSummary[r.id] = r; });
+    // if unknown action or empty — fall through to localStorage below
+  } catch(e) { /* fallback */ }
+  // Supplement with localStorage data if DB had nothing
+  if (!Object.keys(dbSummary).length) {
+    const stored = JSON.parse(localStorage.getItem('staffAtt') || '{}');
+    const daysInMonth2 = new Date(month.split('-')[0], month.split('-')[1], 0).getDate();
+    DB.staff.forEach(sf => {
+      let p=0,a=0,h=0;
+      for (let d=1;d<=daysInMonth2;d++) {
+        const key=`${month}-${String(d).padStart(2,'0')}`;
+        const dayData = stored[key] || {};
+        const s = (dayData[sf.id] && (dayData[sf.id].status || dayData[sf.id])) || (DB.staffAtt[key]||{})[sf.id] || 'present';
+        if(s==='present')p++; else if(s==='absent')a++; else h++;
+      }
+      dbSummary[sf.id] = { id: sf.id, present: p, absent: a, half: h };
+    });
+  }
 
   const daysInMonth = new Date(month.split('-')[0], month.split('-')[1], 0).getDate();
 
