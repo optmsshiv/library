@@ -17,8 +17,10 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule ^([^\.]+)$ $1.php [NC,L]
 
-# ── API routing ──
+# ── API routing (exclude scan.php and student_app.php) ──
 RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !^/scan
+RewriteCond %{REQUEST_URI} !^/student_app
 RewriteRule ^api/(.*)$ api/index.php?action=$1 [QSA,L]
 
 # ── Security Headers ──
