@@ -4025,7 +4025,7 @@ async function generateAdminQR(studentId) {
   try {
     const res = await apiPost('generate_qr_token', { student_id: studentId });
     if (res.error) return toast(res.error, 'er');
-    const scanUrl = `${location.origin}${location.pathname.replace('index.php','')}scan.php?token=${res.token}`;
+    const scanUrl = `${location.origin}/scan.php?token=${res.token}`;
     // Render QR
     document.getElementById('adminQRCode').innerHTML = '';
     if (adminQRObj) { try { adminQRObj.clear(); } catch(e){} }
