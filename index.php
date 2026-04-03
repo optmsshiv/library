@@ -24,6 +24,7 @@ $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0] ?? '', array_f
 <title>OPTMS Tech ERP v6</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 /* ── GOOGLE MATERIAL ICONS HELPER ── */
 .mi{font-family:'Material Icons Round';font-style:normal;font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;user-select:none}
@@ -656,6 +657,21 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
     <div class="sc" style="--ca:var(--gd)"><div class="s-lb">Rate</div><div class="s-vl" id="at-r">0%</div></div>
     <div class="sc" style="--ca:var(--ac)"><div class="s-lb">Total</div><div class="s-vl" id="at-t">0</div></div>
   </div>
+
+  <!-- QR Scan Live Feed -->
+  <div class="panel" style="margin-bottom:16px">
+    <div class="ph">
+      <div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">qr_code_scanner</span>Today's QR Check-Ins</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="qrScanCount" style="font-size:11px;color:var(--tx3)">0 scans</span>
+        <button class="btn bg" style="font-size:10px;padding:4px 8px" onclick="loadQRScans()"><span class="mi sm">refresh</span> Refresh</button>
+      </div>
+    </div>
+    <div class="pb" id="qrScanList" style="padding:10px">
+      <div style="text-align:center;padding:20px;color:var(--tx3);font-size:12px">No QR check-ins yet today</div>
+    </div>
+  </div>
+
   <div class="panel"><div class="tw"><table>
     <thead><tr><th>Student</th><th>Batch</th><th>Seat</th><th>Fee Status</th><th>Attend.</th><th>Toggle</th></tr></thead>
     <tbody id="attTable"></tbody>
@@ -995,6 +1011,27 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
   </div><!-- /content -->
 </div><!-- /main -->
 <!-- MODALS -->
+
+<!-- Student QR Code Modal -->
+<div class="mo" id="mStudentQR"><div class="md" style="max-width:400px">
+  <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">qr_code</span>Student QR Code</div><button class="mc" onclick="closeM('mStudentQR')"><span class="mi sm">close</span></button></div>
+  <div class="mb" style="text-align:center;padding:20px">
+    <div id="qrModalStudentInfo" style="margin-bottom:16px"></div>
+    <div style="background:#fff;border-radius:14px;padding:14px;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:14px">
+      <div id="adminQRCode" style="width:200px;height:200px"></div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:14px" id="qrModalExpiry"></div>
+    <div style="background:var(--c-blue);border:1px solid var(--cb);border-radius:10px;padding:11px;font-size:12px;color:var(--tx2);margin-bottom:14px;text-align:left">
+      📱 <strong>Student scans this QR</strong> at library entry to mark attendance.<br>
+      First scan = <span style="color:var(--em);font-weight:600">Check-In</span> · Second scan = <span style="color:var(--sk);font-weight:600">Check-Out</span>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn bp" onclick="regenerateQR()"><span class="mi sm">refresh</span> Regenerate</button>
+      <a id="qrStudentAppLink" href="student_app.php" target="_blank" class="btn bg"><span class="mi sm">open_in_new</span> Student App</a>
+    </div>
+  </div>
+</div></div>
+
 <div class="mo" id="mEnroll"><div class="md wide">
   <div class="mh"><div class="mt"><span class="mi sm" style="vertical-align:middle;margin-right:6px">person_add</span>Enroll New Student</div><button class="mc" onclick="closeM('mEnroll')"><span class="mi sm">close</span></button></div>
   <div class="mb">
@@ -1927,6 +1964,7 @@ function renderStudents(){
       <td><div style="display:flex;gap:4px">
         ${x.feeStatus!=='paid'?`<button class="btn bp" style="font-size:10px;padding:3px 7px" onclick="qCollect('${x.id}')">Collect</button>`:''}
         <button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="openStudentProfile('${x.id}')">👤</button>
+        <button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="showStudentQR('${x.id}')" title="Student QR Code"><span class="mi sm">qr_code</span></button>
         <button class="btn bwa" style="font-size:10px;padding:3px 7px" onclick="waQuick('${x.id}','${x.feeStatus==='paid'?'fee_receipt':x.feeStatus==='partial'?'partial_payment':x.feeStatus==='overdue'?'fee_overdue':'fee_due'}')">💬</button>
         <button class="btn bd" style="font-size:10px;padding:3px 6px" onclick="delStu('${x.id}')"><span class="mi sm">close</span></button>
       </div></td>
@@ -2331,6 +2369,8 @@ function renderAtt(){
     <td><span class="tag ${st==='present'?'tpd':'tod'}">${st==='present'?'✓ Present':'✗ Absent'}</span></td>
     <td><button class="btn ${st==='present'?'bd':'bp'}" style="font-size:10.5px;padding:4px 10px" onclick="togAtt('${s.id}')">${st==='present'?'Absent':'Present'}</button></td></tr>`;
   }).join('')||'<tr><td colspan="6"><div class="empty"><div class="ei">📋</div><div class="et">No students</div></div></td></tr>';
+  // Load QR scan feed
+  loadQRScans();
 }
 function togAtt(id){DB.attendance[id]=DB.attendance[id]==='present'?'absent':'present';renderAtt();}
 function markAll(p){DB.students.forEach(s=>{DB.attendance[s.id]=p?'present':'absent';});renderAtt();toast(p?'All present':'All absent',p?'ok':'wn');}
@@ -3951,6 +3991,102 @@ async function loadLogo() {
     const res = await apiGet('get_logo');
     if (res && res.logo_url) applyLogo(res.logo_url);
   } catch(e) { /* safe to ignore */ }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ═══ QR ATTENDANCE SYSTEM ════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+
+let currentQRStudentId = null;
+let adminQRObj = null;
+
+async function showStudentQR(studentId) {
+  currentQRStudentId = studentId;
+  const s = DB.students.find(x => x.id === studentId);
+  if (!s) return toast('Student not found', 'er');
+
+  // Show student info in modal
+  document.getElementById('qrModalStudentInfo').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:4px">
+      <div style="width:40px;height:40px;border-radius:50%;background:${s.color};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px">${s.fname[0]}${(s.lname||'')[0]||''}</div>
+      <div style="text-align:left">
+        <div style="font-weight:700;font-size:14px">${s.fname} ${s.lname||''}</div>
+        <div style="font-size:11px;color:var(--tx3);font-family:var(--fm)">${s.id}</div>
+      </div>
+    </div>`;
+
+  openM('mStudentQR');
+  await generateAdminQR(studentId);
+}
+
+async function generateAdminQR(studentId) {
+  document.getElementById('adminQRCode').innerHTML = '<div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px">Generating…</div>';
+  document.getElementById('qrModalExpiry').textContent = '';
+  try {
+    const res = await apiPost('generate_qr_token', { student_id: studentId });
+    if (res.error) return toast(res.error, 'er');
+    const scanUrl = `${location.origin}${location.pathname.replace('index.php','')}scan.php?token=${res.token}`;
+    // Render QR
+    document.getElementById('adminQRCode').innerHTML = '';
+    if (adminQRObj) { try { adminQRObj.clear(); } catch(e){} }
+    adminQRObj = new QRCode(document.getElementById('adminQRCode'), {
+      text: scanUrl,
+      width: 200, height: 200,
+      colorDark: '#1e1b4b', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    const exp = new Date(res.expires_at);
+    document.getElementById('qrModalExpiry').textContent = 'Valid until: ' + exp.toLocaleString('en-IN', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' });
+  } catch(e) {
+    toast('QR generation failed: ' + e.message, 'er');
+  }
+}
+
+async function regenerateQR() {
+  if (!currentQRStudentId) return;
+  await generateAdminQR(currentQRStudentId);
+  toast('QR refreshed!', 'ok');
+}
+
+// ── LOAD TODAY'S QR SCANS (shown in Attendance page) ──
+async function loadQRScans() {
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    const res = await apiGet('get_todays_qr_attendance', { date: today });
+    const records = res.records || [];
+    document.getElementById('qrScanCount').textContent = records.length + ' scan' + (records.length !== 1 ? 's' : '');
+    const el = document.getElementById('qrScanList');
+    if (!records.length) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tx3);font-size:12px">No QR check-ins yet today</div>';
+      return;
+    }
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">` +
+      records.map(r => {
+        const cin  = r.check_in  ? fmtTime(r.check_in)  : '—';
+        const cout = r.check_out ? fmtTime(r.check_out) : '—';
+        const lateBadge = +r.is_late ? `<span style="background:rgba(217,119,6,.12);color:var(--gd);font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:5px">⚠ Late ${r.late_minutes}m</span>` : '';
+        return `<div style="background:var(--sf2);border:1px solid var(--br);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:50%;background:${r.color||'var(--ac)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${(r.fname||'?')[0]}${(r.lname||'')[0]||''}</div>
+          <div style="min-width:0">
+            <div style="font-weight:600;font-size:12px;display:flex;align-items:center">${r.fname} ${r.lname||''}${lateBadge}</div>
+            <div style="font-size:10px;color:var(--tx3)">${r.batch_name||''}</div>
+            <div style="font-size:10px;color:var(--tx2);margin-top:2px">
+              <span style="color:var(--em)">▶ ${cin}</span>
+              ${r.check_out ? `<span style="color:var(--sk);margin-left:6px">■ ${cout}</span>` : '<span style="color:var(--tx3);margin-left:6px">Still inside</span>'}
+            </div>
+          </div>
+        </div>`;
+      }).join('') + '</div>';
+  } catch(e) {
+    // silent fail if table doesn't exist yet
+  }
+}
+
+function fmtTime(t) {
+  if (!t) return '—';
+  const [h, m] = t.split(':');
+  const hr = +h;
+  return (hr > 12 ? hr - 12 : (hr || 12)) + ':' + m + ' ' + (hr >= 12 ? 'PM' : 'AM');
 }
 
 // ═══ BOOT ═══
