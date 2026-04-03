@@ -394,7 +394,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <body>
 <!-- SIDEBAR -->
 <div class="sb">
-  <div class="sb-logo"><div class="logo-row"><div class="logo-ic" id="sidebar-logo-wrap"><span class="mi" style="color:#fff;font-size:20px" id="sidebar-logo-icon">auto_stories</span><img id="sidebar-logo-img" src="" alt="" style="display:none;width:36px;height:36px;object-fit:contain;border-radius:8px"></div><div><div class="logo-tx" id="sidebar-lib-name">OPTMS Tech</div><div class="logo-sb">ERP v6.0</div></div></div></div>
+  <div class="sb-logo"><div class="logo-row"><div class="logo-ic"><span class="mi" style="color:#fff;font-size:20px">auto_stories</span></div><div><div class="logo-tx">OPTMS Tech</div><div class="logo-sb">ERP v6.0</div></div></div></div>
   <nav class="sb-nav">
     <div class="ns"><div class="nl">Overview</div>
       <div class="ni active" data-page="dashboard"><span class="ni-ic mi">dashboard</span> Dashboard</div>
@@ -917,30 +917,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
                   <span class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Photo</span>
                 </label>
                 <span id="dp-status" style="font-size:11px;color:var(--tx3)"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Library Logo Upload -->
-      <div class="panel" style="margin-bottom:14px">
-        <div class="ph"><div class="pt"><span class="mi sm" style="vertical-align:middle;margin-right:5px">add_photo_alternate</span>Library Logo</div></div>
-        <div class="pb">
-          <div style="display:flex;align-items:center;gap:18px">
-            <div style="position:relative;width:72px;height:72px;flex-shrink:0;border-radius:12px;border:2px dashed var(--br2);overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--sf2)">
-              <span class="mi xl" style="color:var(--br2)" id="logo-placeholder">image</span>
-              <img id="logo-preview" src="" alt="Logo" style="display:none;position:absolute;inset:0;width:72px;height:72px;object-fit:contain;border-radius:10px">
-            </div>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:2px">Library Logo</div>
-              <div style="font-size:11px;color:var(--tx3);margin-bottom:10px">Shown in sidebar & invoices (JPG/PNG, max 2MB)</div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <label style="cursor:pointer">
-                  <input type="file" id="logo-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadLogo()">
-                  <span class="btn bp" style="pointer-events:none"><span class="mi sm">upload</span> Choose Logo</span>
-                </label>
-                <button class="btn bg" onclick="removeLogo()" id="logo-remove-btn" style="display:none"><span class="mi sm">close</span> Remove</button>
-                <span id="logo-status" style="font-size:11px;color:var(--tx3)"></span>
               </div>
             </div>
           </div>
@@ -1510,13 +1486,8 @@ async function initData() {
       fine:  +(s.fine_per_day || 5),
       days:  +(s.loan_days    || 14),
       acFee: +(s.ac_fee || s.ac_extra || 200),
-      waNum: s.wa_number || '',
-      logoUrl: s.logo_url || ''
+      waNum: s.wa_number || ''
     };
-    // Apply logo and library name to sidebar immediately on load
-    if (DB.settings.logoUrl) applyLogo(DB.settings.logoUrl);
-    const nameEl = document.getElementById('sidebar-lib-name');
-    if (nameEl && DB.settings.name) nameEl.textContent = DB.settings.name;
 
     // Apply nav permissions for the logged-in staff member
     if (data.me) applyNavPerms(data.me);
@@ -2580,10 +2551,9 @@ function genInvoice(){
 function autoFillInv(){const s=DB.students.find(x=>x.id===gv('gi-stu'));if(s)document.getElementById('gi-am').value=s.netFee;}
 function printInv(invId){
   const inv=DB.invoices.find(x=>x.id===invId);const s=DB.students.find(x=>x.id===inv.studentId);const b=s?DB.batches.find(bt=>bt.id===s.batchId):null;
-  const logoHtml=DB.settings.logoUrl?`<img src="${DB.settings.logoUrl}" style="height:52px;width:52px;object-fit:contain;border-radius:8px;margin-right:14px;flex-shrink:0" alt="Logo">`:'<div style="width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,#3d6ff0,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:24px;margin-right:14px;flex-shrink:0">📚</div>';
   const w=window.open('','_blank');
-  w.document.write(`<html><head><title>Invoice ${inv.id}</title><style>body{font-family:sans-serif;padding:40px;color:#0f172a;max-width:600px;margin:auto}.hd{border-bottom:2px solid #3d6ff0;padding-bottom:16px;margin-bottom:20px}.hd-inner{display:flex;align-items:center}.logo{font-size:22px;font-weight:700;color:#3d6ff0}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.tot{font-weight:700;font-size:18px;color:#3d6ff0}.ok{background:#f0fdf4;color:#166534;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.partial{background:#eff4ff;color:#1e40af;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.disc{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.2);border-radius:8px;padding:10px;margin:10px 0}</style></head><body>
-  <div class="hd"><div class="hd-inner">${logoHtml}<div><div class="logo">${DB.settings.name}</div><div style="font-size:12px;color:#888;margin-top:4px">${DB.settings.addr} · ${DB.settings.phone}</div></div></div></div>
+  w.document.write(`<html><head><title>Invoice ${inv.id}</title><style>body{font-family:sans-serif;padding:40px;color:#0f172a;max-width:600px;margin:auto}.hd{border-bottom:2px solid #3d6ff0;padding-bottom:16px;margin-bottom:20px}.logo{font-size:22px;font-weight:700;color:#3d6ff0}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.tot{font-weight:700;font-size:18px;color:#3d6ff0}.ok{background:#f0fdf4;color:#166534;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.partial{background:#eff4ff;color:#1e40af;display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px}.disc{background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.2);border-radius:8px;padding:10px;margin:10px 0}</style></head><body>
+  <div class="hd"><div class="logo">📚 ${DB.settings.name}</div><div style="font-size:12px;color:#888;margin-top:4px">${DB.settings.addr} · ${DB.settings.phone}</div></div>
   <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div style="font-size:20px;font-weight:700">INVOICE</div><div style="font-size:13px;color:#888">${inv.id}</div></div><div style="text-align:right"><div style="font-size:13px">${fmtDate(inv.date)}</div><div class="${inv.status==='paid'?'ok':'partial'}">${inv.status==='paid'?'✓ Paid':'◑ Partial'}</div></div></div>
   <div style="background:#f9f7f4;padding:14px;border-radius:8px;margin-bottom:16px"><div style="font-weight:600;margin-bottom:6px">Student</div><div style="font-size:13px">${s?.fname} ${s?.lname} · ${s?.id}</div><div style="font-size:12px;color:#888">${b?.name||''} · ${s?.seatType?.toUpperCase()} Seat ${s?.seat||''}</div></div>
   <div class="row"><span>Description</span><span>Amount</span></div>
@@ -2594,7 +2564,7 @@ function printInv(invId){
   <div class="row tot"><span>Total Paid</span><span>₹${inv.paidAmt||inv.amount}</span></div>
   ${inv.balance>0?`<div style="background:rgba(192,68,79,.08);border:1px solid rgba(192,68,79,.2);border-radius:8px;padding:12px;margin-top:12px"><strong>⚠ Balance Due: ₹${inv.balance}</strong><br><span style="font-size:12px">Please clear by due date</span></div>`:''}
   <div style="margin-top:16px;font-size:12px;color:#888">Mode: ${inv.mode}</div>
-  <div style="margin-top:40px;text-align:center;font-size:11px;color:#aaa">Thank you · ${DB.settings.name}</div>
+  <div style="margin-top:40px;text-align:center;font-size:11px;color:#aaa">Thank you · OPTMS Tech ERP</div>
   <script>window.print();<\/script></body></html>`);
 }
 
@@ -3192,11 +3162,6 @@ function renderSettings() {
     const el = document.getElementById(id);
     if (el) el.value = val;
   });
-  // Update sidebar library name
-  const nameEl = document.getElementById('sidebar-lib-name');
-  if (nameEl && s.name) nameEl.textContent = s.name;
-  // Apply logo preview if already loaded
-  if (s.logoUrl) applyLogo(s.logoUrl);
   renderSettingsStats();
 }
 
@@ -3795,92 +3760,10 @@ async function loadMyDP() {
   } catch(e) { /* column may not exist yet — safe to ignore */ }
 }
 
-// ══════════════════════════════════════════════════════════════
-// ═══ LIBRARY LOGO ════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════
-
-function applyLogo(url) {
-  if (!url) return;
-  DB.settings.logoUrl = url;
-  // Sidebar
-  const icon = document.getElementById('sidebar-logo-icon');
-  const img  = document.getElementById('sidebar-logo-img');
-  const wrap = document.getElementById('sidebar-logo-wrap');
-  if (icon) icon.style.display = 'none';
-  if (img)  { img.src = url; img.style.display = 'block'; }
-  if (wrap) { wrap.style.background = '#fff'; wrap.style.padding = '2px'; }
-  // Settings preview
-  const prev = document.getElementById('logo-preview');
-  const ph   = document.getElementById('logo-placeholder');
-  const rmBtn = document.getElementById('logo-remove-btn');
-  if (prev)  { prev.src = url; prev.style.display = 'block'; }
-  if (ph)    ph.style.display = 'none';
-  if (rmBtn) rmBtn.style.display = 'inline-flex';
-}
-
-function clearLogoUI() {
-  DB.settings.logoUrl = '';
-  const icon = document.getElementById('sidebar-logo-icon');
-  const img  = document.getElementById('sidebar-logo-img');
-  const wrap = document.getElementById('sidebar-logo-wrap');
-  if (icon) icon.style.display = '';
-  if (img)  { img.src = ''; img.style.display = 'none'; }
-  if (wrap) { wrap.style.background = ''; wrap.style.padding = ''; }
-  const prev  = document.getElementById('logo-preview');
-  const ph    = document.getElementById('logo-placeholder');
-  const rmBtn = document.getElementById('logo-remove-btn');
-  if (prev)  { prev.src = ''; prev.style.display = 'none'; }
-  if (ph)    ph.style.display = '';
-  if (rmBtn) rmBtn.style.display = 'none';
-}
-
-async function uploadLogo() {
-  const input  = document.getElementById('logo-file-input');
-  const file   = input && input.files && input.files[0];
-  if (!file) return;
-  const status = document.getElementById('logo-status');
-  if (status) status.textContent = '⏳ Uploading…';
-  const fd = new FormData();
-  fd.append('logo', file);
-  try {
-    const r   = await fetch(API + '?action=upload_logo', { method: 'POST', body: fd });
-    const res = await r.json();
-    if (res && res.error) {
-      if (status) status.textContent = '';
-      return toast('❌ ' + res.error, 'er');
-    }
-    applyLogo(res.logo_url);
-    if (status) { status.textContent = '✅ Saved!'; setTimeout(() => { status.textContent = ''; }, 3000); }
-    toast('✅ Logo saved!', 'ok');
-  } catch(e) {
-    if (status) status.textContent = '';
-    toast('❌ Upload error: ' + e.message, 'er');
-  }
-}
-
-async function removeLogo() {
-  if (!confirm('Remove library logo?')) return;
-  try {
-    await apiPost('remove_logo', {});
-    clearLogoUI();
-    toast('Logo removed', 'wn');
-  } catch(e) {
-    toast('❌ ' + e.message, 'er');
-  }
-}
-
-async function loadLogo() {
-  try {
-    const res = await apiGet('get_logo');
-    if (res && res.logo_url) applyLogo(res.logo_url);
-  } catch(e) { /* safe to ignore */ }
-}
-
 // ═══ BOOT ═══
 document.getElementById('todayChip').textContent = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
 initData();
 loadMyDP();
-loadLogo();
 </script>
 </body>
 </html>

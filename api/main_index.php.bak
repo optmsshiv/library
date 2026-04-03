@@ -620,40 +620,6 @@ switch ($action) {
         }
         jsonResponse(['success' => true, 'dp' => $uri]);
 
-    case 'upload_logo':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        if (empty($_FILES['logo'])) jsonError('No file uploaded');
-        $file    = $_FILES['logo'];
-        $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
-        if (!in_array($file['type'], $allowed)) jsonError('Only JPG/PNG/GIF/WebP images allowed');
-        if ($file['size'] > 2 * 1024 * 1024)   jsonError('File too large — max 2MB');
-        $base64  = base64_encode(file_get_contents($file['tmp_name']));
-        $uri     = 'data:' . $file['type'] . ';base64,' . $base64;
-        try {
-            // Ensure logo_url column exists
-            $db->exec("ALTER TABLE settings ADD COLUMN IF NOT EXISTS logo_url MEDIUMTEXT NULL");
-        } catch (\PDOException $e) { /* column may already exist */ }
-        // Ensure row exists
-        $exists = $db->query("SELECT COUNT(*) FROM settings WHERE id=1")->fetchColumn();
-        if (!$exists) $db->exec("INSERT INTO settings (id) VALUES (1)");
-        $db->prepare("UPDATE settings SET logo_url=? WHERE id=1")->execute([$uri]);
-        jsonResponse(['success' => true, 'logo_url' => $uri]);
-
-    case 'get_logo':
-        try {
-            $row = $db->query("SELECT logo_url FROM settings WHERE id=1")->fetch();
-            jsonResponse(['logo_url' => $row['logo_url'] ?? '']);
-        } catch (\PDOException $e) {
-            jsonResponse(['logo_url' => '']);
-        }
-
-    case 'remove_logo':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        try {
-            $db->prepare("UPDATE settings SET logo_url=NULL WHERE id=1")->execute();
-        } catch (\PDOException $e) { /* safe to ignore */ }
-        jsonResponse(['success' => true]);
-
     // ══════════════════════════════════
     // RENEWALS
     // ══════════════════════════════════
