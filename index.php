@@ -2567,7 +2567,12 @@ function renderInv(){
       ?(deleted
         ?`<span style="font-family:var(--fm);font-size:11px;color:var(--tx3)">₹${inv.balance}</span>`
         :`<span class="fee-bal-badge">₹${inv.balance}</span>`)
-      :`<span style="color:var(--em);font-size:11px">✓</span>`;
+      :(deleted
+        ?`<span style="font-size:11px;color:var(--tx3)">—</span>`
+        :`<span style="color:var(--em);font-size:11px">✓</span>`);
+    const statusCell=deleted
+      ?`<span class="tag" style="background:#f1f5f9;color:var(--tx3);border:1px solid var(--br)">🗑 Deleted</span>`
+      :`<span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span>`;
     return `<tr style="${deleted?'opacity:.72':''}"><td><span style="font-family:var(--fm);font-weight:700;color:var(--ac)">${inv.id}</span></td>
     <td>${s?`<div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span>${s.fname} ${s.lname}</span></div>`:deleted?`<span style="font-size:11px;color:var(--tx3);font-style:italic">Deleted Student</span>`:'—'}</td>
     <td><span class="tag tac" style="font-size:9px">${inv.type}</span></td>
@@ -2577,7 +2582,7 @@ function renderInv(){
     <td>${balCell}</td>
     <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(inv.date)}</span></td>
     <td><span style="font-size:11px">${inv.mode}</span></td>
-    <td><span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span></td>
+    <td>${statusCell}</td>
     <td><button class="btn bg" style="font-size:10px;padding:3px 7px" onclick="printInv('${inv.id}')"><span class="mi sm">print</span>Print</button></td></tr>`;
   }).join(''):'<tr><td colspan="11"><div class="empty"><div class="ei">🧾</div><div class="et">No invoices yet</div></div></td></tr>';
 }

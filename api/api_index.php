@@ -66,7 +66,7 @@ switch ($action) {
         $notifications = $db->query("SELECT * FROM notifications ORDER BY created_at DESC")->fetchAll();
         $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
         $invoices = $db->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
-        $staff    = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status,COALESCE(base_salary,0) AS base_salary FROM staff ORDER BY created_at")->fetchAll();
+        $staff    = $db->query("SELECT id,name,role,email,phone,username,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings,status FROM staff ORDER BY created_at")->fetchAll();
         $meStmt   = $db->prepare("SELECT role,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings FROM staff WHERE id=? LIMIT 1");
         $meStmt->execute([$_SESSION['staff_id']]);
         $me = $meStmt->fetch();
@@ -855,39 +855,6 @@ switch ($action) {
         );
         $stmt->execute([$month]);
         jsonResponse($stmt->fetchAll());
-
-    // ══════════════════════════════════
-    // STAFF SALARY
-    // ══════════════════════════════════
-    case 'save_salary':
-        if ($method !== 'POST') jsonError('Method not allowed', 405);
-        $d = getInput();
-        $salaries = $d['salaries'] ?? []; // { "SF-001": 30000, "SF-002": 25000 }
-        if (empty($salaries) || !is_array($salaries)) jsonError('salaries object required');
-        // Ensure column exists
-        try {
-            $db->exec("ALTER TABLE staff ADD COLUMN IF NOT EXISTS base_salary INT NOT NULL DEFAULT 0");
-        } catch (\PDOException $e) { /* column may already exist */ }
-        $stmt = $db->prepare("UPDATE staff SET base_salary=? WHERE id=?");
-        $count = 0;
-        foreach ($salaries as $sfId => $amount) {
-            $amount = max(0, (int)$amount);
-            $stmt->execute([$amount, $sfId]);
-            $count++;
-        }
-        $who = $_SESSION['staff_name'] ?? 'Staff';
-        addActivity($db, '💰', 'rgba(22,163,74,.14)', "Salary updated for $count staff member(s) by $who");
-        jsonResponse(['success' => true, 'count' => $count]);
-
-    case 'get_salary':
-        // Ensure column exists
-        try {
-            $db->exec("ALTER TABLE staff ADD COLUMN IF NOT EXISTS base_salary INT NOT NULL DEFAULT 0");
-        } catch (\PDOException $e) { /* column may already exist */ }
-        $rows = $db->query("SELECT id, COALESCE(base_salary,0) AS base_salary FROM staff")->fetchAll();
-        $salaries = [];
-        foreach ($rows as $r) $salaries[$r['id']] = (int)$r['base_salary'];
-        jsonResponse(['salaries' => $salaries]);
 
     default:
         jsonError('Unknown action', 404);
