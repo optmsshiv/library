@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* forgot password link */
         .forgot-row{
             display:flex;justify-content:space-between;align-items:center;
-            margin-top:-8px;margin-bottom:14px;
+            margin-top:1px;margin-bottom:14px;
         }
         .forgot-link{
             font-size:11.5px;color:var(--ac);
