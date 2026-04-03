@@ -2,7 +2,7 @@
 session_start();
 // Already logged in? Go to dashboard
 if (!empty($_SESSION['staff_id'])) {
-    header('Location: ../index.php');
+    header('Location: index.php');
     exit;
 }
 
