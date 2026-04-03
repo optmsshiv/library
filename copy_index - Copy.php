@@ -1,6 +1,14 @@
 <?php
 session_start();
 
+// Configure session for better Chrome compatibility
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
+if ($protocol === 'https') {
+    ini_set('session.cookie_secure', 1);
+}
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+
 if (empty($_SESSION['staff_id'])) {
     header('Location: login.php');
     exit;
@@ -15,7 +23,7 @@ $staffInitials = strtoupper(implode('', array_map(fn($p) => $p[0], array_slice(e
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#3d6ff0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -339,30 +347,6 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:3px}
 
-/* ── LOGOUT TOAST ── */
-.logout-toast{
-  position:fixed;bottom:22px;right:22px;z-index:10000;
-  background:#fff;border:1px solid var(--br);border-radius:14px;
-  box-shadow:0 8px 32px rgba(15,23,42,.16),0 2px 8px rgba(15,23,42,.08);
-  padding:16px 18px;min-width:280px;max-width:320px;
-  display:flex;flex-direction:column;gap:12px;
-  animation:ltIn .32s cubic-bezier(.22,1,.36,1) both;
-  border-left:3px solid var(--ro);
-}
-.logout-toast.closing{animation:ltOut .26s ease forwards}
-.lt-top{display:flex;align-items:center;gap:10px}
-.lt-icon{width:36px;height:36px;border-radius:10px;background:rgba(220,38,38,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.lt-title{font-size:13.5px;font-weight:700;color:var(--tx)}
-.lt-sub{font-size:11.5px;color:var(--tx3);margin-top:1px}
-.lt-meta{font-size:10.5px;color:var(--tx3);background:var(--sf2);border-radius:7px;padding:6px 10px;display:flex;align-items:center;gap:6px;font-family:var(--fm)}
-.lt-actions{display:flex;gap:8px}
-.lt-cancel{flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--br);background:var(--sf2);color:var(--tx2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s}
-.lt-cancel:hover{background:var(--sf);border-color:var(--br2)}
-.lt-confirm{flex:1.4;padding:8px 0;border-radius:8px;border:none;background:var(--ro);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fb);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;box-shadow:0 2px 8px rgba(220,38,38,.28)}
-.lt-confirm:hover{background:#b91c1c;transform:translateY(-1px)}
-@keyframes ltIn{from{opacity:0;transform:translateX(60px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
-@keyframes ltOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(60px)}}
-
 /* ── RENEWAL ────────────────────────────────────────── */
 .ren-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .2s}
 .ren-card:hover{border-color:var(--ac);box-shadow:var(--sh)}
@@ -457,7 +441,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
       <div class="u-av" id="sidebarAv"><?= $staffInitials ?></div>
       <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
       <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')"><span class="mi sm">lock_reset</span></span>
-      <button onclick="logoutToast()" title="Logout" style="background:none;border:none;padding:0;cursor:pointer;margin-left:4px;display:flex;align-items:center"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></button>
+      <a href="logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
     </div>
   </div>
 </div>
@@ -2582,19 +2566,13 @@ function renderInv(){
   document.getElementById('gi-stu').innerHTML='<option value="">-- Select --</option>'+DB.students.map(s=>`<option value="${s.id}">${s.fname} ${s.lname}</option>`).join('');
   document.getElementById('invTable').innerHTML=DB.invoices.length?DB.invoices.map(inv=>{
     const s=DB.students.find(x=>x.id===inv.studentId);
-    const deleted=!s&&inv.studentId;
-    const balCell=inv.balance>0
-      ?(deleted
-        ?`<span style="font-family:var(--fm);font-size:11px;color:var(--tx3)">₹${inv.balance}</span>`
-        :`<span class="fee-bal-badge">₹${inv.balance}</span>`)
-      :`<span style="color:var(--em);font-size:11px">✓</span>`;
-    return `<tr style="${deleted?'opacity:.72':''}"><td><span style="font-family:var(--fm);font-weight:700;color:var(--ac)">${inv.id}</span></td>
-    <td>${s?`<div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span>${s.fname} ${s.lname}</span></div>`:deleted?`<span style="font-size:11px;color:var(--tx3);font-style:italic">Deleted Student</span>`:'—'}</td>
+    return `<tr><td><span style="font-family:var(--fm);font-weight:700;color:var(--ac)">${inv.id}</span></td>
+    <td>${s?`<div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span>${s.fname} ${s.lname}</span></div>`:'—'}</td>
     <td><span class="tag tac" style="font-size:9px">${inv.type}</span></td>
     <td><span style="font-family:var(--fm)">₹${inv.baseFee||inv.amount}</span></td>
     <td>${inv.discount>0?`<span class="tag tor" style="font-size:9px">🎁 -₹${inv.discount}</span>`:'<span style="color:var(--tx3)">—</span>'}</td>
     <td><span style="font-family:var(--fm);font-weight:700">₹${inv.amount}</span></td>
-    <td>${balCell}</td>
+    <td>${inv.balance>0?`<span class="fee-bal-badge">₹${inv.balance}</span>`:`<span style="color:var(--em);font-size:11px">✓</span>`}</td>
     <td><span style="font-family:var(--fm);font-size:10.5px">${fmtDate(inv.date)}</span></td>
     <td><span style="font-size:11px">${inv.mode}</span></td>
     <td><span class="tag ${inv.status==='paid'?'tpd':'tpart'}">${inv.status==='paid'?'● Paid':'◑ Partial'}</span></td>
@@ -2877,50 +2855,6 @@ function refreshAll(){updateBadges();const active=document.querySelector('.page.
 function globalSearch(v){if(!v.trim())return;const s=DB.students.find(x=>`${x.fname} ${x.lname} ${x.id}`.toLowerCase().includes(v.toLowerCase()));const bk=DB.books.find(x=>`${x.title} ${x.author}`.toLowerCase().includes(v.toLowerCase()));if(s){navTo('students');document.getElementById('stuSrchInp').value=v;stuSrch(v);}else if(bk){navTo('books');bkSrch(v);}}
 function allocSeat(){const stuId=gv('as-stu'),bId=gv('as-bt'),seat=gv('as-st');if(!stuId||!bId||!seat)return toast('Fill all','er');const s=DB.students.find(x=>x.id===stuId);if(!s)return;s.seat=seat;s.batchId=bId;const b=DB.batches.find(x=>x.id===bId);if(b&&b.occupied<b.total)b.occupied++;addActivity('🪑','rgba(196,125,43,.14)',`Seat <strong>${seat}</strong> → <strong>${s.fname}</strong>`);closeM('mAllocSeat');toast(`Seat ${seat} allocated!`,'ok');renderSeats();renderDash();}
 function toast(msg,type='ok'){const c=document.getElementById('toastWrap');const t=document.createElement('div');t.className=`toast ${type}`;const ic={ok:'✅',er:'❌',wn:'⚠️',wa:'💬'};t.innerHTML=`${ic[type]||''} ${msg}`;c.appendChild(t);setTimeout(()=>{t.style.animation='tOut .3s ease forwards';setTimeout(()=>t.remove(),300);},3500);}
-
-// ── PRO LOGOUT SLIDE-OUT TOAST ──
-let _logoutEl = null;
-function logoutToast() {
-  if (_logoutEl) return; // already open
-  const staffName = <?= json_encode($staffName) ?>;
-  const staffRole = <?= json_encode($staffRole) ?>;
-  const el = document.createElement('div');
-  el.className = 'logout-toast';
-  el.innerHTML = `
-    <div class="lt-top">
-      <div class="lt-icon"><span class="mi" style="color:var(--ro);font-size:20px">power_settings_new</span></div>
-      <div>
-        <div class="lt-title">Logging out?</div>
-        <div class="lt-sub">Your session will end immediately</div>
-      </div>
-    </div>
-    <div class="lt-meta">
-      <span class="mi sm" style="color:var(--tx3)">badge</span>
-      Signed in as <strong style="color:var(--tx);margin-left:3px">${staffName}</strong>
-      <span style="margin-left:auto;color:var(--tx3)">${staffRole}</span>
-    </div>
-    <div class="lt-actions">
-      <button class="lt-cancel" onclick="closeLogoutToast()">Stay</button>
-      <button class="lt-confirm" onclick="doLogout()">
-        <span class="mi sm">logout</span> Yes, Logout
-      </button>
-    </div>`;
-  document.body.appendChild(el);
-  _logoutEl = el;
-}
-function closeLogoutToast() {
-  if (!_logoutEl) return;
-  _logoutEl.classList.add('closing');
-  setTimeout(() => { if (_logoutEl) { _logoutEl.remove(); _logoutEl = null; } }, 260);
-}
-function doLogout() {
-  if (_logoutEl) {
-    const btn = _logoutEl.querySelector('.lt-confirm');
-    if (btn) { btn.innerHTML = '<span class="mi sm">hourglass_empty</span> Logging out…'; btn.disabled = true; }
-  }
-  setTimeout(() => { window.location.href = 'logout.php'; }, 400);
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogoutToast(); });
 
 // ═══ INIT ═══
 
