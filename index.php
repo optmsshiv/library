@@ -1,6 +1,14 @@
 <?php
 session_start();
 
+// Configure session for better Chrome compatibility
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
+if ($protocol === 'https') {
+    ini_set('session.cookie_secure', 1);
+}
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+
 if (empty($_SESSION['staff_id'])) {
     header('Location: login.php');
     exit;
@@ -433,7 +441,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
       <div class="u-av" id="sidebarAv"><?= $staffInitials ?></div>
       <div style="flex:1"><div class="u-nm"><?= $staffName ?></div><div class="u-rl"><?= $staffRole ?></div></div>
       <span style="color:var(--tx3);cursor:pointer;font-size:13px" title="Change Password" onclick="openM('mChangePw')"><span class="mi sm">lock_reset</span></span>
-      <a href="../../logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
+      <a href="logout.php" title="Logout" onclick="return confirm('Logout from the system?')" style="color:var(--ro);text-decoration:none;font-size:13px;cursor:pointer;margin-left:4px"><span class="mi sm" style="color:var(--ro)">power_settings_new</span></a>
     </div>
   </div>
 </div>

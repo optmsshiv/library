@@ -1,5 +1,14 @@
 <?php
 session_start();
+
+// Configure session for better Chrome compatibility
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
+if ($protocol === 'https') {
+    ini_set('session.cookie_secure', 1);
+}
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+
 // Already logged in? Go to dashboard
 if (!empty($_SESSION['staff_id'])) {
     header('Location: index.php');
@@ -38,11 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'expires'  => time() + (30 * 24 * 60 * 60),
                     'path'     => '/',
                     'httponly' => true,
-                    'samesite' => 'Strict',
+                    'samesite' => 'Lax',
                 ]);
             } else {
                 // Clear cookie if user unchecked it
-                setcookie('optms_remember', '', ['expires' => time() - 3600, 'path' => '/']);
+                setcookie('optms_remember', '', [
+                    'expires'  => time() - 3600,
+                    'path'     => '/',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]);
             }
 
             header('Location: index.php');
