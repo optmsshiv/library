@@ -64,7 +64,7 @@ body{font-family:var(--fb);font-size:16px;background:var(--bg);color:var(--tx);m
 .sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--br)}
 .logo-row{display:flex;align-items:center;gap:10px}
 .logo-ic{width:36px;height:36px;background:linear-gradient(135deg,var(--ac),var(--vi));border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(61,111,240,.3)}
-.logo-tx{font-family:var(--fd);font-size:18px;color:var(--tx)}.logo-sb{font-size:9px;color:var(--tx3);font-family:var(--fm);letter-spacing:1.5px;text-transform:uppercase}
+.logo-tx{font-family:var(--fd);font-size:16px;color:var(--tx)}.logo-sb{font-size:9px;color:var(--tx3);font-family:var(--fm);letter-spacing:1.5px;text-transform:uppercase}
 .sb-nav{flex:1;padding:10px 8px;overflow-y:auto}
 .nl{font-size:9px;color:var(--tx3);letter-spacing:1.8px;text-transform:uppercase;padding:0 8px;margin-bottom:4px;font-family:var(--fm);font-weight:600}
 .ni{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--r2);cursor:pointer;transition:all .18s;color:var(--tx2);font-size:12.5px;font-weight:500;position:relative;white-space:nowrap}
