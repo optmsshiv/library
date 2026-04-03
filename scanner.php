@@ -408,7 +408,7 @@ function tick() {
 // ── QR FOUND ──
 function onQRFound(url) {
   // Only handle URLs from our own domain
-  if (!url.includes('/scan.php') && !url.includes('token=')) {
+  if (!url.includes('scan.php') && !url.includes('token=')) {
     showPill('warn', '⚠️', 'Invalid QR', 'Not a valid student QR code');
     return;
   }

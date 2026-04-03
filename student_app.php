@@ -676,7 +676,7 @@ body::before{
 <div class="toast" id="toast"></div>
 
 <script>
-const API = '/api/index.php';
+const API = 'api/index.php';
 let studentData = null;
 let qrObj = null;
 
