@@ -1,6 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 session_start();
 require_once __DIR__ . '/../includes/db.php';
 
@@ -1111,18 +1109,6 @@ switch ($action) {
 }
 
 // ─── Helper functions ────────────────────────────
-// ─── Helper functions ────────────────────────────
-function getInput() {
-    $raw = file_get_contents('php://input');
-    if ($raw) {
-        $decoded = json_decode($raw, true);
-        if (json_last_error() === JSON_ERROR_NONE) return $decoded;
-    }
-    return array_merge($_GET, $_POST);
-}
-
-
-
 function addActivity($db, $icon, $bg, $text) {
     $db->prepare("INSERT INTO activity_log (icon,bg,text) VALUES (?,?,?)")->execute([$icon,$bg,$text]);
     // Keep only last 50
