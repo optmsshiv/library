@@ -1,15 +1,17 @@
-# ── Add this to your .htaccess in the root of your site ──
+Options -Indexes
+RewriteEngine On
+RewriteRule ^api/(.*)$ api/index.php?action=$1 [QSA,L]
 
-# Prevent caching of PHP pages
-<FilesMatch "\.(php)$">
-    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
+# Force clean connection after logout — fixes Chrome ERR_FAILED on redirect
+<FilesMatch "logout\.php$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Clear-Site-Data "\"cache\", \"cookies\""
+    Header always set Connection "close"
 </FilesMatch>
 
-# Also ensure the login page specifically is never cached
-<Files "login.php">
-    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
-</Files>
+# Prevent caching of login page
+<FilesMatch "login\.php$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+</FilesMatch>
