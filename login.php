@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setcookie('optms_remember', '', ['expires' => time() - 3600, 'path' => '/']);
             }
 
-            header('Location: index.php');
+            header('Location: index');
             exit;
         } else {
             $error = 'Invalid username or password.';
