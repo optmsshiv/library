@@ -3802,6 +3802,9 @@ function auditLog(type, text) {
     ts: Date.now()
   });
   if (DB.auditLog.length > 500) DB.auditLog = DB.auditLog.slice(0, 500);
+
+  // Save to database
+  apiPost('save_audit_log', { type, text, who }).catch(() => {});
 }
 
 // Patch existing functions to log — wrap addActivity
