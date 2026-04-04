@@ -783,38 +783,55 @@ switch ($action) {
     // AUDIT LOG
     // ══════════════════════════════════
     case 'get_audit_log':
-        // Check which columns exist so we don't crash on older schemas
-        $alCols  = array_column($db->query("SHOW COLUMNS FROM activity_log")->fetchAll(), 'Field');
-        $whoSel  = in_array('who',  $alCols) ? "COALESCE(who,'Admin') AS who"  : "'Admin' AS who";
-        $typeSel = in_array('type', $alCols) ? "COALESCE(type,'other') AS type" : "'other' AS type";
-        $rows = $db->query(
-            "SELECT id, icon, bg, text, created_at, $whoSel, $typeSel
-             FROM activity_log
+        // Auto-create audit_log table if it doesn't exist
+        $db->exec("CREATE TABLE IF NOT EXISTS audit_log (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            who         VARCHAR(128) NOT NULL DEFAULT 'Admin',
+            type        VARCHAR(32)  NOT NULL DEFAULT 'other',
+            text        TEXT         NOT NULL,
+            ip          VARCHAR(64)  DEFAULT NULL,
+            created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_created_at (created_at),
+            INDEX idx_type (type)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $limit = min((int)($_GET['limit'] ?? 500), 1000);
+        $rows  = $db->query(
+            "SELECT id, who, type, text, ip, created_at
+             FROM audit_log
              ORDER BY created_at DESC
-             LIMIT 500"
+             LIMIT $limit"
         )->fetchAll(PDO::FETCH_ASSOC);
         jsonResponse(['logs' => $rows, 'records' => $rows]);
         break;
 
-        case 'save_audit_log':
+    case 'save_audit_log':
         $d    = getInput();
         $type = trim($d['type'] ?? 'other');
         $text = trim($d['text'] ?? '');
         $who  = trim($d['who']  ?? ($_SESSION['staff_name'] ?? 'Admin'));
         if (!$text) jsonResponse(['ok' => true]);
 
-        try {
-            $cols = array_column($db->query("SHOW COLUMNS FROM activity_log")->fetchAll(), 'Field');
-            if (!in_array('who', $cols)) {
-                $db->exec("ALTER TABLE activity_log ADD COLUMN who VARCHAR(128) DEFAULT 'Admin'");
-            }
-            if (!in_array('type', $cols)) {
-                $db->exec("ALTER TABLE activity_log ADD COLUMN type VARCHAR(32) DEFAULT 'other'");
-            }
-        } catch(Exception $e) {}
+        // Auto-create audit_log table if it doesn't exist
+        $db->exec("CREATE TABLE IF NOT EXISTS audit_log (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            who         VARCHAR(128) NOT NULL DEFAULT 'Admin',
+            type        VARCHAR(32)  NOT NULL DEFAULT 'other',
+            text        TEXT         NOT NULL,
+            ip          VARCHAR(64)  DEFAULT NULL,
+            created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_created_at (created_at),
+            INDEX idx_type (type)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        $db->prepare("INSERT INTO activity_log (icon, bg, text, who, type) VALUES (?,?,?,?,?)")
-           ->execute(['📋', 'rgba(61,111,240,.12)', $text, $who, $type]);
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
+        $db->prepare("INSERT INTO audit_log (who, type, text, ip) VALUES (?, ?, ?, ?)")
+           ->execute([$who, $type, $text, $ip]);
+
+        // Keep only last 2000 rows to avoid unbounded growth
+        $db->exec("DELETE FROM audit_log WHERE id NOT IN (
+            SELECT id FROM (SELECT id FROM audit_log ORDER BY id DESC LIMIT 2000) t
+        )");
 
         jsonResponse(['ok' => true]);
         break;
