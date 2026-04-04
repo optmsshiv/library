@@ -3829,7 +3829,6 @@ window.addActivity = function(icon, bg, text) {
   if (DB.auditLog.length>500) DB.auditLog=DB.auditLog.slice(0,500);
   apiPost('save_audit_log', { type, text: cleanText, who: '<?= $staffName ?>' }).catch(() => {});
 };
-};
 
 function renderAudit() {
   const filter = document.getElementById('auditFilter')?.value || 'all';
