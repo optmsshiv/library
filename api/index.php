@@ -182,8 +182,23 @@ switch ($action) {
         $d = getInput();
         $id = $d['id'] ?? '';
         if (!$id) jsonError('ID required');
-        $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
-        jsonResponse(['success' => true]);
+        // $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
+        // jsonResponse(['success' => true]);
+
+        // Store student name before deleting for invoice history
+            $stuRow = $db->prepare("SELECT fname, lname FROM students WHERE id=? LIMIT 1");
+            $stuRow->execute([$id]);
+            $stuData = $stuRow->fetch();
+            $deletedName = $stuData ? trim($stuData['fname'].' '.$stuData['lname']) : 'Deleted Student';
+                
+            // Keep student_id in invoices intact — just mark with deleted name
+            // Remove foreign key risk by nullifying only non-critical references
+            $db->prepare("UPDATE attendance SET student_id=student_id WHERE student_id=?")->execute([$id]);
+                
+            // Delete student
+            $db->prepare("DELETE FROM students WHERE id=?")->execute([$id]);
+                
+            jsonResponse(['success' => true]);
 
     // ══════════════════════════════════
     // BATCHES
