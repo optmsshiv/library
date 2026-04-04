@@ -897,6 +897,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
         <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--br);display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:600">Total Payable</span>
           <span style="font-size:16px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="staffSalTotal">₹0</span>
+          <button class="btn bp" id="saveSalBtn" onclick="saveSalaries()">💰 Save Salaries</button>
         </div>
       </div>
     </div>
@@ -1611,6 +1612,12 @@ async function initData() {
         ts: new Date(a.created_at).getTime()
       }));
     } catch(e) { console.warn('get_audit_log failed:', e); }
+
+    // Load staff salaries
+    try {
+      const salData = await apiGet('get_salary');
+      DB.staffSalary = salData.salaries || {};
+    } catch(e) { console.warn('get_salary failed:', e); }
 
   } catch(e) {
     console.error('Init failed:', e);
@@ -3599,6 +3606,24 @@ async function saveStaffAtt() {
   renderStaffAttSummary();
 }
 
+async function saveSalaries() {
+  const salaries = {};
+  document.querySelectorAll('.salary-input').forEach(inp => {
+    const sfId = inp.dataset.staffId;
+    const val  = parseInt(inp.value) || 0;
+    if (sfId && val > 0) salaries[sfId] = val;
+  });
+  if (!Object.keys(salaries).length) return toast('Enter at least one salary amount', 'wn');
+  try {
+    const res = await apiPost('save_salary', { salaries });
+    if (res.success) {
+      Object.entries(salaries).forEach(([id, amt]) => DB.staffSalary[id] = amt);
+      renderStaffSalary();
+      toast('✅ Salaries saved!', 'ok');
+    } else toast('❌ ' + (res.error || 'Failed to save'), 'er');
+  } catch(e) { toast('❌ Error: ' + e.message, 'er'); }
+}
+
 function renderStaffSalary() {
   const selEl = document.getElementById('staffSalMonth');
   // Populate months if empty
@@ -3637,13 +3662,17 @@ function renderStaffSalary() {
       </div>
       <div style="text-align:right">
         <div class="sal-amt">${salary>0?'₹'+salary.toLocaleString():'—'}</div>
-        <input type="number" value="${base||''}" placeholder="Base₹" style="width:80px;font-size:11px;padding:3px 6px;margin-top:4px;text-align:right"
+        <input type="number" value="${base||''}" placeholder="Base₹" 
+          class="salary-input" data-staff-id="${sf.id}"
+          style="width:80px;font-size:11px;padding:3px 6px;margin-top:4px;text-align:right"
           onchange="DB.staffSalary['${sf.id}']=+this.value;renderStaffSalary()" title="Monthly base salary">
       </div>
     </div>`;
   }).join('') || '<div style="color:var(--tx3);font-size:12px;padding:10px">No staff added yet</div>';
 
   document.getElementById('staffSalTotal').textContent = total > 0 ? '₹' + total.toLocaleString() : '₹0';
+  const saveBtn = document.getElementById('saveSalBtn');
+  if (saveBtn) saveBtn.onclick = saveSalaries;
 }
 
 async function renderStaffAttSummary() {
