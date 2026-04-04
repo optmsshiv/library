@@ -1593,8 +1593,9 @@ async function initData() {
 
     // WA log
     try {
-      const waLog = await apiGet('get_wa_log');
-      DB.waSendLog = (Array.isArray(waLog) ? waLog : []).map(l => ({
+      const waLogData = await apiGet('get_wa_log');const waLog = await apiGet('get_wa_log');
+      const waRows = Array.isArray(waLog) ? waLog : (waLog.logs || []);
+      DB.waSendLog = waRows.map(l => ({
         time: l.created_at ? l.created_at.slice(11,16) : '',
         to: l.sent_to, preview: l.preview, type: l.type
       }));
@@ -1602,8 +1603,8 @@ async function initData() {
 
     // Audit log
     try {
-      const auditData = await apiGet('get_audit_log');
-      DB.auditLog = (Array.isArray(auditData) ? auditData : []).map(a => ({
+      const auditRows = Array.isArray(auditData) ? auditData : (auditData.logs || auditData.records || []);
+        DB.auditLog = auditRows.map(a => ({ ({
         id: a.id,
         who: a.who || 'Admin',
         type: a.type || 'other',

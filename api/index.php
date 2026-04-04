@@ -793,7 +793,7 @@ switch ($action) {
              ORDER BY created_at DESC
              LIMIT 500"
         )->fetchAll(PDO::FETCH_ASSOC);
-        jsonResponse($rows);
+        jsonResponse(['logs' => $rows, 'records' => $rows]);
         break;
 
     // ══════════════════════════════════
