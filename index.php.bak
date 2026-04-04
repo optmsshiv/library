@@ -1605,17 +1605,14 @@ async function initData() {
     try {
       const auditData = await apiGet('get_audit_log');
       const auditRows = Array.isArray(auditData) ? auditData : (auditData.logs || auditData.records || []);
-      DB.auditLog = auditRows.map(a => {
-        const isoTs = a.created_at ? a.created_at.replace(' ', 'T') : null;
-        return {
-          id: a.id,
-          who: a.who || 'Admin',
-          type: a.type || 'other',
-          text: a.text || '',
-          time: timeSince(isoTs),
-          ts: isoTs ? new Date(isoTs).getTime() : Date.now()
-        };
-      });
+      DB.auditLog = auditRows.map(a => ({
+        id: a.id,
+        who: a.who || 'Admin',
+        type: a.type || 'other',
+        text: a.text || '',
+        time: timeSince(a.created_at),
+        ts: new Date(a.created_at).getTime()
+      }));
     } catch(e) { console.warn('get_audit_log failed:', e); }
 
     // Load staff salaries
@@ -1633,10 +1630,8 @@ async function initData() {
 
 function timeSince(ts) {
   if (!ts) return 'Just now';
-  // MySQL returns "YYYY-MM-DD HH:MM:SS" — normalize to ISO for cross-browser parsing
-  const normalized = typeof ts === 'string' ? ts.replace(' ', 'T') : ts;
-  const diff = Math.floor((Date.now() - new Date(normalized)) / 1000);
-  if (isNaN(diff) || diff < 60) return 'Just now';
+  const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (diff < 60) return 'Just now';
   if (diff < 3600) return Math.floor(diff/60) + ' min ago';
   if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
   return Math.floor(diff/86400) + ' day(s) ago';
