@@ -797,28 +797,27 @@ switch ($action) {
         break;
 
         case 'save_audit_log':
-               $d    = getInput();
-               $type = trim($d['type'] ?? 'other');
-               $text = trim($d['text'] ?? '');
-               $who  = trim($d['who']  ?? ($_SESSION['staff_name'] ?? 'Admin'));
-               if (!$text) jsonResponse(['ok' => true]); // skip empty
-           
-               // Ensure columns exist
-               try {
-                   $cols = array_column($db->query("SHOW COLUMNS FROM activity_log")->fetchAll(), 'Field');
-                   if (!in_array('who', $cols)) {
-                       $db->exec("ALTER TABLE activity_log ADD COLUMN who VARCHAR(128) DEFAULT 'Admin'");
-                   }
-                   if (!in_array('type', $cols)) {
-                       $db->exec("ALTER TABLE activity_log ADD COLUMN type VARCHAR(32) DEFAULT 'other'");
-                   }
-               } catch(Exception $e) {}
-           
-               $db->prepare("INSERT INTO activity_log (icon, bg, text, who, type) VALUES (?,?,?,?,?)")
-                  ->execute(['📋', 'rgba(61,111,240,.12)', $text, $who, $type]);
-           
-               jsonResponse(['ok' => true]);
-               break;
+        $d    = getInput();
+        $type = trim($d['type'] ?? 'other');
+        $text = trim($d['text'] ?? '');
+        $who  = trim($d['who']  ?? ($_SESSION['staff_name'] ?? 'Admin'));
+        if (!$text) jsonResponse(['ok' => true]);
+
+        try {
+            $cols = array_column($db->query("SHOW COLUMNS FROM activity_log")->fetchAll(), 'Field');
+            if (!in_array('who', $cols)) {
+                $db->exec("ALTER TABLE activity_log ADD COLUMN who VARCHAR(128) DEFAULT 'Admin'");
+            }
+            if (!in_array('type', $cols)) {
+                $db->exec("ALTER TABLE activity_log ADD COLUMN type VARCHAR(32) DEFAULT 'other'");
+            }
+        } catch(Exception $e) {}
+
+        $db->prepare("INSERT INTO activity_log (icon, bg, text, who, type) VALUES (?,?,?,?,?)")
+           ->execute(['📋', 'rgba(61,111,240,.12)', $text, $who, $type]);
+
+        jsonResponse(['ok' => true]);
+        break;
 
     // ══════════════════════════════════
     // STAFF ATTENDANCE

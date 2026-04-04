@@ -3824,8 +3824,11 @@ window.addActivity = function(icon, bg, text) {
     if (timeEl && DB.activities.length) timeEl.textContent = DB.activities[0].time || 'Just now';
   }
   const type = icon==='💬'?'whatsapp':icon==='💰'||icon==='🧾'?'fee':icon==='📚'||icon==='🔄'?'book':icon==='🆕'||icon==='✏'?'student':icon==='⚙'?'settings':'other';
-  DB.auditLog.unshift({ id:Date.now(), who:'<?= $staffName ?>', type, text:text.replace(/<[^>]+>/g,''), time:new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}), ts:Date.now() });
+  const cleanText = text.replace(/<[^>]+>/g,'');
+  DB.auditLog.unshift({ id:Date.now(), who:'<?= $staffName ?>', type, text:cleanText, time:new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}), ts:Date.now() });
   if (DB.auditLog.length>500) DB.auditLog=DB.auditLog.slice(0,500);
+  apiPost('save_audit_log', { type, text: cleanText, who: '<?= $staffName ?>' }).catch(() => {});
+};
 };
 
 function renderAudit() {
