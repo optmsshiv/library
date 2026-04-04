@@ -1461,7 +1461,7 @@ textarea{resize:vertical;min-height:70px}select option{background:var(--sf)}
 <div class="toast-wrap" id="toastWrap"></div>
 <script>
 // ═══ API CONFIG ═══
-const API = 'api/index.php';
+const API = '/api/index';
 
 async function apiGet(action, params = {}) {
   const qs = new URLSearchParams({ action, ...params }).toString();
