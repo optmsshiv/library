@@ -3531,14 +3531,18 @@ async function renderStaffAtt() {
   const dateEl = document.getElementById('staffAttDate');
   if (!dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
   const date = dateEl.value;
-  if (!DB.staffAtt[date]) DB.staffAtt[date] = {};
+  DB.staffAtt[date] = {}; // always reset before loading fresh from DB
 
   // ── Load from DB, fall back to localStorage ──
   try {
     const res = await apiGet('get_staff_attendance', { date });
-    if (res && res.attendance) {
-      Object.entries(res.attendance).forEach(([sfId, row]) => { DB.staffAtt[date][sfId] = row.status || 'present'; });
+    if (res && res.attendance && Object.keys(res.attendance).length) {
+      // DB has data — use it as source of truth, no fallback
+      Object.entries(res.attendance).forEach(([sfId, row]) => {
+        DB.staffAtt[date][sfId] = (typeof row === 'string') ? row : (row.status || 'present');
+      });
     } else {
+      // DB empty — try localStorage
       const stored = JSON.parse(localStorage.getItem('staffAtt') || '{}');
       if (stored[date]) Object.entries(stored[date]).forEach(([id,s]) => { DB.staffAtt[date][id] = s.status || s; });
     }
@@ -3548,7 +3552,7 @@ async function renderStaffAtt() {
   }
 
   document.getElementById('staffAttList').innerHTML = DB.staff.map(sf => {
-    const cur = DB.staffAtt[date][sf.id] || 'present';
+    const cur = DB.staffAtt[date][sf.id] !== undefined ? DB.staffAtt[date][sf.id] : 'present';
     const av  = sf.name.split(' ').map(p=>p[0]).join('').toUpperCase().slice(0,2);
     return `<div class="att-row">
       <div class="att-av" style="background:${sf.color||'var(--ac)'}">${av}</div>
