@@ -1116,6 +1116,7 @@ switch ($action) {
         $limit = (int)($_GET['limit'] ?? 100);
         $rows = $db->query("SELECT * FROM audit_log ORDER BY created_at DESC LIMIT $limit")->fetchAll();
         jsonResponse(['logs' => $rows]);
+        break;
 
     case 'get_wa_log':
         $db->exec("CREATE TABLE IF NOT EXISTS wa_log (
@@ -1130,6 +1131,7 @@ switch ($action) {
         $limit = (int)($_GET['limit'] ?? 100);
         $rows = $db->query("SELECT * FROM wa_log ORDER BY created_at DESC LIMIT $limit")->fetchAll();
         jsonResponse(['logs' => $rows]);
+        break;
 
     default:
         jsonError('Unknown action', 404);
