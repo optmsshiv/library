@@ -1103,6 +1103,34 @@ switch ($action) {
         $rows->execute([$date]);
         jsonResponse(['date' => $date, 'records' => $rows->fetchAll()]);
 
+         case 'get_audit_log':
+        $db->exec("CREATE TABLE IF NOT EXISTS audit_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            staff_id VARCHAR(32),
+            staff_name VARCHAR(128),
+            action VARCHAR(128),
+            detail TEXT,
+            ip VARCHAR(64),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $limit = (int)($_GET['limit'] ?? 100);
+        $rows = $db->query("SELECT * FROM audit_log ORDER BY created_at DESC LIMIT $limit")->fetchAll();
+        jsonResponse(['logs' => $rows]);
+
+    case 'get_wa_log':
+        $db->exec("CREATE TABLE IF NOT EXISTS wa_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            student_id VARCHAR(32),
+            student_name VARCHAR(128),
+            phone VARCHAR(32),
+            message TEXT,
+            status VARCHAR(32) DEFAULT 'sent',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $limit = (int)($_GET['limit'] ?? 100);
+        $rows = $db->query("SELECT * FROM wa_log ORDER BY created_at DESC LIMIT $limit")->fetchAll();
+        jsonResponse(['logs' => $rows]);
+
     default:
         jsonError('Unknown action', 404);
 
