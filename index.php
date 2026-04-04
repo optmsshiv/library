@@ -1591,7 +1591,7 @@ async function initData() {
     } catch(e) { console.warn('get_attendance failed:', e); }
     DB.students.forEach(st => { if (!DB.attendance[st.id]) DB.attendance[st.id] = 'present'; });
 
-    // WA log
+   // WA log
     try {
       const waLog = await apiGet('get_wa_log');
       const waRows = Array.isArray(waLog) ? waLog : (waLog.logs || []);
@@ -1600,6 +1600,20 @@ async function initData() {
         to: l.sent_to, preview: l.preview, type: l.type
       }));
     } catch(e) { console.warn('get_wa_log failed:', e); }
+
+    // Audit log
+    try {
+      const auditData = await apiGet('get_audit_log');
+      const auditRows = Array.isArray(auditData) ? auditData : (auditData.logs || auditData.records || []);
+      DB.auditLog = auditRows.map(a => ({
+        id: a.id,
+        who: a.who || 'Admin',
+        type: a.type || 'other',
+        text: a.text || '',
+        time: timeSince(a.created_at),
+        ts: new Date(a.created_at).getTime()
+      }));
+    } catch(e) { console.warn('get_audit_log failed:', e); }
 
     // Audit log
     try {
