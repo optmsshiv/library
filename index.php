@@ -1615,19 +1615,6 @@ async function initData() {
       }));
     } catch(e) { console.warn('get_audit_log failed:', e); }
 
-    // Audit log
-    try {
-      const auditRows = Array.isArray(auditData) ? auditData : (auditData.logs || auditData.records || []);
-        DB.auditLog = auditRows.map(a => ({ ({
-        id: a.id,
-        who: a.who || 'Admin',
-        type: a.type || 'other',
-        text: a.text || '',
-        time: timeSince(a.created_at),
-        ts: new Date(a.created_at).getTime()
-      }));
-    } catch(e) { console.warn('get_audit_log failed:', e); }
-
     // Load staff salaries
     try {
       const salData = await apiGet('get_salary');
