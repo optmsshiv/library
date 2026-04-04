@@ -2616,7 +2616,7 @@ function renderInv(){
   document.getElementById('gi-stu').innerHTML='<option value="">-- Select --</option>'+DB.students.map(s=>`<option value="${s.id}">${s.fname} ${s.lname}</option>`).join('');
   document.getElementById('invTable').innerHTML=DB.invoices.length?DB.invoices.map(inv=>{
     const s=DB.students.find(x=>x.id===inv.studentId);
-    const deleted=!s&&inv.studentId&&inv.studentId.length>0;
+    const deleted=!s;.length>0;
     const balCell=inv.balance>0
       ?(deleted
         ?`<span style="font-family:var(--fm);font-size:11px;color:var(--tx3)">₹${inv.balance}</span>`
