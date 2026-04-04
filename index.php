@@ -1593,7 +1593,7 @@ async function initData() {
 
     // WA log
     try {
-      const waLogData = await apiGet('get_wa_log');const waLog = await apiGet('get_wa_log');
+      const waLog = await apiGet('get_wa_log');
       const waRows = Array.isArray(waLog) ? waLog : (waLog.logs || []);
       DB.waSendLog = waRows.map(l => ({
         time: l.created_at ? l.created_at.slice(11,16) : '',
