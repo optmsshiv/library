@@ -2623,7 +2623,7 @@ function renderInv(){
         :`<span class="fee-bal-badge">₹${inv.balance}</span>`)
       :`<span style="color:var(--em);font-size:11px">✓</span>`;
     return `<tr style="${deleted?'opacity:.75;background:rgba(192,68,79,.03)':''}"><td><span style="font-family:var(--fm);font-weight:700;color:var(--ac)">${inv.id}</span></td>
-    <td>${s?`<div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span>${s.fname} ${s.lname}</span></div>`:deleted?`deleted?`<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(192,68,79,.10);border:1px solid rgba(192,68,79,.25);color:#c0444f;font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;font-style:normal">🗑 Deleted Student</span>``:'—'}</td>
+    <td>${s?`<div class="si"><div class="sav" style="background:${s.color}">${s.fname[0]+s.lname[0]}</div><span>${s.fname} ${s.lname}</span></div>`:deleted?`<span style="font-size:11px;color:var(--tx3);font-style:italic">Deleted Student</span>`:'—'}</td>
     <td><span class="tag tac" style="font-size:9px">${inv.type}</span></td>
     <td><span style="font-family:var(--fm)">₹${inv.baseFee||inv.amount}</span></td>
     <td>${inv.discount>0?`<span class="tag tor" style="font-size:9px">🎁 -₹${inv.discount}</span>`:'<span style="color:var(--tx3)">—</span>'}</td>
