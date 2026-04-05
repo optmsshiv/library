@@ -1188,6 +1188,83 @@ switch ($action) {
         jsonResponse(['logs' => $rows]);
         break;
 
+        case 'forgot_password':
+    $d        = getInput();
+    $username = trim($d['username'] ?? '');
+    $email    = trim($d['email'] ?? '');
+    if (!$username || !$email) jsonError('Username and email required');
+
+    $stmt = $db->prepare("SELECT id, name, email FROM staff WHERE username=? AND status='active' LIMIT 1");
+    $stmt->execute([$username]);
+    $staff = $stmt->fetch();
+
+    // Always show success to prevent username enumeration
+    if (!$staff || strtolower($staff['email']) !== strtolower($email)) {
+        jsonResponse(['success' => true]);
+    }
+
+    // Generate reset token
+    $token   = bin2hex(random_bytes(32));
+    $expires = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+
+    // Create table if not exists
+    $db->exec("CREATE TABLE IF NOT EXISTS password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        staff_id VARCHAR(32) NOT NULL,
+        token VARCHAR(128) NOT NULL UNIQUE,
+        expires_at DATETIME NOT NULL,
+        used TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Delete old tokens for this staff
+    $db->prepare("DELETE FROM password_resets WHERE staff_id=?")->execute([$staff['id']]);
+
+    // Save new token
+    $db->prepare("INSERT INTO password_resets (staff_id, token, expires_at) VALUES (?,?,?)")
+       ->execute([$staff['id'], $token, $expires]);
+
+    // Send email
+    $resetLink = "https://library.optms.co.in/library/reset_password?token=" . $token;
+    $to      = $staff['email'];
+    $subject = "Password Reset – OPTMS Tech Library";
+    $message = "Hello {$staff['name']},\n\nClick the link below to reset your password:\n\n$resetLink\n\nThis link expires in 30 minutes.\n\nIf you did not request this, ignore this email.\n\n– OPTMS Tech Library";
+    $headers = "From: noreply@optms.co.in\r\nX-Mailer: PHP/" . phpversion();
+
+    mail($to, $subject, $message, $headers);
+    jsonResponse(['success' => true]);
+
+case 'reset_password':
+    $d        = getInput();
+    $token    = trim($d['token'] ?? '');
+    $password = $d['password'] ?? '';
+    if (!$token || !$password) jsonError('Token and password required');
+    if (strlen($password) < 6) jsonError('Password must be at least 6 characters');
+
+    $db->exec("CREATE TABLE IF NOT EXISTS password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        staff_id VARCHAR(32) NOT NULL,
+        token VARCHAR(128) NOT NULL UNIQUE,
+        expires_at DATETIME NOT NULL,
+        used TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    $stmt = $db->prepare("SELECT * FROM password_resets WHERE token=? AND used=0 AND expires_at > NOW() LIMIT 1");
+    $stmt->execute([$token]);
+    $reset = $stmt->fetch();
+
+    if (!$reset) jsonError('Reset link has expired or already been used. Please request a new one.');
+
+    // Update password
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $db->prepare("UPDATE staff SET password_hash=? WHERE id=?")->execute([$hash, $reset['staff_id']]);
+
+    // Mark token as used
+    $db->prepare("UPDATE password_resets SET used=1 WHERE token=?")->execute([$token]);
+
+    jsonResponse(['success' => true]);
+
     default:
         jsonError('Unknown action', 404);
 

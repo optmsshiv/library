@@ -526,24 +526,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setTimeout(() => document.getElementById('fpEmail').focus(), 100);
     }
 
-    function fpStep2Send() {
-        const email = document.getElementById('fpEmail').value.trim();
-        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        if (!emailOk) {
-            document.getElementById('fpEmail').focus();
-            document.getElementById('fpEmail').style.borderColor = 'var(--ro)';
-            setTimeout(() => document.getElementById('fpEmail').style.borderColor = '', 1200);
-            return;
-        }
-        const btn = document.getElementById('fpSendBtn');
-        btn.disabled = true;
-        btn.textContent = 'Sending…';
-
-        // Simulate sending (replace with real AJAX call to your reset endpoint)
-        setTimeout(() => {
-            setStep(3);
-        }, 1200);
+    async function fpStep2Send() {
+    const email = document.getElementById('fpEmail').value.trim();
+    const username = document.getElementById('fpUsername').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+        document.getElementById('fpEmail').focus();
+        document.getElementById('fpEmail').style.borderColor = 'var(--ro)';
+        setTimeout(() => document.getElementById('fpEmail').style.borderColor = '', 1200);
+        return;
     }
+    const btn = document.getElementById('fpSendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    try {
+        const res = await fetch('/library/api/index.php?action=forgot_password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email })
+        });
+        const data = await res.json();
+        if (data.error) {
+            btn.disabled = false;
+            btn.textContent = 'Send Reset Link';
+            document.getElementById('fpEmail').style.borderColor = 'var(--ro)';
+            setTimeout(() => document.getElementById('fpEmail').style.borderColor = '', 1500);
+        } else {
+            setStep(3);
+        }
+    } catch(e) {
+        btn.disabled = false;
+        btn.textContent = 'Send Reset Link';
+    }
+   }
 
     function resetForgotModal() {
         document.getElementById('fpUsername').value = '';
