@@ -1209,7 +1209,7 @@ switch ($action) {
         $db->prepare("UPDATE staff SET email=? WHERE id=?")->execute([$email, $staff['id']]);
         $staff['email'] = $email;
     } elseif (strtolower($staff['email']) !== strtolower($email)) {
-        jsonResponse(['success' => true]); // email mismatch, silent fail
+        jsonError('The email address does not match our records.'); // email mismatch
         break;
     }
 

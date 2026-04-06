@@ -548,10 +548,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         const data = await res.json();
         if (data.error) {
-            btn.disabled = false;
-            btn.textContent = 'Send Reset Link';
-            document.getElementById('fpEmail').style.borderColor = 'var(--ro)';
-            setTimeout(() => document.getElementById('fpEmail').style.borderColor = '', 1500);
+    btn.disabled = false;
+    btn.textContent = 'Send Reset Link';
+
+    // Show error message below the email input
+    let errEl = document.getElementById('fpEmailErr');
+    if (!errEl) {
+        errEl = document.createElement('div');
+        errEl.id = 'fpEmailErr';
+        errEl.style.cssText = 'color:var(--ro);font-size:11.5px;margin-top:5px;padding:8px 10px;background:rgba(192,68,79,.08);border:1px solid rgba(192,68,79,.25);border-radius:6px;';
+        document.getElementById('fpEmail').parentNode.appendChild(errEl);
+                  }
+                  errEl.textContent = '⚠ ' + data.message;
+                  document.getElementById('fpEmail').style.borderColor = 'var(--ro)';
+                  document.getElementById('fpEmail').focus();
+                  setTimeout(() => {
+                      document.getElementById('fpEmail').style.borderColor = '';
+                      if (errEl) errEl.remove();
+                  }, 4000);
         } else {
             setStep(3);
         }
