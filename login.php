@@ -548,8 +548,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         const data = await res.json();
         if (data.error) {
-    btn.disabled = false;
-    btn.textContent = 'Send Reset Link';
+            btn.disabled = false;
+            btn.textContent = 'Send Reset Link';
 
     // Show error message below the email input
     let errEl = document.getElementById('fpEmailErr');
