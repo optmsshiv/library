@@ -541,7 +541,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     btn.textContent = 'Sending…';
 
     try {
-        const res = await fetch('api/index.php?action=forgot_password', {
+        const res = await fetch('/api/index.php?action=forgot_password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email })
@@ -559,7 +559,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         errEl.style.cssText = 'color:var(--ro);font-size:11.5px;margin-top:5px;padding:8px 10px;background:rgba(192,68,79,.08);border:1px solid rgba(192,68,79,.25);border-radius:6px;';
         document.getElementById('fpEmail').parentNode.appendChild(errEl);
                   }
-                  errEl.textContent = '⚠ ' + data.message;
+                  errEl.textContent = '⚠ ' + (typeof data.error === 'string' ? data.error : 'The email address does not match our records.');
                   document.getElementById('fpEmail').style.borderColor = 'var(--ro)';
                   document.getElementById('fpEmail').focus();
                   setTimeout(() => {
