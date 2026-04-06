@@ -1245,7 +1245,7 @@ switch ($action) {
     jsonResponse(['success' => true]);
     break;
 
-case 'reset_password':
+  case 'reset_password':
     $d        = getInput();
     $token    = trim($d['token'] ?? '');
     $password = $d['password'] ?? '';
@@ -1275,6 +1275,138 @@ case 'reset_password':
     $db->prepare("UPDATE password_resets SET used=1 WHERE token=?")->execute([$token]);
 
     jsonResponse(['success' => true]);
+    break;
+
+    // ── Student Invoices (for student app) ──
+    case 'get_student_invoices':
+        $studentId = $_GET['student_id'] ?? '';
+        $phone     = $_GET['phone'] ?? '';
+        if (!$studentId || !$phone) jsonError('student_id and phone required');
+        // Verify phone
+        $s = $db->prepare("SELECT id, phone FROM students WHERE id=? LIMIT 1");
+        $s->execute([$studentId]);
+        $stu = $s->fetch();
+        if (!$stu) jsonError('Student not found');
+        $dbPhone = preg_replace('/\D/', '', $stu['phone']);
+        $inPhone = preg_replace('/\D/', '', $phone);
+        if (substr($dbPhone, -10) !== substr($inPhone, -10)) jsonError('Phone mismatch');
+        // Get invoices
+        $rows = $db->prepare("SELECT * FROM invoices WHERE student_id=? ORDER BY created_at DESC");
+        $rows->execute([$studentId]);
+        jsonResponse(['invoices' => $rows->fetchAll()]);
+        break;
+ 
+    // ── Student Issued Books (for student app) ──
+    case 'get_student_books':
+        $studentId = $_GET['student_id'] ?? '';
+        $phone     = $_GET['phone'] ?? '';
+        if (!$studentId || !$phone) jsonError('student_id and phone required');
+        // Verify phone
+        $s = $db->prepare("SELECT id, phone FROM students WHERE id=? LIMIT 1");
+        $s->execute([$studentId]);
+        $stu = $s->fetch();
+        if (!$stu) jsonError('Student not found');
+        $dbPhone = preg_replace('/\D/', '', $stu['phone']);
+        $inPhone = preg_replace('/\D/', '', $phone);
+        if (substr($dbPhone, -10) !== substr($inPhone, -10)) jsonError('Phone mismatch');
+        // Get issued books
+        $rows = $db->prepare("
+            SELECT t.*, b.title, b.author, b.emoji
+            FROM transactions t
+            JOIN books b ON t.book_id = b.id
+            WHERE t.student_id=? AND t.status='issued'
+            ORDER BY t.issue_date DESC
+        ");
+        $rows->execute([$studentId]);
+        jsonResponse(['books' => $rows->fetchAll()]);
+        break;
+ 
+    // ── Notices (public — all students see same notices) ──
+    case 'get_student_notices':
+        // Create notices table if not exists
+        $db->exec("CREATE TABLE IF NOT EXISTS notices (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(200) NOT NULL,
+            message TEXT NOT NULL,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $rows = $db->query("SELECT * FROM notices WHERE is_active=1 ORDER BY created_at DESC LIMIT 10")->fetchAll();
+        jsonResponse(['notices' => $rows]);
+        break;
+ 
+    // ── Add Notice (admin only) ──
+    case 'add_notice':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d = getInput();
+        $title   = trim($d['title'] ?? '');
+        $message = trim($d['message'] ?? '');
+        if (!$title || !$message) jsonError('Title and message required');
+        $db->exec("CREATE TABLE IF NOT EXISTS notices (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(200) NOT NULL,
+            message TEXT NOT NULL,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $db->prepare("INSERT INTO notices (title, message) VALUES (?,?)")->execute([$title, $message]);
+        addActivity($db, '📢', 'rgba(79,70,229,.14)', "Notice posted: <strong>$title</strong>");
+        jsonResponse(['success' => true]);
+        break;
+ 
+    // ── Delete Notice (admin only) ──
+    case 'delete_notice':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d = getInput();
+        $id = (int)($d['id'] ?? 0);
+        if (!$id) jsonError('id required');
+        $db->prepare("UPDATE notices SET is_active=0 WHERE id=?")->execute([$id]);
+        jsonResponse(['success' => true]);
+        break;
+ 
+    // ── Holidays (public) ──
+    case 'get_student_holidays':
+        // Create holidays table if not exists
+        $db->exec("CREATE TABLE IF NOT EXISTS holidays (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(200) NOT NULL,
+            date DATE NOT NULL,
+            type VARCHAR(100) DEFAULT 'Holiday',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $rows = $db->query("SELECT * FROM holidays WHERE date >= CURDATE() ORDER BY date ASC LIMIT 20")->fetchAll();
+        jsonResponse(['holidays' => $rows]);
+        break;
+ 
+    // ── Add Holiday (admin only) ──
+    case 'add_holiday':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d = getInput();
+        $name = trim($d['name'] ?? '');
+        $date = trim($d['date'] ?? '');
+        $type = trim($d['type'] ?? 'Holiday');
+        if (!$name || !$date) jsonError('Name and date required');
+        $db->exec("CREATE TABLE IF NOT EXISTS holidays (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(200) NOT NULL,
+            date DATE NOT NULL,
+            type VARCHAR(100) DEFAULT 'Holiday',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        $db->prepare("INSERT INTO holidays (name, date, type) VALUES (?,?,?)")->execute([$name, $date, $type]);
+        addActivity($db, '🗓️', 'rgba(79,70,229,.14)', "Holiday added: <strong>$name</strong> on $date");
+        jsonResponse(['success' => true]);
+        break;
+ 
+    // ── Delete Holiday (admin only) ──
+    case 'delete_holiday':
+        if ($method !== 'POST') jsonError('Method not allowed', 405);
+        $d = getInput();
+        $id = (int)($d['id'] ?? 0);
+        if (!$id) jsonError('id required');
+        $db->prepare("DELETE FROM holidays WHERE id=?")->execute([$id]);
+        jsonResponse(['success' => true]);
+        break;
 
     default:
         jsonError('Unknown action', 404);
