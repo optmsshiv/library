@@ -541,7 +541,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     btn.textContent = 'Sending…';
 
     try {
-        const res = await fetch('/api/index?action=forgot_password', {
+        const res = await fetch('/api/index.php?action=forgot_password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email })
