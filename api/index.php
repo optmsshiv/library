@@ -1189,18 +1189,26 @@ switch ($action) {
         break;
 
     case 'forgot_password':
-    $d        = getInput();
-    $username = trim($d['username'] ?? '');
-    $email    = trim($d['email'] ?? '');
-    if (!$username || !$email) jsonError('Username and email required');
+        $d        = getInput();
+        $username = trim($d['username'] ?? '');
+        $email    = trim($d['email'] ?? '');
+        if (!$username || !$email) jsonError('Username and email required');
+        
+        // NEW CODE — verify username exists, then check email
+        $stmt = $db->prepare("SELECT id, name, email FROM staff WHERE username=? AND status='active' LIMIT 1");
+        $stmt->execute([$username]);
+        $staff = $stmt->fetch();
 
-    $stmt = $db->prepare("SELECT id, name, email FROM staff WHERE username=? AND status='active' LIMIT 1");
-    $stmt->execute([$username]);
-    $staff = $stmt->fetch();
+    if (!$staff) {
+        jsonResponse(['success' => true]); // username not found, silent fail
+    }
 
-    // Always show success to prevent username enumeration
-    if (!$staff || strtolower($staff['email']) !== strtolower($email)) {
-        jsonResponse(['success' => true]);
+    // If staff has no email stored, update it now
+    if (empty($staff['email'])) {
+        $db->prepare("UPDATE staff SET email=? WHERE id=?")->execute([$email, $staff['id']]);
+        $staff['email'] = $email;
+    } elseif (strtolower($staff['email']) !== strtolower($email)) {
+        jsonResponse(['success' => true]); // email mismatch, silent fail
     }
 
     // Generate reset token
