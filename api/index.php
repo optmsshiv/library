@@ -1233,6 +1233,7 @@ switch ($action) {
 
     mail($to, $subject, $message, $headers);
     jsonResponse(['success' => true]);
+    break;
 
 case 'reset_password':
     $d        = getInput();
