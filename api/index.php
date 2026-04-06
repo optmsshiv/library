@@ -1188,7 +1188,7 @@ switch ($action) {
         jsonResponse(['logs' => $rows]);
         break;
 
-        case 'forgot_password':
+    case 'forgot_password':
     $d        = getInput();
     $username = trim($d['username'] ?? '');
     $email    = trim($d['email'] ?? '');
@@ -1225,7 +1225,7 @@ switch ($action) {
        ->execute([$staff['id'], $token, $expires]);
 
     // Send email
-    $resetLink = "https://library.optms.co.in/library/reset_password?token=" . $token;
+    $resetLink = "https://library.optms.co.in/reset_password?token=" . $token;
     $to      = $staff['email'];
     $subject = "Password Reset – OPTMS Tech Library";
     $message = "Hello {$staff['name']},\n\nClick the link below to reset your password:\n\n$resetLink\n\nThis link expires in 30 minutes.\n\nIf you did not request this, ignore this email.\n\n– OPTMS Tech Library";
