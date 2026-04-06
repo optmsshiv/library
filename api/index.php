@@ -1201,6 +1201,7 @@ switch ($action) {
 
     if (!$staff) {
         jsonResponse(['success' => true]); // username not found, silent fail
+        break;
     }
 
     // If staff has no email stored, update it now
@@ -1209,6 +1210,7 @@ switch ($action) {
         $staff['email'] = $email;
     } elseif (strtolower($staff['email']) !== strtolower($email)) {
         jsonResponse(['success' => true]); // email mismatch, silent fail
+        break;
     }
 
     // Generate reset token
