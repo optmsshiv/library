@@ -1161,8 +1161,8 @@ function renderFees(data) {
         </div>
         <div class="fee-status-pill ${fs}">${feeIcons[fs]} ${fs.charAt(0).toUpperCase()+fs.slice(1)}</div>
       </div>
-      <div class="fee-row"><span>Total Paid</span><span>₹${totalPaid.toLocaleString('en-IN')}</span></div>
-      <div class="fee-row"><span>Balance</span><span>₹${Math.max(0,balance).toLocaleString('en-IN')}</span></div>
+      <div class="fee-row"><span>Total Paid</span><span>₹ ${totalPaid.toLocaleString('en-IN')}</span></div>
+      <div class="fee-row"><span>Balance</span><span>₹ ${Math.max(0,balance).toLocaleString('en-IN')}</span></div>
       <div class="fee-row"><span>Due Date</span><span>${stu?.due_date ? new Date(stu.due_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'}</span></div>
     </div>`;
 
@@ -1185,8 +1185,8 @@ function renderFees(data) {
         ${inv.month?`<span>📆 ${inv.month}</span>`:''}
       </div>
       <div class="inv-amounts">
-        <div><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">PAID</div><div class="inv-paid">₹${Number(inv.amount||0).toLocaleString('en-IN')}</div></div>
-        ${+inv.balance>0?`<div style="text-align:right"><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">BALANCE</div><div class="inv-balance">₹${Number(inv.balance).toLocaleString('en-IN')}</div></div>`:'<div style="color:var(--ok);font-size:12px;font-weight:700;align-self:flex-end">✓ Cleared</div>'}
+        <div><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">PAID</div><div class="inv-paid">₹ ${Number(inv.amount||0).toLocaleString('en-IN')}</div></div>
+        ${+inv.balance>0?`<div style="text-align:right"><div style="font-size:10px;color:var(--tx3);margin-bottom:2px">BALANCE</div><div class="inv-balance">₹ ${Number(inv.balance).toLocaleString('en-IN')}</div></div>`:'<div style="color:var(--ok);font-size:12px;font-weight:700;align-self:flex-end">✓ Cleared</div>'}
       </div>
     </div>`).join('');
 }
@@ -1282,7 +1282,7 @@ function renderProfile(stu, batch, color) {
     <div class="info-row"><span class="info-lbl">Course</span><span class="info-val">${stu.course||'—'}</span></div>
     <div class="info-row"><span class="info-lbl">Fee Status</span><span class="info-val"><span class="fee-tag ${fs}">${feeIcons[fs]} ${fs.charAt(0).toUpperCase()+fs.slice(1)}</span></span></div>
     <div class="info-row"><span class="info-lbl">Due Date</span><span class="info-val" style="color:${fs==='overdue'?'var(--err)':'var(--tx)'}">${dueDate}</span></div>
-    <div class="info-row"><span class="info-lbl">Net Fee</span><span class="info-val">₹${Number(stu['net_fee']||0).toLocaleString('en-IN')}</span></div>
+    <div class="info-row"><span class="info-lbl">Net Fee</span><span class="info-val">₹ ${Number(stu['net_fee']||0).toLocaleString('en-IN')}</span></div>
     <div class="info-row"><span class="info-lbl">Joined</span><span class="info-val">${stu.join_date ? new Date(stu.join_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'}</span></div>
   `;
 
