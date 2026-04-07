@@ -701,6 +701,17 @@ body::before{
 .bn-item.active .bn-icon .material-icons-round{
   color:var(--ac);
 }
+
+/* Pull to refresh */
+.ptr-indicator{
+  text-align:center;
+  font-size:12px;color:var(--tx3);
+  padding:10px;
+  margin-top:-40px;
+  transition:margin-top .3s;
+  flex-shrink:0;
+}
+.ptr-indicator.show{margin-top:0;}
 </style>
 </head>
 <body>
@@ -750,6 +761,8 @@ body::before{
 
   <!-- Offline Banner -->
   <div class="offline-banner" id="offlineBanner">📡 You're offline — showing cached data</div>
+  <!-- Pull to Refresh Indicator -->
+  <div class="ptr-indicator" id="ptrIndicator">🔄 Release to refresh…</div> 
 
   <div class="scroll-area" id="scrollArea">
 
@@ -1330,6 +1343,75 @@ function showToast(msg) {
 
 // Auto-refresh QR every 20 minutes
 setInterval(refreshQR, 20 * 60 * 1000);
+
+// Refresh when student comes back to the app
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const auth = JSON.parse(localStorage.getItem('stu_auth') || 'null');
+    if (!auth) return;
+    const lastRefresh = +localStorage.getItem('stu_last_refresh') || 0;
+    const diff = Date.now() - lastRefresh;
+    // Only refresh if more than 3 minutes have passed
+    if (diff > 3 * 60 * 1000) {
+      localStorage.setItem('stu_last_refresh', Date.now());
+      fetch(`${API}?action=get_student_qr&student_id=${encodeURIComponent(auth.id)}&phone=${encodeURIComponent(auth.phone)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) return;
+          studentData = data;
+          cacheData(data);
+          renderApp(data);
+          loadExtras(auth.id, auth.phone);
+        }).catch(() => {});
+    }
+  }
+});
+
+// ── PULL TO REFRESH ──
+let ptrStart = 0;
+let ptrActive = false;
+const scrollArea = document.getElementById('scrollArea');
+const ptrEl = document.getElementById('ptrIndicator');
+
+scrollArea.addEventListener('touchstart', e => {
+  if (scrollArea.scrollTop === 0) {
+    ptrStart = e.touches[0].clientY;
+    ptrActive = true;
+  }
+}, { passive: true });
+
+scrollArea.addEventListener('touchmove', e => {
+  if (!ptrActive) return;
+  const diff = e.touches[0].clientY - ptrStart;
+  if (diff > 60) ptrEl.classList.add('show');
+  else ptrEl.classList.remove('show');
+}, { passive: true });
+
+// On release, if indicator is shown, refresh data
+scrollArea.addEventListener('touchend', () => {
+  if (!ptrActive) return;
+  ptrActive = false;
+  if (ptrEl.classList.contains('show')) {
+    ptrEl.textContent = '🔄 Refreshing…';
+    const auth = JSON.parse(localStorage.getItem('stu_auth') || 'null');
+    if (auth) {
+      localStorage.removeItem('stu_cache');
+      fetch(`${API}?action=get_student_qr&student_id=${encodeURIComponent(auth.id)}&phone=${encodeURIComponent(auth.phone)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) return;
+          studentData = data;
+          cacheData(data);
+          renderApp(data);
+          loadExtras(auth.id, auth.phone);
+          showToast('✅ Data refreshed!');
+        })
+        .catch(() => showToast('📡 No internet'));
+    }
+  }
+  ptrEl.classList.remove('show');
+  ptrEl.textContent = '🔄 Release to refresh…';
+});
 </script>
 </body>
 </html>
