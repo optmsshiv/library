@@ -984,7 +984,7 @@ switch ($action) {
         $phone     = $_GET['phone'] ?? '';
         if (!$studentId || !$phone) jsonError('student_id and phone required');
         // Verify student
-        $s = $db->prepare("SELECT id, fname, lname, phone, batch_id, seat, color, fee_status, due_date FROM students WHERE id=? LIMIT 1");
+        $s = $db->prepare("SELECT id, fname, lname, phone, batch_id, seat, seat_type, color, fee_status, due_date, net_fee, course, join_date FROM students WHERE id=? LIMIT 1");
         $s->execute([$studentId]);
         $stu = $s->fetch();
         if (!$stu) jsonError('Student not found');

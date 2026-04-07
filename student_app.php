@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#f5f7ff">
 <title>Student App — NAYI UDAAN LIBRARY</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
@@ -690,6 +691,16 @@ body::before{
   .header{max-width:480px;margin:0 auto;}
   .bottom-nav{max-width:480px;left:50%;right:auto;transform:translateX(-50%);}
 }
+
+.bn-icon .material-icons-round{
+  font-size:22px;
+  color:inherit;
+  line-height:1;
+  display:block;
+}
+.bn-item.active .bn-icon .material-icons-round{
+  color:var(--ac);
+}
 </style>
 </head>
 <body>
@@ -828,27 +839,27 @@ body::before{
   <nav class="bottom-nav">
     <button class="bn-item active" onclick="switchTab('home',this)" id="btn-home">
       <div class="bn-dot" id="dot-home"></div>
-      <span class="bn-icon">🏠</span>
+      <span class="bn-icon"><i class="material-icons-round">Home</i></span>
       <span class="bn-lbl">Home</span>
     </button>
     <button class="bn-item" onclick="switchTab('fees',this)" id="btn-fees">
       <div class="bn-dot" id="dot-fees"></div>
-      <span class="bn-icon">💰</span>
+      <span class="bn-icon"><i class="material-icons-round">payments</i></span>
       <span class="bn-lbl">Fees</span>
     </button>
     <button class="bn-item" onclick="switchTab('history',this)" id="btn-history">
       <div class="bn-dot"></div>
-      <span class="bn-icon">📅</span>
+      <span class="bn-icon"><i class="material-icons-round">history</i></span>
       <span class="bn-lbl">History</span>
     </button>
     <button class="bn-item" onclick="switchTab('notices',this)" id="btn-notices">
       <div class="bn-dot" id="dot-notices"></div>
-      <span class="bn-icon">📢</span>
+      <span class="bn-icon"><i class="material-icons-round">announcement</i></span>
       <span class="bn-lbl">Notices</span>
     </button>
     <button class="bn-item" onclick="switchTab('profile',this)" id="btn-profile">
       <div class="bn-dot"></div>
-      <span class="bn-icon">👤</span>
+      <span class="bn-icon"><i class="material-icons-round">person</i></span>
       <span class="bn-lbl">Profile</span>
     </button>
   </nav>
@@ -1257,7 +1268,7 @@ function renderProfile(stu, batch, color) {
     <div class="info-row"><span class="info-lbl">Course</span><span class="info-val">${stu.course||'—'}</span></div>
     <div class="info-row"><span class="info-lbl">Fee Status</span><span class="info-val"><span class="fee-tag ${fs}">${feeIcons[fs]} ${fs.charAt(0).toUpperCase()+fs.slice(1)}</span></span></div>
     <div class="info-row"><span class="info-lbl">Due Date</span><span class="info-val" style="color:${fs==='overdue'?'var(--err)':'var(--tx)'}">${dueDate}</span></div>
-    <div class="info-row"><span class="info-lbl">Net Fee</span><span class="info-val">₹${Number(stu.net_fee||0).toLocaleString('en-IN')}</span></div>
+    <div class="info-row"><span class="info-lbl">Net Fee</span><span class="info-val">₹${Number(stu.net_lfee||0).toLocaleString('en-IN')}</span></div>
     <div class="info-row"><span class="info-lbl">Joined</span><span class="info-val">${stu.join_date ? new Date(stu.join_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'}</span></div>
   `;
 
