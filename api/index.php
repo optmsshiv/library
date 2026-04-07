@@ -1041,7 +1041,7 @@ switch ($action) {
         
         // Get recent attendance (last 10 days)
         $attStmt = $db->prepare("SELECT * FROM student_attendance WHERE student_id=? ORDER BY date DESC LIMIT 10");
-        $settings = $db->query("SELECT name, phone, addr, wa_number FROM settings WHERE id=1")->fetch();
+        $settings = $db->query("SELECT name, phone, addr, wa_number, logo_url FROM settings WHERE id=1")->fetch();
 
         $attStmt->execute([$studentId]);
         $recentAtt = $attStmt->fetchAll();
@@ -1409,6 +1409,15 @@ switch ($action) {
         if (!$id) jsonError('id required');
         $db->prepare("DELETE FROM holidays WHERE id=?")->execute([$id]);
         jsonResponse(['success' => true]);
+        break;
+
+    case 'get_login_info':
+    // Public endpoint — no auth needed
+        $s = $db->query("SELECT name, logo_url FROM settings WHERE id=1")->fetch();
+        jsonResponse([
+            'name'     => $s['name'] ?? 'Nayi Udaan Library',
+            'logo_url' => $s['logo_url'] ?? ''
+        ]);
         break;
 
     default:

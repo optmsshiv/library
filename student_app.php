@@ -719,7 +719,7 @@ body::before{
 <!-- ══ LOGIN SCREEN ══ -->
 <div id="loginScreen">
   <div class="login-brand">
-    <div class="login-icon">📚</div>
+    <div class="login-icon" id="loginIcon">📚</div>
     <div class="login-title">Student Portal</div>
     <div class="login-sub">Nayi Udaan Library</div>
   </div>
@@ -881,6 +881,17 @@ body::before{
 <div class="toast" id="toast"></div>
 
 <script>
+  // Load library info on login screen
+fetch('api/index.php?action=get_login_info')
+  .then(r => r.json())
+  .then(d => {
+    if (d.logo_url) {
+      document.getElementById('loginIcon').innerHTML =
+        `<img src="${d.logo_url}" style="width:100%;height:100%;object-fit:contain;border-radius:20px;">`;
+    }
+    if (d.name) document.querySelector('.login-sub').textContent = d.name;
+  }).catch(() => {});
+  
 const API = 'api/index.php';
 let studentData = null;
 let qrObj = null;
