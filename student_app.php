@@ -1287,10 +1287,10 @@ function renderProfile(stu, batch, color) {
   `;
 
   // Contact section
-  renderContact();
+  renderContact(studentData?.settings);
 }
 
-function renderContact() {
+function renderContact(settings) {
   // Try to get settings from studentData if available
   const waNumber = studentData?.settings?.wa_number || '';
   const libName  = studentData?.settings?.name || 'Nayi Udaan Library';

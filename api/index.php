@@ -1048,7 +1048,8 @@ switch ($action) {
             'batch'      => $batch,
             'token'      => $token,
             'expires_at' => $expires,
-            'attendance' => $recentAtt
+            'attendance' => $recentAtt,
+            'settings'   => $settings ?: []
         ]);
 
     case 'scan_qr':
