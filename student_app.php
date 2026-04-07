@@ -972,7 +972,7 @@ async function loadExtras(id, phone) {
 
     if (noticesRes.status==='fulfilled' && !noticesRes.value.error) renderNotices(noticesRes.value.notices||[]);
     if (holidaysRes.status==='fulfilled' && !holidaysRes.value.error) renderHolidays(holidaysRes.value.holidays||[]);
-    if (invoicesRes.status==='fulfilled' && !invoicesRes.value.error) renderFees(invoicesRes.value);
+    if (invoicesRes.status==='fulfilled' && !invoicesRes.value.error) renderFees({...invoicesRes.value, student: studentData?.student});
     if (booksRes.status==='fulfilled' && !booksRes.value.error) renderBooks(booksRes.value.books||[]);
   } catch(e) { console.warn('loadExtras failed', e); }
 }
@@ -1130,7 +1130,7 @@ function renderHistory(attArr) {
 
 // ── FEES & INVOICES ──
 function renderFees(data) {
-  const stu = studentData?.student;
+  const stu = data.student || studentData?.student;
   const invoices = data.invoices || [];
   const fs = stu?.fee_status || 'pending';
   const feeIcons = {paid:'✅',partial:'◑',pending:'⏳',overdue:'🚨'};
@@ -1269,7 +1269,7 @@ function renderProfile(stu, batch, color) {
     <div class="info-row"><span class="info-lbl">Course</span><span class="info-val">${stu.course||'—'}</span></div>
     <div class="info-row"><span class="info-lbl">Fee Status</span><span class="info-val"><span class="fee-tag ${fs}">${feeIcons[fs]} ${fs.charAt(0).toUpperCase()+fs.slice(1)}</span></span></div>
     <div class="info-row"><span class="info-lbl">Due Date</span><span class="info-val" style="color:${fs==='overdue'?'var(--err)':'var(--tx)'}">${dueDate}</span></div>
-    <div class="info-row"><span class="info-lbl">Net Fee</span><span class="info-val">₹${Number(stu.net_lfee||0).toLocaleString('en-IN')}</span></div>
+    <div class="info-row"><span class="info-lbl">Net Fee</span><span class="info-val">₹${Number(stu['net_fee']||0).toLocaleString('en-IN')}</span></div>
     <div class="info-row"><span class="info-lbl">Joined</span><span class="info-val">${stu.join_date ? new Date(stu.join_date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'}</span></div>
   `;
 
