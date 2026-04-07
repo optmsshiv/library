@@ -900,6 +900,7 @@ function doLogin() {
       btn.textContent = 'Sign In →';
       btn.style.opacity = '1';
       if (data.error) { showLoginErr(data.error); return; }
+      localStorage.removeItem('stu_cache');
       localStorage.setItem('stu_auth', JSON.stringify({ id, phone }));
       initApp(id, phone, data);
     })
