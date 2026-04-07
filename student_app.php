@@ -1157,7 +1157,7 @@ function renderFees(data) {
       <div class="fee-summary-top">
         <div>
           <div class="fee-label">Net Fee</div>
-          <div class="fee-amount">₹${Number(stu?.net_fee||0).toLocaleString('en-IN')}</div>
+          <div class="fee-amount">₹ ${Number(stu?.net_fee||0).toLocaleString('en-IN')}</div>
         </div>
         <div class="fee-status-pill ${fs}">${feeIcons[fs]} ${fs.charAt(0).toUpperCase()+fs.slice(1)}</div>
       </div>
