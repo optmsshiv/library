@@ -64,7 +64,7 @@ switch ($action) {
         $expenses = $db->query("SELECT * FROM expenses")->fetchAll();
         $activities = $db->query("SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 15")->fetchAll();
         $notifications = $db->query("SELECT * FROM notifications ORDER BY created_at DESC")->fetchAll();
-        $settings = $db->query("SELECT name, phone, addr, wa_number FROM settings WHERE id=1")->fetch();
+        $settings = $db->query("SELECT * FROM settings WHERE id=1")->fetch();
         $invoices = $db->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
         $staff    = $db->query("SELECT s.id,s.name,s.role,s.email,s.phone,s.username,s.perm_students,s.perm_fees,s.perm_books,s.perm_expenses,s.perm_reports,s.perm_staff,s.perm_settings,s.status,COALESCE(ss.base_monthly,0) AS base_salary FROM staff s LEFT JOIN staff_salary ss ON ss.staff_id=s.id ORDER BY s.created_at")->fetchAll();
         $meStmt   = $db->prepare("SELECT role,perm_students,perm_fees,perm_books,perm_expenses,perm_reports,perm_staff,perm_settings FROM staff WHERE id=? LIMIT 1");
@@ -1041,6 +1041,8 @@ switch ($action) {
         
         // Get recent attendance (last 10 days)
         $attStmt = $db->prepare("SELECT * FROM student_attendance WHERE student_id=? ORDER BY date DESC LIMIT 10");
+        $settings = $db->query("SELECT name, phone, addr, wa_number FROM settings WHERE id=1")->fetch();
+
         $attStmt->execute([$studentId]);
         $recentAtt = $attStmt->fetchAll();
         jsonResponse([
