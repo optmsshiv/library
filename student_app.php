@@ -839,7 +839,7 @@ body::before{
   <nav class="bottom-nav">
     <button class="bn-item active" onclick="switchTab('home',this)" id="btn-home">
       <div class="bn-dot" id="dot-home"></div>
-      <span class="bn-icon"><i class="material-icons-round">Home</i></span>
+      <span class="bn-icon"><i class="material-icons-round">home</i></span>
       <span class="bn-lbl">Home</span>
     </button>
     <button class="bn-item" onclick="switchTab('fees',this)" id="btn-fees">
