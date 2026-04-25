@@ -4173,6 +4173,7 @@ async function loadQRScans() {
   }
 }
 
+
 function fmtTime(t) {
   if (!t) return '—';
   const [h, m] = t.split(':');
